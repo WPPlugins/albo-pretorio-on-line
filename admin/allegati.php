@@ -1,30 +1,23 @@
 <?php
 /**
- * Gestione Allegati.
- * @link       http://www.eduva.org
- * @since      4.0.3
- *
- * @package    ALbo On Line
+ * Albo Pretorio AdminPanel - Gestione Allegati Atto
+ * 
+ * @package Albo Pretorio On line
+ * @author Scimone Ignazio
+ * @copyright 2011-2014
+ * @since 0.0.1
  */
-if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
-
 ?>
 <div class="wrap">
-	<div class="HeadPage" style="margin-bottom: 30px;">
-		<h2 class="wp-heading-inline">Atti</h2>
-		<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
-		<h3>Upload nuovo Allegato</h3>	
-	</div>
+<img src="<?php echo Albo_URL;?>/img/up32.png" alt="Icona Upload File" style="display:inline;float:left;margin-top:10px;"/>
+<h2 style="margin-left:40px;">Allegati</h2>
+<br class="clear" />
 <div id="col-container">
+	<h3>Allogato</h3>
 	<form id="allegato" enctype="multipart/form-data" method="post" action="?page=atti" class="validate">
 	<input type="hidden" name="operazione" value="upload" />
 	<input type="hidden" name="action" value="memo-allegato-atto" />
-	<input type="hidden" name="uploallegato" value="<?php echo wp_create_nonce('uploadallegato')?>" />
-	<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id']; ?>" />
-<?php 
-	if (isset($_REQUEST['ref']))
-		echo '<input type="hidden" name="ref" value="'.htmlentities($_REQUEST['ref']).'" />';
-?>	
+	<input type="hidden" name="id" value="<?php echo $_REQUEST['id']; ?>" />
 	<table class="widefat">
 	    <thead>
 		<tr>
@@ -41,9 +34,7 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 			<td><input name="file" type="file" size="80" /></td>
 		</tr>
 		<tr>
-			<td colspan="2"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Allegato"  />
-			<input type="submit" name="annulla" id="annulla" class="button" value="Annulla Operazione"  />
-			</td>
+			<td colspan="2"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Allegato"  /></td>
 		</tr>
 	    </tbody>
 	</table>
