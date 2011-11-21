@@ -4,11 +4,11 @@ Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 1.1
-Albo Pretorio On Line e' un plugin che permette la gestione dell'albo pretorio delle pubbliche amministrazioni italiane in base al nuovo CAD
+Stable tag: 1.2
+Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
-Albo Pretorio On Line e' un plugin per WordPress che tenta di dare una risposta all'esigenza delle pubbliche amministrazioni di avere a disposizione uno strumento con il quale pubblicare i propri atti in adempimento dell'art. 32 della LEGGE 18 giugno 2009, n. 69 e successive modifiche .
+Albo Pretorio On Line e' un plugin per WordPress che tenta di dare una risposta all'esigenza delle pubbliche amministrazioni di avere a disposizione uno strumento con il quale pubblicare i propri atti in adempimento dell'art. 32 della LEGGE 18 giugno 2009, n. 69 e successive modifiche.
 
 Questa legge prevede che dal 1 gennaio 2011 gli atti soggetti a pubblicazione devono essere pubblicati sul sito internet istituzionale dell'ente per avere efficacia legale.
 
@@ -30,28 +30,20 @@ dove stato può assumere i seguenti valori
          3 - solo gli atti da pubblicare (per ovvi motivi si scoglia l'uso se non per motivi di test)
 
 per_page indica il numero massimo di atti che vengono visualizza in ogni pagina
-
-== Frequently Asked Questions ==
-non ci sono argomenti
-== Screenshots ==
-nessuna
 == Changelog ==
-
 = 1.1 =
-sistemati i problemi con le icone lato amministrazione
-
-migiorato lato utente
-== Upgrade Notice ==
+- sistemati i problemi con le icone lato amministrazione
+- migiorato lato utente
+= 1.2 =
+- risolti problemi lato utente nella visualizzazione dell'atto, paginazione e filtri
+- lato utente ora viene riportato il ome dell'ente
+- in fase di attivazione viene ora riportato la catrella di Upload http://cartellaplugin/allegati
+ == Upgrade Notice ==
 Aggiornare sempre il plugin all'ultima versione fini a che non si arriva ad una versione stabile ed operativa
-
 == Note ==
-
 Versione ancora in fase di sviluppo 
 NON UTILIZZARE IN AMBIENTI OPERATIVI
 L'AUTORE NON SI ASSUME NESSUNA RESPONSABILITA' SUL FUNZIONAMENTO DEL PLUGIN
+== Uso ==
+Per maggiori informazioni e per assistenza il sito di riferimento e' http://www.sisviluppo.info dove e' attivo anche un forum
 
-== Usage ==
-
-Per maggiori informazioni e per assistenza il sito di riferimento è http://www.sisviluppo.info dove e' attivo anche un forum
-
-`<?php code(); // goes in backticks ?>`

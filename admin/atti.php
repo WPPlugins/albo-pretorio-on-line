@@ -5,8 +5,10 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 0.0.1
+ * @since 1.2
  */
+
+if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 switch ($_REQUEST['action']){
 	case "view-atto" :
@@ -663,7 +665,7 @@ if ($Msg_op!=""){
 	$messages[9]=str_replace("%%br%%","<br />",$Msg_op);
 }
 	echo' <div class="wrap">
-	      <img src="'.WP_PLUGIN_URL.'/AlboPretorio/img/atti32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:10px;"/>
+	      <img src="'.Albo_URL.'/img/atti32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:10px;"/>
 <h2 style="margin-left:40px;">Atti <a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a> </h2>';
 	if ( $msg ) {
 		echo '<div id="message" class="updated"><p>'.$messages[$msg].'</p></div>';

@@ -1,19 +1,14 @@
 <?php
 /**
- * Edit Tags Administration Screen.
- *
- * @package WordPress
- * @subpackage Administration
+ * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
+ * 
+ * @package Albo Pretorio On line
+ * @author Scimone Ignazio
+ * @copyright 2011-2014
+ * @since 1.2
  */
 
-/** WordPress Administration Bootstrap */
-/*require_once('./admin.php');
-$tax = get_taxonomy( $taxnow );
-if ( !current_user_can( $tax->cap->manage_terms ) )
-	wp_die( __( 'Cheatin&#8217; uh?' ) );
-*/
-
-
+if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 $messages[1] = __('Item added.');
 $messages[2] = __('Item deleted.');

@@ -5,8 +5,11 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 0.0.1
+ * @since 1.2
  */
+
+if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
+
 ?>
 <div class="wrap">
 <img src="<?php echo Albo_URL;?>/img/up32.png" alt="Icona Upload File" style="display:inline;float:left;margin-top:10px;"/>

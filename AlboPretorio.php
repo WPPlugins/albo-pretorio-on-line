@@ -3,11 +3,11 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:1.1
+Version:1.2
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
-    Copyright YEAR  PLUGIN_AUTHOR_NAME  (email : PLUGIN AUTHOR EMAIL)
+    Copyright YEAR  PLUGIN_AUTHOR_NAME  (email : info@sisviluppo.info)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -22,7 +22,9 @@ License: GPL2
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
+
 if ($_GET['update'] == 'true')
 	$stato="<div id='setting-error-settings_updated' class='updated settings-error'> 
 			<p><strong>Impostazioni salvate.</strong></p></div>";
@@ -110,10 +112,10 @@ if (!class_exists('AlboPretorio')) {
 	  $n_allegati = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Allegati;" ) );	 
 	  $n_categorie = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Categorie;" ) );	 
     
-	echo '<div class="wrap"><div id="icon-options-general" class="icon32"><br></div>
-			<h2>Albo Pretorio</h2></div>
-							<div class="postbox-container" style="width:80%;margin-top:20px;">
-							
+	echo '<div class="wrap">
+		<img src="'.Albo_URL.'/img/albo32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:5px;"/>
+			<h2 style="margin-left:40px;">Albo Pretorio</h2>
+		<div class="postbox-container" style="width:80%;margin-top:20px;">
 		<h3>Sommario</h3>
 	<div class="widefat">
 		<table>
@@ -174,7 +176,8 @@ if (!class_exists('AlboPretorio')) {
 	  $dirUpload =  stripslashes(get_option('opt_AP_FolderUpload'));
 	  print('
 	  <div class="wrap">
-	  <div id="icon-options-general" class="icon32"><br /></div><h2>AlboPretorio Configurazione</h2>
+	  	<img src="'.Albo_URL.'/img/opzioni32.png" alt="Icona configurazione" style="display:inline;float:left;margin-top:10px;"/>
+	  	<h2 style="margin-left:40px;">AlboPretorio Configurazione</h2>
 	  '.$stato.'
 	  <form name="AlboPretorio_cnf" action="'.get_bloginfo('wpurl').'/wp-admin/index.php" method="post">
 	  <input type="hidden" name="c_AnnoProgressivo" value="'.$nanno.'"/>
@@ -197,28 +200,16 @@ if (!class_exists('AlboPretorio')) {
 	    </p>
 	    </form>
 	    </div>');
-	if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
-		echo '<div style="border: medium groove Blue;margin-top:10px;margin-right:250px;">
-				<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
-					<form id="agg_anno_progressivo" method="post" action="?page=config">
-					<input type="hidden" name="action" value="setta-anno" />
-					<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo"  />
-					</form>
-				</div>
-			  </div>';
-	}
-	 //   add_menu_page( "Albo Pretorio", "Albo Pretorio", "Administrator",basename(__FILE__) );
-	 
-	  /*    echo 'Username: ' . $current_user->user_login . " <br />";
-	      echo 'User email: ' . $current_user->user_email . " <br />";
-	      echo 'User first name: ' . $current_user->user_firstname . " <br />";
-	      echo 'User last name: ' . $current_user->user_lastname . " <br />";
-	      echo 'User display name: ' . $current_user->display_name . " <br />";
-	      echo 'User ID: ' . $current_user->ID . " <br />";
-		  if (current_user_can('administrator')) echo "Amministratore";
-		  if (current_user_can('editor')) echo "Aditore";
-		  if (current_user_can('contributor')) echo "Contributore";
-		  if (current_user_can('subscriber')) echo "Sottoscrittore";*/
+		if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
+			echo '<div style="border: medium groove Blue;margin-top:10px;margin-right:250px;">
+					<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
+						<form id="agg_anno_progressivo" method="post" action="?page=config">
+						<input type="hidden" name="action" value="setta-anno" />
+						<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo"  />
+						</form>
+					</div>
+				  </div>';
+		}
 	}
 	function define_tables() {		
 		global $wpdb,$table_prefix;
@@ -271,7 +262,7 @@ if (!class_exists('AlboPretorio')) {
 			add_option('opt_AP_NumeroProgressivo', '0');
 		}
 		if(get_option('opt_AP_FolderUpload' == '') || !get_option('opt_AP_FolderUpload')){
-			add_option('opt_AP_FolderUpload', '0');
+			add_option('opt_AP_FolderUpload', $dirUpload);
 		}
 
 		$sql_Atti = "CREATE TABLE ".$wpdb->table_name_Atti." (

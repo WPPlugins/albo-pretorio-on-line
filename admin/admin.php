@@ -5,8 +5,9 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 0.0.1
+ * @since 1.2
  */
+
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
 
 ################################################################################
@@ -16,8 +17,9 @@ require_once(ABSPATH . 'wp-includes/pluggable.php');
 function ap_head() {
 	global $wp_db_version, $wp_dlm_root;
 	?>
-	<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>/css/epoch_styles.css" />
-	<script type="text/javascript" src="<?php echo Albo_URL; ?>/js/epoch_classes.js"></script>
+	<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>css/epoch_styles.css" />
+	<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>css/styles.css" />
+	<script type="text/javascript" src="<?php echo Albo_URL; ?>js/epoch_classes.js"></script>
 	<script type="text/javascript">
 		var Cal1, Cal2, Cal3; 
 		window.onload = function() {
@@ -265,7 +267,6 @@ class APAdminPanel{
 		add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array ('APAdminPanel', 'show_menu'));
 //		add_submenu_page( 'albo-options', 'Allegati', 'Allegati', 'manage_options', 'allegati', array('APAdminPanel', 'show_menu'));
 		add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array ('APAdminPanel', 'show_menu'));
-		
 		add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array('APAdminPanel', 'show_menu'));
 	}
 

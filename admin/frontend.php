@@ -1,4 +1,16 @@
 <?php
+/**
+ * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
+ * 
+ * @package Albo Pretorio On line
+ * @author Scimone Ignazio
+ * @copyright 2011-2014
+ * @since 1.2
+ */
+
+if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
+
+
 switch ($_REQUEST['action']){
 	case 'visatto':
 		VisualizzaAtto($_REQUEST['id']);
@@ -11,7 +23,6 @@ switch ($_REQUEST['action']){
 		 	case 'Filtra':
 		 		Lista_Atti($Parametri,$_REQUEST['anno'], 0,$_REQUEST['oggetto'],$_REQUEST['DataInizio'],$_REQUEST['DataFine']);
 		 		break;
-
 		 	default:
 			 	Lista_Atti($Parametri);
 			 	break;
@@ -84,10 +95,19 @@ echo '
 function VisualizzaRicerca(){
 $anni=ap_get_dropdown_anni_atti('anno','anno','postform','','',1); 
 $categorie=ap_get_dropdown_categorie('categorie','categorie','postform','','',false,true); 
-return '<div class="ricerca">
+Bonifica_Url();
+if (strpos($_SERVER['REQUEST_URI'],"?")>0)
+	$sep="&";
+else
+	$sep="?";
+$HTML='<div class="ricerca">
 	<div class="ricerca_col_SX">
 		<h1>Filtri</h1>
-		<form id="filtro-atti" action="albo-pretorio" method="get">
+		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="get">';
+		if (strpos($_SERVER['REQUEST_URI'],'page_id')>0){
+			$HTML.= '<input type="hidden" name="page_id" value="'.Estrai_PageID_Url().'" />';
+		}	
+$HTML.= '
 			<table id="filtro-atti" class="tabella-dati-albo" style="text-align:left;">
 				<tr>
 					<th>Anno</th>
@@ -114,11 +134,12 @@ return '<div class="ricerca">
 	<div class="ricerca_col_DX">
 		<h1>Categorie</h1>
 		<p class="finestra_ricerca">'
-		.ap_get_nuvola_categorie("?action=categoria&cat",1).'
+		.ap_get_nuvola_categorie($_SERVER['REQUEST_URI'].$sep."action=categoria&cat",1).'
 		</p>
 	</div>
 	<br style="clear:both;" />
 </div>';	
+return $HTML;
 }
 
 function Lista_Atti($Parametri,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Adata=0){
@@ -151,7 +172,8 @@ switch ($Parametri['stato']){
 	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',0,0,true);
 	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',$Da,$A); 
 echo' <div class="Visalbo" >
-	    <h2 >'.$TitoloAtti.'</h2>
+		<h1>'.stripslashes(get_option('opt_AP_Ente')).'</h1>
+	    <h2>'.$TitoloAtti.'</h2>
 		'.VisualizzaRicerca().'
 		<br class="clear" />';
 	if ($TotAtti>$N_A_pp){
@@ -163,7 +185,10 @@ echo' <div class="Visalbo" >
 				else
 					$Para.='&'.$k.'='.$v;
 		}
-		$Para='?'.substr($Para,1);
+		if ($Para=='')
+			$Para="?Pag=";
+		else
+			$Para="?".$Para."&Pag=";
 		$Npag=(int)$TotAtti/$N_A_pp;
 		if ($TotAtti%$N_A_pp>0){
 			$Npag++;
@@ -174,7 +199,7 @@ echo' <div class="Visalbo" >
     	if (isset($_REQUEST['Pag']) And $_REQUEST['Pag']>1 ){
 			$Pagcur=$_REQUEST['Pag'];
 			$PagPre=$Pagcur-1;
-			echo '&nbsp;<a href="'.$Para.'&Pag='.$PagPre.'" class="next page-numbers">&laquo;</a>';
+			echo '&nbsp;<a href="'.$Para.$PagPre.'" class="next page-numbers">&laquo;</a>';
 		}else{
 			$Pagcur=1;
 		}
@@ -182,12 +207,12 @@ echo' <div class="Visalbo" >
 			if ($i==$Pagcur){
 				echo '&nbsp;<span class="page-numbers current">'.$i.'</span>';
 			}else{
-				echo '&nbsp;<a href="'.$Para.'&Pag='.$i.'" class="page-numbers" >'.$i.'</a>';		
+				echo '&nbsp;<a href="'.$Para.$i.'" class="page-numbers" >'.$i.'</a>';		
 			}
 		}
 		$PagSuc=$Pagcur+1;
 	   	if ($PagSuc<$Npag){
-			echo '&nbsp;<a href="'.$Para.'&Pag='.$PagSuc.'" class="next page-numbers">&raquo;</a>';
+			echo '&nbsp;<a href="'.$Para.$PagSuc.'" class="next page-numbers">&raquo;</a>';
 		}
 	echo'			</p>
     	</div>
@@ -210,8 +235,13 @@ echo '	<div class="tabalbo">
 		$categoria=ap_get_categoria($riga->IdCategoria);
 		$cat=$categoria[0]->Nome;
 		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
+		Bonifica_Url();
+		if (strpos($_SERVER['REQUEST_URI'],"?")>0)
+			$sep="&";
+		else
+			$sep="?";
 		echo '<tr>
-		        <td><a href="'.substr ( $_SERVER['REQUEST_URI'] , 0 , strpos($_SERVER['REQUEST_URI'],'?')).'?action=visatto&id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
+		        <td><a href="'.$_SERVER['REQUEST_URI'].$sep.'action=visatto&id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
 				</td>
 				<td>
 					'.$riga->Riferimento .'
