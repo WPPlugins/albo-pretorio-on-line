@@ -1,13 +1,11 @@
 === Plugin Name ===
 Contributors: Scimone Ignazio
-Donate link: 
-Tags: Albo Pretorio, spam
+Donate link: www.sisviluppo.info
+Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 1.0
-
-Albo Pretorio On Line e' un plugin che permette la gestione dell'albo pretorio delle pubbliche amministrazioni italiane in base al nuovo Codice dell'Amministrazione Digitale.
-
+Stable tag: 1.1
+Albo Pretorio On Line e' un plugin che permette la gestione dell'albo pretorio delle pubbliche amministrazioni italiane in base al nuovo CAD
 == Description ==
 
 Albo Pretorio On Line e' un plugin per WordPress che tenta di dare una risposta all'esigenza delle pubbliche amministrazioni di avere a disposizione uno strumento con il quale pubblicare i propri atti in adempimento dell'art. 32 della LEGGE 18 giugno 2009, n. 69 e successive modifiche .
@@ -34,16 +32,17 @@ dove stato può assumere i seguenti valori
 per_page indica il numero massimo di atti che vengono visualizza in ogni pagina
 
 == Frequently Asked Questions ==
-
-= A question that someone might have =
-
-= What about foo bar? =
-
-Answer to foo bar dilemma.
-
+non ci sono argomenti
 == Screenshots ==
-
+nessuna
 == Changelog ==
+
+= 1.1 =
+sistemati i problemi con le icone lato amministrazione
+
+migiorato lato utente
+== Upgrade Notice ==
+Aggiornare sempre il plugin all'ultima versione fini a che non si arriva ad una versione stabile ed operativa
 
 == Note ==
 
