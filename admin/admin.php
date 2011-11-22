@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.2
+ * @since 1.3
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -98,10 +98,11 @@ function ap_head() {
 add_action('admin_head', 'ap_head');
 
 
-$location = "?page=categorie" ;	
+	
 
 switch ( $_REQUEST['action'] ) {
 	case "delete-allegato-atto" :
+		$location = "?page=categorie" ;
 		ap_del_allegato_atto($_REQUEST['idAllegato'],$_REQUEST['idAtto'],$_REQUEST['Allegato']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
@@ -111,6 +112,7 @@ switch ( $_REQUEST['action'] ) {
 		wp_redirect( $location );
 		break;
 	case 'add-categorie':
+		$location = "?page=categorie" ;
 		$ret=ap_insert_categoria($_POST['cat-name'],$_POST['cat-parente'],$_POST['cat-descrizione'],$_POST['cat-durata']);
 		if ( !$ret && !is_wp_error( $ret ) )
 			$location = add_query_arg( 'message', 1, $location );
@@ -119,6 +121,7 @@ switch ( $_REQUEST['action'] ) {
 		wp_redirect( $location );
 		break;
 	case 'delete-categorie':
+		$location = "?page=categorie" ;
 		$res=ap_del_categorie($_GET['id']);
 		if (!is_array($res))
 			$location = add_query_arg( 'message', 2, $location );
@@ -134,8 +137,21 @@ switch ( $_REQUEST['action'] ) {
 		wp_redirect( $location );
 		break;
 	case 'edit-categorie':
+		$location = "?page=categorie" ;
 		$location = add_query_arg( 'id', $_GET['id'], $location );
 		$location = add_query_arg( 'action', 'edit', $location );
+		wp_redirect( $location );
+		break;
+ 	case "delete-atto":
+ 		$location = "?page=atti" ;
+		$res=ap_del_atto($_GET['id']);
+		if (!is_array($res))
+			$location = add_query_arg( 'message', 2, $location );
+		else{
+			if ($res['allegati']>0) {
+				$location = add_query_arg( 'message', 7, $location );
+			}
+		}
 		wp_redirect( $location );
 		break;
 	case 'memo-categoria':

@@ -5,12 +5,13 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.2
+ * @since 1.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 switch ($_REQUEST['action']){
+
 	case "view-atto" :
 		View_atto($_REQUEST['id']);
 		break;
@@ -658,6 +659,7 @@ $messages[3] = __('Item updated.');
 $messages[4] = __('Item not added.');
 $messages[5] = __('Item not updated.');
 $messages[6] = __('Item not deleted.');
+$messages[7] = __('Impossibile cancellare un Atto che contiene Allegati<br />Cancellare prima gli Allegati e poi riprovare');
 if (isset($_REQUEST['message'])) 
 	$msg = (int) $_REQUEST['message'];
 if ($Msg_op!=""){

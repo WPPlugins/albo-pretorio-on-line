@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.2
+ * @since 1.3
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -376,6 +376,19 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
 							 {DataFine}==> $DataFine"
 							  );
 }
+function ap_del_atto($id) {
+	global $wpdb;
+	$N_allegati=ap_num_allegati_atto($id);
+	if ($N_allegati>0){
+		return array("allegati" => $N_allegati);
+	}
+	else{
+	 	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Atti WHERE	IdAtto=%d",$id));
+		ap_insert_log(1,3,$id,"Cancellazione Atto",$id);
+
+		return True;
+	}
+}
 
 function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria){
 	global $wpdb;
@@ -582,6 +595,11 @@ function ap_get_dropdown_atti($select_name,$id_name,$class,$tab_index_attribute,
 ################################################################################
 // Funzioni Allegati
 ################################################################################
+function ap_num_allegati_atto($id){
+	global $wpdb;
+	return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Allegati WHERE IdAtto=%d",$id));
+	
+}
 function ap_get_all_allegati_atto($idAtto){
 	global $wpdb;
 	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati WHERE IdAtto=". (int)$idAtto.";");
