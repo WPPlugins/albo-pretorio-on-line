@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.3
+ * @since 1.4
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -211,7 +211,7 @@ echo' <div class="Visalbo" >
 			}
 		}
 		$PagSuc=$Pagcur+1;
-	   	if ($PagSuc<$Npag){
+	   	if ($PagSuc<=$Npag){
 			echo '&nbsp;<a href="'.$Para.$PagSuc.'" class="next page-numbers">&raquo;</a>';
 		}
 	echo'			</p>

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:1.3
+Version:1.4
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -36,7 +36,7 @@ define("Albo_DIR",dirname (__FILE__));
 if (!class_exists('AlboPretorio')) {
  class AlboPretorio {
 	
-	var $version     = '1.3';
+	var $version     = '1.4';
 	var $minium_WP   = '3.1';
 	var $options     = '';
 	
@@ -151,8 +151,8 @@ if (!class_exists('AlboPretorio')) {
 	if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 		echo '<div style="border: medium groove Blue;margin-top:10px;">
 				<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
-					<form id="agg_anno_progressivo" method="post" action="?page=albo-options">
-					<input type="hidden" name="action" value="setta-anno" />
+					<form id="agg_anno_progressivo" method="post" action="?page=config">
+						<input type="hidden" name="action" value="setta-anno" />
 					<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo"  />
 					</form>
 				</div>

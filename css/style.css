@@ -1,5 +1,5 @@
 table.tabella-dati-albo{
-	padding: 0;
+	padding: 10;
 	margin: 0;
 }
 .bottoneFE{
@@ -40,7 +40,7 @@ div.ricerca select{
 div.ricerca .Titolo{
 	text-align: center;
 	color: Blue;
-	font-size: 14px;
+	font-size: 12px;
 }
 
 div.Visallegato{

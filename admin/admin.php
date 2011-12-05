@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.3
+ * @since 1.4
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -98,10 +98,25 @@ function ap_head() {
 add_action('admin_head', 'ap_head');
 
 
-	
 
 switch ( $_REQUEST['action'] ) {
-	case "delete-allegato-atto" :
+		case 'updatecss':
+			$location = "?page=editorcss";
+			$file=stripslashes( $_REQUEST['file']);
+			$newcontent = stripslashes($_REQUEST['newcontent']);
+			if (is_writeable($file)) {
+				//is_writable() not always reliable, check return value. see comments @ http://uk.php.net/is_writable
+				
+				$f = fopen($file, 'w+');
+				if ($f !== FALSE) {
+					fwrite($f, $newcontent);
+					fclose($f);
+					$location.="&a=1";
+				} 
+			}
+			wp_redirect( $location );
+		break;	
+		case "delete-allegato-atto" :
 		$location = "?page=categorie" ;
 		ap_del_allegato_atto($_REQUEST['idAllegato'],$_REQUEST['idAtto'],$_REQUEST['Allegato']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
@@ -284,6 +299,7 @@ class APAdminPanel{
 //		add_submenu_page( 'albo-options', 'Allegati', 'Allegati', 'manage_options', 'allegati', array('APAdminPanel', 'show_menu'));
 		add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array ('APAdminPanel', 'show_menu'));
 		add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array('APAdminPanel', 'show_menu'));
+		add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss', array('APAdminPanel', 'show_menu'));
 	}
 
 	// load the script for the defined page and load only this code	
@@ -291,7 +307,7 @@ class APAdminPanel{
 		
 		global $AP_OnLine;
 		
-  		switch ($_GET['page']){
+  		switch ($_REQUEST['page']){
 			case "Albo_Pretorio" :
 				$AP_OnLine->AP_menu();
 				break;
@@ -306,6 +322,9 @@ class APAdminPanel{
 				break;
 			case "allegati" :
 				include_once ( dirname (__FILE__) . '/allegati.php' );	// admin functions
+				break;
+			case "editorcss":
+				include_once ( dirname (__FILE__) . '/editor.php' );	// admin functions
 				break;
 		}
 	}
