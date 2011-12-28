@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.4
+ * @since 1.5
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -13,7 +13,7 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 
 switch ($_REQUEST['action']){
 	case 'visatto':
-		VisualizzaAtto($_REQUEST['id']);
+		VisualizzaAtto($_REQUEST['id'],$_REQUEST['rif']);
 		break;
 	case 'categoria':
 		Lista_Atti($Parametri,0,$_REQUEST['cat']);
@@ -29,7 +29,7 @@ switch ($_REQUEST['action']){
 		}
 }
 
-function VisualizzaAtto($id){
+function VisualizzaAtto($id,$rif){
 	$risultato=ap_get_atto($id);
 	$risultato=$risultato[0];
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
@@ -38,6 +38,7 @@ function VisualizzaAtto($id){
 	echo '
 <div class="Visalbo">
 <h2>Dati atto</h2>
+<a href="'.$rif.'" title="Torna alla lista degli atti">Torna alla Lista</a>
 <table class="tabVisalbo">
 	    <tbody id="dati-atto">
 		<tr>
@@ -83,7 +84,7 @@ foreach ($allegati as $allegato) {
 			<div>
 				<p>
 					'.$allegato->TitoloAllegato.' <br />
-					<a href="'.Albo_URL .'allegati/'.basename($allegato->Allegato).'" target="_parent"">'. basename( $allegato->Allegato).'</a>
+					<a href="'.DaPath_a_URL($allegato->Allegato).'" target="_parent"">'. basename( $allegato->Allegato).'</a>
 				</p>
 			</div>
 		</div>';
@@ -100,9 +101,12 @@ if (strpos($_SERVER['REQUEST_URI'],"?")>0)
 	$sep="&";
 else
 	$sep="?";
+$titFiltri=get_option('opt_AP_LivelloTitoloFiltri');
+if ($titFiltri=='')
+	$titFiltri="h3";
 $HTML='<div class="ricerca">
 	<div class="ricerca_col_SX">
-		<h1>Filtri</h1>
+		<'.$titFiltri.'>Filtri</'.$titFiltri.'>
 		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="get">';
 		if (strpos($_SERVER['REQUEST_URI'],'page_id')>0){
 			$HTML.= '<input type="hidden" name="page_id" value="'.Estrai_PageID_Url().'" />';
@@ -132,7 +136,7 @@ $HTML.= '
 		</form>
 	</div>
 	<div class="ricerca_col_DX">
-		<h1>Categorie</h1>
+		<'.$titFiltri.'>Categorie</'.$titFiltri.'>
 		<p class="finestra_ricerca">'
 		.ap_get_nuvola_categorie($_SERVER['REQUEST_URI'].$sep."action=categoria&cat",1).'
 		</p>
@@ -171,9 +175,16 @@ switch ($Parametri['stato']){
 	}
 	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',0,0,true);
 	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',$Da,$A); 
-echo' <div class="Visalbo" >
-		<h1>'.stripslashes(get_option('opt_AP_Ente')).'</h1>
-	    <h2>'.$TitoloAtti.'</h2>
+$titEnte=get_option('opt_AP_LivelloTitoloEnte');
+if ($titEnte=='')
+	$titEnte="h2";
+$titPagina=get_option('opt_AP_LivelloTitoloPagina');
+if ($titPagina=='')
+	$titPagina="h3";
+echo' <div class="Visalbo">';
+if (get_option('opt_AP_VisualizzaEnte')=='Si')
+		echo '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
+echo'<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>
 		'.VisualizzaRicerca().'
 		<br class="clear" />';
 	if ($TotAtti>$N_A_pp){
@@ -230,6 +241,9 @@ echo '	<div class="tabalbo">
 			</tr>
 	    </thead>
 	    <tbody>';
+	    $riferimento=$_SERVER['REDIRECT_URL'];
+		if ($_SERVER['QUERY_STRING']) 
+			$riferimento.="?".$_SERVER['QUERY_STRING'];
 	if ($lista){
 		foreach($lista as $riga){
 		$categoria=ap_get_categoria($riga->IdCategoria);
@@ -241,7 +255,7 @@ echo '	<div class="tabalbo">
 		else
 			$sep="?";
 		echo '<tr>
-		        <td><a href="'.$_SERVER['REQUEST_URI'].$sep.'action=visatto&id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
+		        <td><a href="'.$_SERVER['REQUEST_URI'].$sep.'action=visatto&id='.$riga->IdAtto.'&rif='.$riferimento.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
 				</td>
 				<td>
 					'.$riga->Riferimento .'

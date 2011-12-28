@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.4
+ * @since 1.5
  */
 
 if ( !current_user_can('admin_albo') )

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:1.4
+Version:1.5
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -32,6 +32,7 @@ if ($_GET['update'] == 'true')
 include_once(dirname (__FILE__) .'/functions.inc.php');				/* Various functions used throughout */
 define("Albo_URL",plugin_dir_url(dirname (__FILE__).'/AlboPretorio.php'));
 define("Albo_DIR",dirname (__FILE__));
+define("AP_BASE_DIR",substr(WP_PLUGIN_DIR,0,strpos(WP_PLUGIN_DIR,"wp-content", 0)));
 
 if (!class_exists('AlboPretorio')) {
  class AlboPretorio {
@@ -170,11 +171,29 @@ if (!class_exists('AlboPretorio')) {
 	  $ente   = stripslashes(get_option('opt_AP_Ente'));
 	  $nprog  =  get_option('opt_AP_NumeroProgressivo');
 	  $nanno=get_option('opt_AP_AnnoProgressivo');
+	  $visente=get_option('opt_AP_VisualizzaEnte');
+	  $efftext=get_option('opt_AP_EffettiTesto');
+	  $effcss3=get_option('opt_AP_EffettiCSS3');
+	  $livelloTitoloEnte=get_option('opt_AP_LivelloTitoloEnte');
+	  $livelloTitoloPagina=get_option('opt_AP_LivelloTitoloPagina');
+	  $livelloTitoloFiltri=get_option('opt_AP_LivelloTitoloFiltri');
+	  if ($visente=="Si")
+	  	$ve_selezionato='checked="checked"';
+	  else
+	  	$ve_selezionato='';
+	  if ($efftext=="Si")
+	  	$ve_efftext='checked="checked"';
+	  else
+	  	$ve_efftext='';
+	  if ($effcss3=="Si")
+	  	$ve_effcss3='checked="checked"';
+	  else
+	  	$ve_effcss3='';
 	  if (!$nanno){
 		$nanno=date("Y");
 		}
 	  $dirUpload =  stripslashes(get_option('opt_AP_FolderUpload'));
-	  print('
+	  echo '
 	  <div class="wrap">
 	  	<img src="'.Albo_URL.'/img/opzioni32.png" alt="Icona configurazione" style="display:inline;float:left;margin-top:10px;"/>
 	  	<h2 style="margin-left:40px;">AlboPretorio Configurazione</h2>
@@ -187,19 +206,67 @@ if (!class_exists('AlboPretorio')) {
 			<td><input type="text" name="c_Ente" value="'.$ente.'" size="100"/></td>
 		</tr>
 		<tr valign="top">
+			<th scope="row"><label for="blogname">Visualizza Nome Ente</label></th>
+			<td><input type="checkbox" name="c_VEnte" value="Si" '.$ve_selezionato.'/></td>
+		</tr>		
+		<tr valign="top">
+			<th scope="row"><label for="blogname">Utilizza effetti testo Shadow</label></th>
+			<td><input type="checkbox" name="c_TE" value="Si" '.$ve_efftext.'/></td>
+		</tr>		
+		<tr valign="top">
+			<th scope="row"><label for="blogname">Utilizza effetti CSS3</label></th>
+			<td><input type="checkbox" name="c_CSS3" value="Si" '.$ve_effcss3.'/></td>
+		</tr>		
+		<tr valign="top">
+			<th scope="row"><label for="blogname">Titolo Nome Ente</label></th>
+			<td>
+				<select name="c_LTE" id="LivelloTitoloEnte" >';
+			for ($i=2;$i<5;$i++){
+				echo '<option value="h'.$i.'"';
+				if($livelloTitoloEnte=='h'.$i) 
+					echo 'selected="selected"';
+				echo '>h'.$i.'</option>';	
+			}
+		echo '</select></td>
+		</tr>		
+		<tr valign="top">
+			<th scope="row"><label for="blogname">Titolo Pagina Albo</label></th>
+			<td>
+				<select name="c_LTP" id="LivelloTitoloPagina" >';
+			for ($i=2;$i<5;$i++){
+				echo '<option value="h'.$i.'"';
+				if($livelloTitoloPagina=='h'.$i) 
+					echo 'selected="selected"';
+				echo '>h'.$i.'</option>';	
+			}
+		echo '</select></td>
+		</tr>		
+		<tr valign="top">
+			<th scope="row"><label for="blogname">Titolo Filtri</label></th>
+			<td>
+				<select name="c_LTF" id="LivelloTitoloFiltri" >';
+			for ($i=2;$i<5;$i++){
+				echo '<option value="h'.$i.'"';
+				if($livelloTitoloFiltri=='h'.$i) 
+					echo 'selected="selected"';
+				echo '>h'.$i.'</option>';	
+			}
+		echo '</select></td>
+		</tr>		
+		<tr valign="top">
 			<th scope="row"><label for="blogname">Numero Progressivo</label></th>
 			<td><input type="text" name="c_NumeroProgressivo" value="'.$nprog.'" size="5"/>/ '.$nanno.'</td>
 		</tr>
 		<tr valign="top">
 			<th scope="row"><label for="blogname">Cartella Upload</label></th>
-			<td><input type="text" name="c_dirUpload" value="'.$dirUpload.'" size="80"/><input type="button" value="Valore di Default" onclick="this.form.c_dirUpload.value=\''.addslashes(dirname (__FILE__)) . '/allegati\'"></td>
+			<td><input type="text" name="c_dirUpload" value="'.$dirUpload.'" size="80"/><input type="button" value="Valore di Default" onclick="this.form.c_dirUpload.value="wp-content/uploads"><br />inserire una cartella valida partendo da <strong>'.AP_BASE_DIR.'</strong></td>
 		</tr>
 		</table>
 	    <p class="submit">
 	        <input type="submit" name="AlboPretorio_submit_button" value="Salva Modifiche" />
 	    </p>
 	    </form>
-	    </div>');
+	    </div>';
 		if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 			echo '<div style="border: medium groove Blue;margin-top:10px;margin-right:250px;">
 					<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
@@ -264,7 +331,24 @@ if (!class_exists('AlboPretorio')) {
 		if(get_option('opt_AP_FolderUpload' == '') || !get_option('opt_AP_FolderUpload')){
 			add_option('opt_AP_FolderUpload', $dirUpload);
 		}
-
+		if(get_option('opt_AP_VisualizzaEnte' == '') || !get_option('opt_AP_VisualizzaEnte')){
+			add_option('opt_AP_VisualizzaEnte', 'Si');
+		}
+		if(get_option('opt_AP_EffettiTesto' == '') || !get_option('opt_AP_EffettiTesto')){
+			add_option('opt_AP_EffettiTesto', 'Si');
+		}
+		if(get_option('opt_AP_EffettiCSS3' == '') || !get_option('opt_AP_EffettiCSS3')){
+			add_option('opt_AP_EffettiCSS3', 'Si');
+		}
+		if(get_option('opt_AP_LivelloTitoloEnte' == '') || !get_option('opt_AP_LivelloTitoloEnte')){
+			add_option('opt_AP_LivelloTitoloEnte', 'h2');
+		}
+		if(get_option('opt_AP_LivelloTitoloPagina' == '') || !get_option('opt_AP_LivelloTitoloPagina')){
+			add_option('opt_AP_LivelloTitoloPagina', 'h3');
+		}
+		if(get_option('opt_AP_LivelloTitoloFiltri' == '') || !get_option('opt_AP_LivelloTitoloFiltri')){
+			add_option('opt_AP_LivelloTitoloFiltri', 'h4');
+		}
 		$sql_Atti = "CREATE TABLE ".$wpdb->table_name_Atti." (
 		  `IdAtto` int(11) NOT NULL auto_increment,
 		  `Numero` int(4) NOT NULL default 0,
@@ -352,15 +436,28 @@ if (!class_exists('AlboPretorio')) {
 		delete_option( 'opt_AP_NumeroProgressivo' );
 		delete_option( 'opt_AP_AnnoProgressivo' );
 		delete_option( 'opt_AP_NumeroProtocollo' );
-		
+		delete_option( 'opt_AP_EffettiTesto' );
+		delete_option( 'opt_AP_EffettiCSS3' );
+		delete_option( 'opt_AP_LivelloTitoloEnte' );
+		delete_option( 'opt_AP_LivelloTitoloPagina' );
+		delete_option( 'opt_AP_LivelloTitoloFiltri' );
 	}
 	function update_AlboPretorio_settings(){
 	    if($_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
 		    update_option('opt_AP_Ente',$_POST['c_Ente'] );
+		    if ($_POST['c_VEnte']=='Si')
+			    update_option('opt_AP_VisualizzaEnte','Si' );
+			else
+				update_option('opt_AP_VisualizzaEnte','No' );
 		    update_option('opt_AP_AnnoProgressivo',$_POST['c_AnnoProgressivo'] );
 		    update_option('opt_AP_NumeroProgressivo',$_POST['c_NumeroProgressivo'] );
+		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
+		    update_option('opt_AP_EffettiCSS3',$_POST['c_CSS3'] );
+		    update_option('opt_AP_LivelloTitoloEnte',$_POST['c_LTE'] );
+		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
+		    update_option('opt_AP_LivelloTitoloFiltri',$_POST['c_LTF'] );
 		    update_option('opt_AP_FolderUpload',$_POST['c_dirUpload'] );
-		    header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=config&update=true'); 
+			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=config&update=true'); 
   		}
 	}
 	function albo_styles() {
@@ -371,6 +468,22 @@ if (!class_exists('AlboPretorio')) {
             wp_register_style('AlboPretorio', $myStyleUrl);
             wp_enqueue_style( 'AlboPretorio');
         }
+        if (get_option('opt_AP_EffettiTesto')=="Si"){
+			$myStyleUrl = plugins_url('css/styleTE.css', __FILE__); 
+	        $myStyleFile = Albo_DIR.'/css/styleTE.css';
+	        if ( file_exists($myStyleFile) ) {
+	            wp_register_style('AlboPretorioTextEffect', $myStyleUrl);
+	            wp_enqueue_style( 'AlboPretorioTextEffect');
+	        }	
+		}
+        if (get_option('opt_AP_EffettiCSS3')=="Si"){
+			$myStyleUrl = plugins_url('css/style3.css', __FILE__); 
+	        $myStyleFile = Albo_DIR.'/css/style3.css';
+	        if ( file_exists($myStyleFile) ) {
+	            wp_register_style('AlboPretorioCSS3', $myStyleUrl);
+	            wp_enqueue_style( 'AlboPretorioCSS3');
+	        }	
+		}
         $myStyleUrl = plugins_url('css/epoch_styles.css', __FILE__); 
         $myStyleFile = Albo_DIR.'/css/epoch_styles.css';
         if ( file_exists($myStyleFile) ) {

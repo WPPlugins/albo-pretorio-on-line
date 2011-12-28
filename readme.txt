@@ -4,7 +4,7 @@ Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 1.4
+Stable tag: 1.5
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -31,19 +31,29 @@ dove stato può assumere i seguenti valori
 
 per_page indica il numero massimo di atti che vengono visualizza in ogni pagina
 == Changelog ==
-= 1.1 =
-- sistemati i problemi con le icone lato amministrazione
-- migiorato lato utente
-= 1.2 =
-- risolti problemi lato utente nella visualizzazione dell'atto, paginazione e filtri
-- lato utente ora viene riportato il ome dell'ente
-- in fase di attivazione viene ora riportato la catrella di Upload http://cartellaplugin/allegati
-= 1.3 =
-- risolto problema cancellazione atto
+= 1.5 =
+- <strong>Aggiunta</strong> la gestione dinamica degli effetti nel front end. Si possono attivare e disattivare gli effetti sul testo e gli effetti di smussamento degli angoli delle tabelle di filtro
+- <strong>Aggiunta</strong> la possibilita' di gestire il livello dei titoli da h2 ad h4 di:
+	- Nome Ente
+	- Titolo Pagina
+	- Titoli aree filtro
+- <strong>Modificata</strong> la gestione della cartella di download, adesso bisogna specificare una cartella del file system partendo dalla cartella root di Wordpress.
 = 1.4 =
-- aggiunto l'editor per il file CSS
+- <strong>Aggiunto</strong> l'editor per il file CSS
+= 1.3 =
+- <strong>Risolto</strong> problema cancellazione atto
+= 1.2 =
+- <strong>Risolti</strong> problemi lato utente nella visualizzazione dell'atto, paginazione e filtri
+- <strong>Aggiunto</strong> lato utente ora viene riportato il nome dell'ente
+- <strong>Modificato</strong> in fase di attivazione viene ora riportato la cartella di Upload /home/sisvilup/public_html/wp-content/plugins/albo-pretorio-on-line/allegati
+= 1.1 =
+- <strong>Sistemati</strong> i problemi con le icone lato amministrazione
+- <strong>Migliorato</strong> lato utente
  == Upgrade Notice ==
 Aggiornare sempre il plugin all'ultima versione fini a che non si arriva ad una versione stabile ed operativa
+
+<strong>Aggiornamento alla versione 1.5:
+Aggiornare in Parametri, la cartella di Upload.</strong>
 == Note ==
 Versione ancora in fase di sviluppo 
 NON UTILIZZARE IN AMBIENTI OPERATIVI

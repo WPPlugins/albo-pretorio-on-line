@@ -1,30 +1,17 @@
 table.tabella-dati-albo{
 	padding: 10;
 	margin: 0;
+	width:90%;
 }
-.bottoneFE{
-	-moz-border-radius: 24px/24px;
-	-khtml-border-radius: 24px/24px;
-	-webkit-border-radius: 24px/24px;
-	border-radius: 24px/24px;
 
-}
 .finestra_ricerca{
 	border: thin outset Black;
-	-moz-border-radius: 14px/14px;
-	-khtml-border-radius: 14px/14px;
-	-webkit-border-radius: 14px/14px;
-	border-radius: 14px/14px;
 	padding: 3px;
 	background-color: #F4F4F4;
 }
 
 div.ricerca{
 	border: thin solid Black;
-	-moz-border-radius: 14px/14px;
-	-khtml-border-radius: 14px/14px;
-	-webkit-border-radius: 14px/14px;
-	border-radius: 14px/14px;
 	padding: 5px;
 	font-size: 10px;
 }
@@ -51,19 +38,21 @@ div.Visalbo{
 	width: 100%;
 }
 div.Visalbo h2{
-	font-size: 1.5em;
-	text-transform: capitalize;
-	text-shadow: 3px 3px 3px #000;
-	color: Blue;
-}
-div.Visalbo h1{
 	font-size: 2em;
 	text-transform: capitalize;
-	text-shadow: 3px 3px 3px #000;
 	color: Blue;
 	text-align: center;
 }
-
+div.Visalbo h3{
+	font-size: 1.5em;
+	text-transform: capitalize;
+	color: Blue;
+}
+div.Visalbo h4{
+	font-size: 1.1em;
+	text-transform: capitalize;
+	color: Blue;
+}
 .tabVisalbo{
 	width: 100%;
 	clear: both;
@@ -73,10 +62,6 @@ div.Visalbo h1{
 	font-size: 10px;
 	vertical-align: top;
 	border: thin solid Black;
-	-moz-border-radius: 4px/4px;
-	-khtml-border-radius: 4px/4px;
-	-webkit-border-radius: 4px/4px;
-	border-radius: 4px/4px;
 	background-color: #F3F3F3;
 	padding: 5px;
 	color: Blue;
@@ -84,9 +69,6 @@ div.Visalbo h1{
 
 .tabVisalbo a{
 	text-decoration:none;
-}
-.tabVisalbo *{
- 	word-wrap:break-word;
 }
 .tabVisalbo th{
 	text-transform: capitalize;
@@ -104,16 +86,9 @@ div.Visalbo h1{
 	width: 100%;
 	clear: both;
 	margin: 0;
-	-moz-border-radius: 5px/5px;
-	-khtml-border-radius: 5px/5px;
-	-webkit-border-radius: 5px/5px;
-	border-radius: 5px/5px;
 }
 .tabalbo a{
 	text-decoration:none;
-}
-.tabalbo *{
- 	word-wrap:break-word;
 }
 .tabalbo td{
 	font-size: 10px;
@@ -144,8 +119,6 @@ a.pagina:hover {
 a.pagina {
 	height: 20px;
 	width: 50px;
-	-moz-border-radius: 1em 4em 1em 4em;
-	border-radius: 1em 4em 1em 4em;
 	background-color: #999;
 }
 .tablenav-pages{
@@ -162,10 +135,7 @@ a.pagina {
 	padding:3px 6px;
 	border-width:1px;
 	border-style:solid;
-	-moz-border-radius:4px;
-	-khtml-border-radius:4px;
-	-webkit-border-radius:4px;
-	border-radius:4px;}
+}
 .tablenav{
  	margin-right:10px;
 	font-size:12px;

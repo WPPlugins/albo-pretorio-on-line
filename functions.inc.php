@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.4
+ * @since 1.5
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -13,7 +13,30 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 ################################################################################
 // Funzioni 
 ################################################################################
-
+function DaPath_a_URL($File){
+	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
+	$Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
+	return $Url;
+	
+}
+function UniqueFileName($filename,$inc=0){
+	$baseName=$filename;
+	while (file_exists($filename)){
+		$arrfile=explode(".", $baseName);
+		$ext=end($arrfile);
+		$fname='';
+		for ($i=0;$i<count($arrfile)-1;$i++){
+			$fname.=$arrfile[$i];
+		}
+		$inc++;
+		$filename=$fname.$inc.'.'.$ext;
+	}
+	return $filename;	
+}
+function ap_get_num_allegati($id){
+	global $wpdb;
+	return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdAllegato) FROM $wpdb->table_name_Allegati WHERE IdAtto=%d",(int)$id)));
+}
 function Bonifica_Url(){
 	foreach( $_REQUEST as $key => $value){
 		if ($key!="page_id")	
@@ -652,22 +675,5 @@ global $wpdb;
 	return True;
 
 }
-function UniqueFileName($filename,$inc=0){
-	$baseName=$filename;
-	while (file_exists($filename)){
-		$arrfile=explode(".", $baseName);
-		$ext=end($arrfile);
-		$fname='';
-		for ($i=0;$i<count($arrfile)-1;$i++){
-			$fname.=$arrfile[$i];
-		}
-		$inc++;
-		$filename=$fname.$inc.'.'.$ext;
-	}
-	return $filename;	
-}
-function ap_get_num_allegati($id){
-	global $wpdb;
-	return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdAllegato) FROM $wpdb->table_name_Allegati WHERE IdAtto=%d",(int)$id)));
-}
+
 ?>
