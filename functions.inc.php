@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.5
+ * @since 1.6
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -13,6 +13,31 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 ################################################################################
 // Funzioni 
 ################################################################################
+function isTable($NomeTabella){
+	global $wpdb;
+	$Tabella=$wpdb->get_row("SHOW TABLES LIKE '$NomeTabella'", ARRAY_A);
+	if(count($Tabella)>0 ) 
+		return true;
+	else
+		return false;
+}
+function existFieldInTable($Tabella, $Campo){
+	global $wpdb;
+	$ris=$wpdb->get_row("SHOW COLUMNS FROM '$Tabella' LIKE '$Campo'", ARRAY_A);
+	if(count($ris)>0 ) 
+		return true;
+	else
+		return false;	
+}
+function AddFiledTable($Tabella, $Campo, $Parametri){
+	global $wpdb;
+	if ( false === $wpdb->query("ALTER TABLE $Tabella ADD $Campo $Parametri")){
+		return new WP_Error('db_insert_error', 'Non sono riuscito a creare il campo '.$Campo.' Nella Tabella '.$Tabella.' Errore '.$wpdb->last_error, $wpdb->last_error);
+	} else{
+		return true;
+	}
+}
+
 function DaPath_a_URL($File){
 	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
 	$Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
@@ -178,6 +203,7 @@ Oggetto int(1)
 	1=> Atti
 	2=> Categorie
 	3=> Allegati
+	4=> Responsabili
 	
 TipoOperazione int(1)
 	1=> Inserimento
@@ -198,9 +224,14 @@ global $wpdb, $current_user;
 													'Operazione' => $Operazione));	
 }
 
-function ap_get_all_Oggetto_log($Oggetto,$IdOggetto,$IdAtto=0){
+function ap_get_all_Oggetto_log($Oggetto,$IdOggetto=0,$IdAtto=0){
 global $wpdb, $current_user;
-	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Log WHERE Oggetto=". (int)$Oggetto ." and IdOggetto=".(int)$IdOggetto." or IdAtto=".(int)$IdAtto." order by Data;");	
+	$condizione="WHERE Oggetto=". (int)$Oggetto;
+	if ($IdOggetto!=0)
+		$condizione.=" and IdOggetto=". (int)$IdOggetto ;
+	if ($IdAtto!=0)
+		$condizione.=" or IdAtto=".(int)$IdAtto;
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data;");	
 }
 
 ################################################################################
@@ -370,7 +401,7 @@ function ap_num_figli_categorie($id){
 // Funzioni Atti
 ################################################################################
 
-function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria){
+function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
 	global $wpdb;
 	$Anno=date("Y");
 	$Numero=0;
@@ -387,7 +418,8 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
 				'DataInizio' => $DataInizio,
 				'DataFine' => $DataFine,
 				'Informazioni' => $Note,
-				'IdCategoria' => $Categoria)))	
+				'IdCategoria' => $Categoria,
+				'RespProc' => $Responsabile)))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo Atto'.$wpdb->last_error, $wpdb->last_error);
     else
     	ap_insert_log(1,1,$wpdb->insert_id,"{Numero} $Numero/$Anno 
@@ -396,7 +428,8 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
 							 {Oggetto}==> $Oggetto 
 							 {IdOggetto}==> $wpdb->insert_id
 							 {DataInizio}==> $DataInizio
-							 {DataFine}==> $DataFine"
+							 {DataFine}==> $DataFine
+							 {Responsabile}==> $Responsabile"
 							  );
 }
 function ap_del_atto($id) {
@@ -413,7 +446,7 @@ function ap_del_atto($id) {
 	}
 }
 
-function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria){
+function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
 	global $wpdb;
 	$Data=convertiData($Data);
 	$DataInizio=convertiData($DataInizio);
@@ -425,7 +458,8 @@ function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Not
 						  'DataInizio' => $DataInizio,
 						  'DataFine' => $DataFine,
 						  'Informazioni' => $Note,
-						  'IdCategoria' => $Categoria),
+						  'IdCategoria' => $Categoria,
+						  'RespProc' => $Responsabile),
 						  array( 'IdAtto' => $id ),
 						  array('%s',
 								'%s',
@@ -433,6 +467,7 @@ function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Not
 								'%s',
 								'%s',
 								'%s',
+								'%d',
 								'%d'),
 						  array('%d')))
     	return new WP_Error('db_update_error', 'Non sono riuscito a modifire l\' Atto'.$wpdb->last_error, $wpdb->last_error);
@@ -674,6 +709,99 @@ global $wpdb;
 
 	return True;
 
+}
+################################################################################
+// Funzioni Responsabili
+################################################################################
+function ap_get_dropdown_responsabili($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuno") {
+	global $wpdb;
+	$responsabili = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_RespProc ORDER BY nome;");	
+	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute>\n";
+	if ($default=="Nessuno"){
+		$output .= "\t<option value='0' selected='selected'>Nessuno</option>\n";
+	}else{
+		$output .= "\t<option value='0' >Nessuno </option>\n";
+	}
+	if ( ! empty( $responsabili ) ) {	
+		foreach ($responsabili as $c) {
+			$output .= "\t<option value='$c->IdResponsabile'";
+			if ($c->IdResponsabile==$default){
+				$output .= " selected=\"selected\" ";
+			}
+			$output .=" >$c->Cognome $c->Nome</option>\n";
+		}
+	}
+	$output .= "</select>\n";
+	return $output;
+}
+
+function ap_num_responsabili_atto($id){
+	global $wpdb;
+	return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti WHERE RespProc=%d",$id));
+}
+
+function ap_get_responsabili(){
+	global $wpdb;
+//	echo "SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_RespProc ORDER BY Cognome , Nome;");	
+}
+function ap_get_responsabile($Id){
+	global $wpdb;
+//	echo "SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=$Id;";
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=$Id;");	
+}
+function ap_insert_responsabile($resp_cognome,$resp_nome,$resp_email,$resp_telefono,$resp_orario,$resp_note){
+	global $wpdb;
+	if ( false === $wpdb->insert($wpdb->table_name_RespProc,array('Cognome' => $resp_cognome,
+	                                                              'Nome' => $resp_nome,
+																  'Email' => $resp_email,
+																  'Telefono' => $resp_telefono,
+																  'Orario' => $resp_orario,
+																  'Note' => $resp_note)))	
+        return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il Nuovo Responsabile'.$wpdb->last_error, $wpdb->last_error);
+    else
+    	ap_insert_log(4,1,$wpdb->insert_id,"{IdResponsabile}==> $wpdb->insert_id
+		                                    {Cognome}==> $resp_cognome 
+		                                    {Nome}==> $resp_nome 
+											{Email}==> $resp_email");
+}
+function ap_memo_responsabile($Id,$resp_cognome,$resp_nome,$resp_email,$resp_telefono,$resp_orario,$resp_note){
+	global $wpdb;
+	$num=$wpdb->update($wpdb->table_name_RespProc,
+					array('Cognome' => $resp_cognome,
+	                      'Nome' => $resp_nome,
+						  'Email' => $resp_email,
+						  'Telefono' => $resp_telefono,
+						  'Orario' => $resp_orario,
+						  'Note' => $resp_note),
+					array('IdResponsabile' => $Id),
+					array( '%s',
+						   '%s',
+						   '%s',
+						   '%s',
+						   '%s',
+						   '%s'));
+//	echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;
+	if (false===$num)
+		return false;
+	else {
+		ap_insert_log(4,2,$id,"{IdResponsabile}==> $Id
+		                       {Cognome}==> $resp_cognome
+		                       {Nome}==> $resp_nome");
+		return true;
+	}
+}
+
+function ap_del_responsabile($id) {
+	global $wpdb;
+	$N_atti=ap_num_responsabili_atto($id);
+	if ($N_atti>0){
+		return array("atti" => $N_atti);
+	}else{
+	 	$result=$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_RespProc WHERE IdResponsabile=%d",$id));
+		ap_insert_log(4,3,$id,"Cancellazione Responsabile {IdResponsabile}==> $id",$id);
+		return $result;
+	}
 }
 
 ?>

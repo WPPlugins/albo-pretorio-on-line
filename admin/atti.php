@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.5
+ * @since 1.6
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -339,7 +339,12 @@ function Nuovo_atto(){
 		<tr>
 			<th>Categoria</th>
 			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform','',0).'</td>
-			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</td>
+			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</td>
+		</tr>
+		<tr>
+			<th>Responsabile Procedimento</th>
+			<td>'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform').'</td>
+			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
 		</tr>
 		<tr>
 			<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Atto"  /></td>
@@ -411,6 +416,11 @@ $atto=$atto[0];
 			<th>Categoria</th>
 			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria).'</td>
 			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</td>
+		</tr>
+		<tr>
+			<th>Responsabile Procedimento </th>
+			<td>'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc).'</td>
+			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
 		</tr>
 		<tr>
 			<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Memorizza Modifiche Atto" /></td>

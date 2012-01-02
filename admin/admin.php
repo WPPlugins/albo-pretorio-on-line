@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.5
+ * @since 1.6
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -42,6 +42,16 @@ function ap_head() {
 	
 				$('a.dc').click(function(){
 					var answer = confirm("Confermi la cancellazione della Categoria `" + $(this).attr('rel') + '` ?')
+					if (answer){
+						return true;
+					}
+					else{
+						return false;
+					}					
+				});
+
+				$('a.dr').click(function(){
+					var answer = confirm("Confermi la cancellazione del Responsabile del Trattamento `" + $(this).attr('rel') + '` ?')
 					if (answer){
 						return true;
 					}
@@ -126,6 +136,76 @@ switch ( $_REQUEST['action'] ) {
 		$location= add_query_arg( array ( 'action' => 'allegati-atto', 'id' => $_REQUEST['idAtto'] ));
 		wp_redirect( $location );
 		break;
+	case 'add-responsabile':
+		$location = "?page=responsabili" ;
+		if (!is_email( $_REQUEST['resp-email'] )){
+			$location = add_query_arg( 'errore', 'Email non valida', $location );
+			$location = add_query_arg( 'message', 4, $location );
+			$location = add_query_arg( 'resp-cognome', $_POST['resp-cognome'], $location );
+			$location = add_query_arg( 'resp-nome', $_POST['resp-nome'], $location );
+			$location = add_query_arg( 'resp-email', $_POST['resp-email'], $location );
+			$location = add_query_arg( 'resp-telefono', $_POST['resp-telefono'], $location );
+			$location = add_query_arg( 'resp-orario', $_POST['resp-orario'], $location );
+			$location = add_query_arg( 'resp-note', $_POST['resp-note'], $location );
+			$location = add_query_arg( 'action', 'add', $location );
+		}
+		else{
+			$ret=ap_insert_responsabile($_POST['resp-cognome'],$_POST['resp-nome'],$_POST['resp-email'],$_POST['resp-telefono'],$_POST['resp-orario'],$_POST['resp-note']);
+			if ( !$ret && !is_wp_error( $ret ) )
+				$location = add_query_arg( 'message', 1, $location );
+			else
+				$location = add_query_arg( 'message', 4, $location );
+		}
+		wp_redirect( $location );
+		break;
+	case 'edit-responsabile':
+		$location = "?page=responsabili" ;
+		$location = add_query_arg( 'id', $_GET['id'], $location );
+		$location = add_query_arg( 'action', 'edit', $location );
+		wp_redirect( $location );
+		break;
+	case 'memo-responsabile':
+		$location = "?page=responsabili" ;
+		if (!is_email( $_REQUEST['resp-email'] )){
+			$location = add_query_arg( 'errore', 'Email non valida', $location );
+			$location = add_query_arg( 'message', 5, $location );
+			$location = add_query_arg( 'resp-cognome', $_REQUEST['resp-cognome'], $location );
+			$location = add_query_arg( 'resp-nome', $_REQUEST['resp-nome'], $location );
+			$location = add_query_arg( 'resp-email', $_REQUEST['resp-email'], $location );
+			$location = add_query_arg( 'resp-telefono', $_REQUEST['resp-telefono'], $location );
+			$location = add_query_arg( 'resp-orario', $_REQUEST['resp-orario'], $location );
+			$location = add_query_arg( 'resp-note', $_REQUEST['resp-note'], $location );
+			$location = add_query_arg( 'action', 'edit_err', $location );
+			$location = add_query_arg( 'id', $_REQUEST['id'], $location );
+		}
+		else
+			if (ap_memo_responsabile($_REQUEST['id'],
+								  $_REQUEST['resp-cognome'],
+								  $_REQUEST['resp-nome'],
+								  $_REQUEST['resp-email'],
+								  $_REQUEST['resp-telefono'],
+								  $_REQUEST['resp-orario'],
+								  $_REQUEST['resp-note']))
+				$location = add_query_arg( 'message', 3, $location );
+			else
+				$location = add_query_arg( 'message', 5, $location );
+//		global $wpdb;
+//		echo $wpdb->last_query;exit; 
+		wp_redirect( $location );
+		break;
+	case 'delete-responsabile':
+		$location = "?page=responsabili" ;
+		$res=ap_del_responsabile($_GET['id']);
+		if (!is_array($res))
+			$location = add_query_arg( 'message', 2, $location );
+		else{
+			if ($res['atti']>0)
+				$location = add_query_arg( 'message', 7, $location );
+			else
+				$location = add_query_arg( 'message', 6, $location );
+		}
+		wp_redirect( $location );
+		break;
 	case 'add-categorie':
 		$location = "?page=categorie" ;
 		$ret=ap_insert_categoria($_POST['cat-name'],$_POST['cat-parente'],$_POST['cat-descrizione'],$_POST['cat-durata']);
@@ -157,19 +237,8 @@ switch ( $_REQUEST['action'] ) {
 		$location = add_query_arg( 'action', 'edit', $location );
 		wp_redirect( $location );
 		break;
- 	case "delete-atto":
- 		$location = "?page=atti" ;
-		$res=ap_del_atto($_GET['id']);
-		if (!is_array($res))
-			$location = add_query_arg( 'message', 2, $location );
-		else{
-			if ($res['allegati']>0) {
-				$location = add_query_arg( 'message', 7, $location );
-			}
-		}
-		wp_redirect( $location );
-		break;
 	case 'memo-categoria':
+		$location = "?page=categorie" ;
 		if (!is_wp_error( ap_memo_categorie($_REQUEST['id'],
 							  $_REQUEST['cat-name'],
 							  $_REQUEST['cat-parente'],
@@ -183,6 +252,18 @@ switch ( $_REQUEST['action'] ) {
 //		echo $wpdb->last_query;exit; 
 		wp_redirect( $location );
 		break;
+ 	case "delete-atto":
+ 		$location = "?page=atti" ;
+		$res=ap_del_atto($_GET['id']);
+		if (!is_array($res))
+			$location = add_query_arg( 'message', 2, $location );
+		else{
+			if ($res['allegati']>0) {
+				$location = add_query_arg( 'message', 7, $location );
+			}
+		}
+		wp_redirect( $location );
+		break;
 	case "add-atto" :
 		$location = "?page=atti" ;
 		$ret=ap_insert_atto($_POST['Data'],
@@ -191,7 +272,8 @@ switch ( $_REQUEST['action'] ) {
 							$_POST['DataInizio'],
 							$_POST['DataFine'],
 							$_POST['Note'],
-							$_POST['Categoria']);
+							$_POST['Categoria'],
+							$_POST['Responsabile']);
 		if ( !$ret && !is_wp_error( $ret ) )
 			$location = add_query_arg( 'message', 1, $location );
 		else
@@ -207,7 +289,8 @@ switch ( $_REQUEST['action'] ) {
 						  $_POST['DataInizio'],
 						  $_POST['DataFine'],
 						  $_POST['Note'],
-						  $_POST['Categoria']);
+						  $_POST['Categoria'],
+						  $_POST['Responsabile']);
 		if ( !$ret && !is_wp_error( $ret ) )
 			$location = add_query_arg( 'message', 3, $location );
 		else
@@ -262,7 +345,7 @@ function Memo_allegato_atto(){
 				  if ($_FILES["file"]["error"] > 0){
 					$messages= "Errore: " . $_FILES["file"]["error"];
 		    	}else{
-					$destination_path = get_option('opt_AP_FolderUpload').'/';
+					$destination_path = addslashes(AP_BASE_DIR).get_option('opt_AP_FolderUpload').'/';
 			   		$result = 0;
 			   		UniqueFileName(stripcslashes($destination_path) . basename( $_FILES['file']['name']));
 				   	$target_path = UniqueFileName(stripcslashes($destination_path) . basename( $_FILES['file']['name']));
@@ -298,6 +381,7 @@ class APAdminPanel{
 		add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array ('APAdminPanel', 'show_menu'));
 //		add_submenu_page( 'albo-options', 'Allegati', 'Allegati', 'manage_options', 'allegati', array('APAdminPanel', 'show_menu'));
 		add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array ('APAdminPanel', 'show_menu'));
+		add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array ('APAdminPanel', 'show_menu'));
 		add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array('APAdminPanel', 'show_menu'));
 		add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss', array('APAdminPanel', 'show_menu'));
 	}
@@ -316,6 +400,9 @@ class APAdminPanel{
 				break;
 			case "categorie" :
 				include_once ( dirname (__FILE__) . '/categorie.php' );	// admin functions
+				break;
+			case "responsabili" :
+				include_once ( dirname (__FILE__) . '/responsabili.php' );	// admin functions
 				break;
 			case "atti" :
 				include_once ( dirname (__FILE__) . '/atti.php' );	// admin functions

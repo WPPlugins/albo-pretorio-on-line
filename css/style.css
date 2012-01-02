@@ -78,7 +78,48 @@ div.Visalbo h4{
 	width: 160px;
 	padding-right: 5px;
 }
+.tabVisResp{
+	width: 100%;
+	clear: both;
+	margin: 0;
+}
+.tabVisResp td{
+	font-size: 10px;
+	vertical-align: top;
+	padding: 5px;
+	color: Blue;
+}
+.tabVisResp tr{
+	border: none;
+}
+.tabVisResp th{
+	text-transform: capitalize;
+	text-align: right;
+	font-size: 10px;
+	font-weight: bold;
+	width: 160px;
+	padding-right: 5px;
+}
+.tabVisalbo td{
+	font-size: 10px;
+	vertical-align: top;
+	border: thin solid Black;
+	background-color: #F3F3F3;
+	padding: 5px;
+	color: Blue;
+}
 
+.tabVisalbo a{
+	text-decoration:none;
+}
+.tabVisalbo th{
+	text-transform: capitalize;
+	text-align: right;
+	font-size: 10px;
+	font-weight: bold;
+	width: 160px;
+	padding-right: 5px;
+}
 .tabalbo{
 	border-width: 1px;
 	border-style: solid;

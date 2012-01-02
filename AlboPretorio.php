@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:1.5
+Version:1.6
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -286,6 +286,7 @@ if (!class_exists('AlboPretorio')) {
 		$wpdb->table_name_Categorie = $table_prefix . "albopretorio_categorie";
 		$wpdb->table_name_Allegati = $table_prefix . "albopretorio_allegati";
 		$wpdb->table_name_Log=$table_prefix . "albopretorio_log";
+		$wpdb->table_name_RespProc=$table_prefix . "albopretorio_resprocedura";
 	}
 
 	static function activate() {
@@ -319,37 +320,38 @@ if (!class_exists('AlboPretorio')) {
 		
 				// Add the admin menu
 
-		if(get_option('opt_AP_Ente' == '') || !get_option('opt_AP_Ente')){
+		if(get_option('opt_AP_Ente' ) == '' || !get_option('opt_AP_Ente')){
 			add_option('opt_AP_Ente', 'Ente non definito');
 		}
-		if(get_option('opt_AP_AnnoProgressivo' == '') || !get_option('opt_AP_AnnoProgressivo')){
+		if(get_option('opt_AP_AnnoProgressivo')  == '' || !get_option('opt_AP_AnnoProgressivo')){
 			add_option('opt_AP_AnnoProgressivo', ''.date("Y").'');
 		}
-		if(get_option('opt_AP_NumeroProgressivo' == '') || !get_option('opt_AP_NumeroProgressivo')){
+		if(get_option('opt_AP_NumeroProgressivo')  == '' || !get_option('opt_AP_NumeroProgressivo')){
 			add_option('opt_AP_NumeroProgressivo', '0');
 		}
-		if(get_option('opt_AP_FolderUpload' == '') || !get_option('opt_AP_FolderUpload')){
+		if(get_option('opt_AP_FolderUpload') == '' || !get_option('opt_AP_FolderUpload')){
 			add_option('opt_AP_FolderUpload', $dirUpload);
 		}
-		if(get_option('opt_AP_VisualizzaEnte' == '') || !get_option('opt_AP_VisualizzaEnte')){
+		if(get_option('opt_AP_VisualizzaEnte') == '' || !get_option('opt_AP_VisualizzaEnte')){
 			add_option('opt_AP_VisualizzaEnte', 'Si');
 		}
-		if(get_option('opt_AP_EffettiTesto' == '') || !get_option('opt_AP_EffettiTesto')){
+		if(get_option('opt_AP_EffettiTesto') == '' || !get_option('opt_AP_EffettiTesto')){
 			add_option('opt_AP_EffettiTesto', 'Si');
 		}
-		if(get_option('opt_AP_EffettiCSS3' == '') || !get_option('opt_AP_EffettiCSS3')){
+		if(get_option('opt_AP_EffettiCSS3') == '' || !get_option('opt_AP_EffettiCSS3')){
 			add_option('opt_AP_EffettiCSS3', 'Si');
 		}
-		if(get_option('opt_AP_LivelloTitoloEnte' == '') || !get_option('opt_AP_LivelloTitoloEnte')){
+		if(get_option('opt_AP_LivelloTitoloEnte') == '' || !get_option('opt_AP_LivelloTitoloEnte')){
 			add_option('opt_AP_LivelloTitoloEnte', 'h2');
 		}
-		if(get_option('opt_AP_LivelloTitoloPagina' == '') || !get_option('opt_AP_LivelloTitoloPagina')){
+		if(get_option('opt_AP_LivelloTitoloPagina') == '' || !get_option('opt_AP_LivelloTitoloPagina')){
 			add_option('opt_AP_LivelloTitoloPagina', 'h3');
 		}
-		if(get_option('opt_AP_LivelloTitoloFiltri' == '') || !get_option('opt_AP_LivelloTitoloFiltri')){
+		if(get_option('opt_AP_LivelloTitoloFiltri') == '' || !get_option('opt_AP_LivelloTitoloFiltri')){
 			add_option('opt_AP_LivelloTitoloFiltri', 'h4');
 		}
-		$sql_Atti = "CREATE TABLE ".$wpdb->table_name_Atti." (
+		
+		$sql_Atti = "CREATE TABLE IF NOT EXISTS ".$wpdb->table_name_Atti." (
 		  `IdAtto` int(11) NOT NULL auto_increment,
 		  `Numero` int(4) NOT NULL default 0,
 		  `Anno` int(4) NOT NULL default 0,
@@ -362,14 +364,14 @@ if (!class_exists('AlboPretorio')) {
 		  `IdCategoria` int(11) NOT NULL default 0,
 		  PRIMARY KEY  (`IdAtto`));";
 
-		$sql_Allegati = "CREATE TABLE ".$wpdb->table_name_Allegati." (
+		$sql_Allegati = "CREATE TABLE IF NOT EXISTS ".$wpdb->table_name_Allegati." (
 		  `IdAllegato` int(11) NOT NULL auto_increment,
 		  `TitoloAllegato` varchar(255) NOT NULL default '',
 		  `Allegato` varchar(255) NOT NULL default '',
 		  `IdAtto` int(11) NOT NULL default 0,
 		  PRIMARY KEY  (`IdAllegato`));";
 		
-		$sql_Categorie = "CREATE TABLE ".$wpdb->table_name_Categorie." (
+		$sql_Categorie = "CREATE TABLE IF NOT EXISTS ".$wpdb->table_name_Categorie." (
 		  `IdCategoria` int(11) NOT NULL auto_increment,
 		  `Nome` varchar(255) NOT NULL default '',
 		  `Descrizione` varchar(255) NOT NULL default '',
@@ -377,7 +379,7 @@ if (!class_exists('AlboPretorio')) {
 		  `Giorni` smallint(3) NOT NULL DEFAULT '0',
 		  PRIMARY KEY  (`IdCategoria`));";
 
-		$sql_Log = "CREATE TABLE ".$wpdb->table_name_Log." (
+		$sql_Log = "CREATE TABLE  IF NOT EXISTS ".$wpdb->table_name_Log." (
   		  `Data` timestamp NOT NULL default CURRENT_TIMESTAMP,
   		  `Utente` varchar(60) NOT NULL default '',
           `IPAddress` varchar(16) NOT NULL default '',
@@ -386,13 +388,31 @@ if (!class_exists('AlboPretorio')) {
           `IdAtto` int(11) NOT NULL default 0,
           `TipoOperazione` int(1) NOT NULL default 1,
           `Operazione` text);";
+ 
+ 		$sql_RespProc = "CREATE TABLE  IF NOT EXISTS ".$wpdb->table_name_RespProc." (
+  		  `IdResponsabile` int(11) NOT NULL auto_increment,
+  		  `Cognome` varchar(20) NOT NULL default '',
+          `Nome` varchar(20) NOT NULL default '',
+          `Email` varchar(100) NOT NULL default '',
+          `Telefono` varchar(30) NOT NULL default '',
+          `Orario` varchar(60) NOT NULL default '',
+          `Note` text,
+		   PRIMARY KEY  (`IdResponsabile`));";   
+		  
+/*************************************************************************************
+** Area riservata per l'aggiunta di nuovi campi in una delle tabelle dell' albo ******
+*************************************************************************************/
+		if (!existFieldInTable($wpdb->table_name_Atti, "RespProc")){
+			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "RespProc", "INT NOT NULL")))
+				echo $ret;
+		}
           
-		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+ 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		     dbDelta($sql_Atti);
 		     dbDelta($sql_Allegati);
 		     dbDelta($sql_Categorie);
 		     dbDelta($sql_Log);
-		     
+		     dbDelta($sql_RespProc);
 	}  	 
 	static function deactivate() {
 		
@@ -430,6 +450,7 @@ if (!class_exists('AlboPretorio')) {
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Allegati);
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Categorie);
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Log);
+		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_RespProc);
 		
 		// Eliminazioni Opzioni
 		delete_option( 'opt_AP_Ente' );
