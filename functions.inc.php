@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.6
+ * @since 1.7
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -23,7 +23,8 @@ function isTable($NomeTabella){
 }
 function existFieldInTable($Tabella, $Campo){
 	global $wpdb;
-	$ris=$wpdb->get_row("SHOW COLUMNS FROM '$Tabella' LIKE '$Campo'", ARRAY_A);
+//	echo "SHOW COLUMNS FROM $Tabella LIKE '$Campo'";exit;
+	$ris=$wpdb->get_row("SHOW COLUMNS FROM $Tabella LIKE '$Campo'", ARRAY_A);
 	if(count($ris)>0 ) 
 		return true;
 	else
@@ -419,8 +420,10 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
 				'DataFine' => $DataFine,
 				'Informazioni' => $Note,
 				'IdCategoria' => $Categoria,
-				'RespProc' => $Responsabile)))	
-        return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo Atto'.$wpdb->last_error, $wpdb->last_error);
+				'RespProc' => $Responsabile)))	{
+ 
+// echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
+        return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo Atto'.$wpdb->last_error, $wpdb->last_error);}
     else
     	ap_insert_log(1,1,$wpdb->insert_id,"{Numero} $Numero/$Anno 
 							 {Data}==> $Data 
@@ -713,7 +716,7 @@ global $wpdb;
 ################################################################################
 // Funzioni Responsabili
 ################################################################################
-function ap_get_dropdown_responsabili($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuno") {
+function ap_get_dropdown_responsabili($select_name,$id_name,$class,$tab_index_attribute="", $default="Nessuno") {
 	global $wpdb;
 	$responsabili = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_RespProc ORDER BY nome;");	
 	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute>\n";

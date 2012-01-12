@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:1.6
+Version:1.7
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -259,7 +259,7 @@ if (!class_exists('AlboPretorio')) {
 		</tr>
 		<tr valign="top">
 			<th scope="row"><label for="blogname">Cartella Upload</label></th>
-			<td><input type="text" name="c_dirUpload" value="'.$dirUpload.'" size="80"/><input type="button" value="Valore di Default" onclick="this.form.c_dirUpload.value="wp-content/uploads"><br />inserire una cartella valida partendo da <strong>'.AP_BASE_DIR.'</strong></td>
+			<td><input type="text" name="c_dirUpload" value="'.$dirUpload.'" size="80"/><input type="button" value="Valore di Default" onclick="this.form.c_dirUpload.value=\'wp-content/uploads\'"><br />inserire una cartella valida partendo da <strong>'.AP_BASE_DIR.'</strong></td>
 		</tr>
 		</table>
 	    <p class="submit">
@@ -399,20 +399,21 @@ if (!class_exists('AlboPretorio')) {
           `Note` text,
 		   PRIMARY KEY  (`IdResponsabile`));";   
 		  
-/*************************************************************************************
-** Area riservata per l'aggiunta di nuovi campi in una delle tabelle dell' albo ******
-*************************************************************************************/
-		if (!existFieldInTable($wpdb->table_name_Atti, "RespProc")){
-			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "RespProc", "INT NOT NULL")))
-				echo $ret;
-		}
-          
  		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		     dbDelta($sql_Atti);
 		     dbDelta($sql_Allegati);
 		     dbDelta($sql_Categorie);
 		     dbDelta($sql_Log);
 		     dbDelta($sql_RespProc);
+		     
+/*************************************************************************************
+** Area riservata per l'aggiunta di nuovi campi in una delle tabelle dell' albo ******
+*************************************************************************************/
+          
+		if (!existFieldInTable($wpdb->table_name_Atti, "RespProc")){
+			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "RespProc", "INT NOT NULL")))
+				echo $ret;
+		}
 	}  	 
 	static function deactivate() {
 		
@@ -462,6 +463,8 @@ if (!class_exists('AlboPretorio')) {
 		delete_option( 'opt_AP_LivelloTitoloEnte' );
 		delete_option( 'opt_AP_LivelloTitoloPagina' );
 		delete_option( 'opt_AP_LivelloTitoloFiltri' );
+		delete_option( 'opt_AP_FolderUpload' );
+		delete_option( 'opt_AP_VisualizzaEnte' );  
 	}
 	function update_AlboPretorio_settings(){
 	    if($_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
