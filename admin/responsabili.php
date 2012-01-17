@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.7
+ * @since 1.8
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -83,9 +83,9 @@ echo'
 	<table class="widefat">
 	    <thead>
 		<tr>
-			<th style="font-size:2em;">Data</th>
-			<th style="font-size:2em;">Operazione</th>
-			<th style="font-size:2em;">Informazioni</th>
+			<th style="font-size:1.2em;">Data</th>
+			<th style="font-size:1.2em;">Operazione</th>
+			<th style="font-size:1.2em;">Informazioni</th>
 		</tr>
 	    </thead>
 	    <tbody id="righe-log">';

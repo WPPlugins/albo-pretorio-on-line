@@ -5,109 +5,10 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.7
+ * @since 1.8
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
-
-################################################################################
-// ADMIN HEADER
-################################################################################
-
-function ap_head() {
-	global $wp_db_version, $wp_dlm_root;
-	?>
-	<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>css/epoch_styles.css" />
-	<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>css/styles.css" />
-	<script type="text/javascript" src="<?php echo Albo_URL; ?>js/epoch_classes.js"></script>
-	<script type="text/javascript">
-		var Cal1, Cal2, Cal3; 
-		window.onload = function() {
-			Cal1 = new Epoch('cal1','popup',document.getElementById('Calendario1'),false);
-			Cal2 = new Epoch('cal2','popup',document.getElementById('Calendario2'),false);
-			Cal3 = new Epoch('cal3','popup',document.getElementById('Calendario3'),false);
-		};
-	</script>
-	<script language="JavaScript">
-		function change(html){
-			description.innerHTML=html
-		}
-	</script>
-	<script type="text/javascript">
-	/* <![CDATA[ */
-		jQuery.noConflict();
-		(function($) {
-		
-			$(function() {
-	
-				$('a.dc').click(function(){
-					var answer = confirm("Confermi la cancellazione della Categoria `" + $(this).attr('rel') + '` ?')
-					if (answer){
-						return true;
-					}
-					else{
-						return false;
-					}					
-				});
-
-				$('a.dr').click(function(){
-					var answer = confirm("Confermi la cancellazione del Responsabile del Trattamento `" + $(this).attr('rel') + '` ?')
-					if (answer){
-						return true;
-					}
-					else{
-						return false;
-					}					
-				});
-
-				$('a.da').click(function(){
-					var answer = confirm("Confermi la cancellazione del\'Allegato `" + $(this).attr('rel') + '` ?')
-					if (answer){
-						return true;
-					}
-					else{
-						return false;
-					}					
-				});
-				$('a.ac').click(function(){
-					var answer = confirm("Confermi la cancellazione dell' Atto: `" + $(this).attr('rel') + '` ?')
-					if (answer){
-						return true;
-					}
-					else{
-						return false;
-					}					
-				});
-				$('a.ap').click(function(){
-					var answer = confirm("approvazione Atto: `" + $(this).attr('rel') + '`\nAttenzione la Data Pubblicazione verra` impostata ad oggi ?')
-					if (answer){
-						return true;
-					}
-					else{
-						return false;
-					}					
-				});
-				$('input.update').click(function(){
-					var answer = confirm("confermi la modifica della Categoria " + $(this).attr('rel') + '?')
-					if (answer){
-						return true;
-					}
-					else{
-						return false;
-					}					
-				});
-				
-			});
-		
-		})(jQuery);
-
-	/* ]]> */
-	</script>
-<?php
-}
-add_action('admin_head', 'ap_head');
-
-
 
 switch ( $_REQUEST['action'] ) {
 		case 'updatecss':
@@ -365,58 +266,5 @@ function Memo_allegato_atto(){
 	}
 	return $messages;
 }
-class APAdminPanel{
-	
-	// constructor
-	function APAdminPanel() {
 
-		// Add the admin menu
-		add_action( 'admin_menu', array (&$this, 'add_menu') ); 
-		$role =& get_role( 'amministratore_albo' );
-
-	}
-
-	static function add_menu(){
-  		add_menu_page('Panoramica', 'Albo Pretorio', 'gest_atti_albo', 'Albo_Pretorio',array ('APAdminPanel', 'show_menu'));
-		add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array ('APAdminPanel', 'show_menu'));
-//		add_submenu_page( 'albo-options', 'Allegati', 'Allegati', 'manage_options', 'allegati', array('APAdminPanel', 'show_menu'));
-		add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array ('APAdminPanel', 'show_menu'));
-		add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array ('APAdminPanel', 'show_menu'));
-		add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array('APAdminPanel', 'show_menu'));
-		add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss', array('APAdminPanel', 'show_menu'));
-	}
-
-	// load the script for the defined page and load only this code	
-	function show_menu() {
-		
-		global $AP_OnLine;
-		
-  		switch ($_REQUEST['page']){
-			case "Albo_Pretorio" :
-				$AP_OnLine->AP_menu();
-				break;
-			case "config" :
-				$AP_OnLine->AP_config();
-				break;
-			case "categorie" :
-				include_once ( dirname (__FILE__) . '/categorie.php' );	// admin functions
-				break;
-			case "responsabili" :
-				include_once ( dirname (__FILE__) . '/responsabili.php' );	// admin functions
-				break;
-			case "atti" :
-				include_once ( dirname (__FILE__) . '/atti.php' );	// admin functions
-				break;
-			case "allegati" :
-				include_once ( dirname (__FILE__) . '/allegati.php' );	// admin functions
-				break;
-			case "editorcss":
-				include_once ( dirname (__FILE__) . '/editor.php' );	// admin functions
-				break;
-		}
-	}
-	
-
-
-}
 ?>

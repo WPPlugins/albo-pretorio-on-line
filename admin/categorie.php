@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.7
+ * @since 1.8
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -49,7 +49,8 @@ if ($_REQUEST['action']=="edit"){
 		</tr>
     </thead>
     <tbody id="the-list">
-<?php $lista=ap_get_categorie_gerarchica(); 
+<?php 
+$lista=ap_get_categorie_gerarchica(); 
 echo '<tr>
         	<td>
 			<ul>';
@@ -69,13 +70,47 @@ if ($lista){
 } else {
 		echo '<li>Nessuna Categoria Codificata</li>';
 }
-echo '</td>
-	</tr>
-</ul>';
-?>
-            </tbody>
-        </table>
+echo '</ul>
+		</td>
+	 </tr>
+      </tbody>
+	</table>
 </div>
+<div class="col-wrap">
+<h3>Log</h3>';
+$righe=ap_get_all_Oggetto_log(2);
+echo'
+	<table class="widefat">
+	    <thead>
+		<tr>
+			<th style="font-size:1.2em;">Data</th>
+			<th style="font-size:1.2em;">Operazione</th>
+			<th style="font-size:1.2em;">Informazioni</th>
+		</tr>
+	    </thead>
+	    <tbody id="righe-log">';
+foreach ($righe as $riga) {
+	switch ($riga->TipoOperazione){
+	 	case 1:
+	 		$Operazione="Inserimento";
+	 		break;
+	 	case 2:
+	 		$Operazione="Modifica";
+			break;
+	 	case 3:
+	 		$Operazione="Cancellazione";
+			break;
+	}
+	echo '<tr  title="'.$riga->Utente.' da '.$riga->IPAddress.'">
+			<td >'.$riga->Data.'</th>
+			<td >'.$Operazione.'</th>
+			<td >'.stripslashes($riga->Operazione).'</td>
+		</tr>';
+}
+echo '    </tbody>
+	</table>
+</div>';
+?>
 </div><!-- /col-right -->
 
 <div id="col-left">

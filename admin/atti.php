@@ -5,13 +5,16 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.7
+ * @since 1.8
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 switch ($_REQUEST['action']){
-
+	case "logatto" :
+		echo json_encode(CreaLog(1,$IdAtto,0));
+		die();
+		break;
 	case "view-atto" :
 		View_atto($_REQUEST['id']);
 		break;
@@ -462,7 +465,7 @@ if ($IdAllegato!=0){
 	<table class="widefat">
 	    <thead>
 		<tr>
-			<th colspan="3" style="text-align:center;font-size:2em;">Dati Allegato</th>
+			<th colspan="3" style="text-align:center;font-size:1.2em;">Dati Allegato</th>
 		</tr>
 	    </thead>
 	    <tbody id="dati-allegato">
@@ -491,9 +494,9 @@ if ($IdAllegato!=0){
 		<table class="widefat">
 		    <thead>
 			<tr>
-				<th style="font-size:2em;">Operazioni</th>
-				<th style="font-size:2em;">Allegato</th>
-				<th style="font-size:2em;">File</th>
+				<th style="font-size:1.2em;">Operazioni</th>
+				<th style="font-size:1.2em;">Allegato</th>
+				<th style="font-size:1.2em;">File</th>
 			</tr>
 		    </thead>
 		    <tbody id="righe-log">';
@@ -524,7 +527,7 @@ echo'</div>
 	<table class="widefat">
 	    <thead>
 		<tr>
-			<th colspan="2" style="text-align:center;font-size:2em;">Dati atto</th>
+			<th colspan="2" style="text-align:center;font-size:1.2em;">Dati atto</th>
 		</tr>
 	    </thead>
 	    <tbody id="dati-atto">
@@ -567,96 +570,117 @@ echo'</div>
 </div>';	
 }
 function View_atto($IdAtto){
+	global $AP_OnLine;
+?>
+<script  type='text/javascript'>
+<!--
+// When the document loads do everything inside here ...
+jQuery(document).ready(function(){
+	jQuery('input.infolog').click(function() { //start function when Random button is clicked
+		var tipo;
+		switch (jQuery(this).attr('value')){
+			case "Atti":
+				tipo=1;
+				break;
+			case "Allegati":
+				tipo=3;
+				break;
+			case "Statistiche":
+				tipo=99;
+				break;
+		}
+		jQuery.ajax({
+			type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo $_GET['id']; ?>', IdAtto: '<?php echo $IdAtto; ?>'},
+			beforeSend: function() {
+			 jQuery("#DatiLog").html('');
+			 jQuery("#loading").fadeIn('fast');}, 
+			success: function(html){
+				jQuery("#loading").fadeOut('fast');
+				jQuery("#DatiLog").html(html); 
+			}
+		}); //close jQuery.ajax
+		return false;
+	})
+});
+-->
+</script>
+<style type='text/css'>
+#loading { clear:both; background:url(images/loading.gif) center top no-repeat; text-align:center;padding:33px 0px 0px 0px; font-size:12px;display:none; font-family:Verdana, Arial, Helvetica, sans-serif; }
+</style>
+<?php
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
 	$risultatocategoria=$risultatocategoria[0];
+	$responsabile=ap_get_responsabile($risultato->RespProc);
+	$responsabile=$responsabile[0];
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
 <h2 style="margin-left:40px;">Atto</h2>
-<br class="clear" />
+
 <div id="col-container">
-<div id="col-right">
-<div class="col-wrap">
-<h3>Log</h3>';
-$righe=ap_get_all_Oggetto_log(1,$risultato->IdAtto,$risultato->IdAtto);
-echo'
-	<table class="widefat">
-	    <thead>
-		<tr>
-			<th style="font-size:2em;">Data</th>
-			<th style="font-size:2em;">Operazione</th>
-			<th style="font-size:2em;">Informazioni</th>
-		</tr>
-	    </thead>
-	    <tbody id="righe-log">';
-foreach ($righe as $riga) {
-	switch ($riga->TipoOperazione){
-	 	case 1:
-	 		$Operazione="Inserimento";
-	 		break;
-	 	case 2:
-	 		$Operazione="Modifica";
-			break;
-	 	case 3:
-	 		$Operazione="Cancellazione";
-			break;
-	}
-	echo '<tr  title="'.$riga->Utente.' da '.$riga->IPAddress.'">
-			<td >'.$riga->Data.'</th>
-			<td >'.$Operazione.'</th>
-			<td >'.stripslashes($riga->Operazione).'</td>
-		</tr>';
-}
-echo '    </tbody>
-	</table>
-</div>
-</div>
+	<div id="col-right">
+		<div class="col-wrap">
+			<h3>Log</h3>
+			<form action="" method="POST" id="formlog">
+			<p><input type="submit" name="action" id="LogAtti" value="Atti" class="infolog"/>
+			<input type="submit" name="action" id="LogAllegati" value="Allegati" class="infolog"/>
+			<input type="submit" name="action" id="LogStatistiche" value="Statistiche" class="infolog"/></p>
+			</form>
+			<div id="loading">LOADING!</div>
+				<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div> 
+		</div>
+	</div>
+
 <div id="col-left">
 <div class="col-wrap">
-<h3>Dati Atto</h3>
-	<table class="widefat">
+<br class="clear" />	
+<table class="widefat">
 	    <thead>
 		<tr>
-			<th colspan="2" style="text-align:center;font-size:2em;">Dati atto</th>
+			<th colspan="2" style="text-align:center;font-size:1.2em;">Dati atto</th>
 		</tr>
 	    </thead>
 	    <tbody id="dati-atto">
 		<tr>
 			<th style="width:20%;">Numero Albo</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Data.'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Data.'</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Riferimento).'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Riferimento).'</td>
 		</tr>
 		<tr>
 			<th>Oggetto</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Oggetto).'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Oggetto).'</td>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataInizio.'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataInizio.'</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataFine.'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataFine.'</td>
 		</tr>
 		<tr>
 			<th>Note</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
 		</tr>
 		<tr>
 			<th>Categoria</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
 		</tr>
-	    </tbody>
-	</table></div>
+		<tr>
+			<th>Responsabile procedimento</th>
+			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($responsabile->Cognome.' '.$responsabile->Nome.' '.$responsabile->Email).'</td>
+		</tr>	    </tbody>
+	</table>
+	</div>
 </div>
 </div>
 </div>';	

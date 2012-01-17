@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.7
+ * @since 1.8
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -205,16 +205,19 @@ Oggetto int(1)
 	2=> Categorie
 	3=> Allegati
 	4=> Responsabili
+	5=> Statistiche Visualizzazioni
+	6=> Statistiche Download Allegati
 	
 TipoOperazione int(1)
 	1=> Inserimento
 	2=> Modifica
 	3=> Cancellazione
 	4=> Pubblicazione
+	5=> Incremento (solo per le statistiche)
 */
 				  
 function ap_insert_log($Oggetto,$TipoOperazione,$IdOggetto,$Operazione,$IdAtto=0){
-global $wpdb, $current_user;
+global $wpdb;
     get_currentuserinfo();
 	$wpdb->insert($wpdb->table_name_Log,array('IPAddress' => $_SERVER['REMOTE_ADDR'],
 	                                                'Utente' => $current_user->user_login,
@@ -226,13 +229,38 @@ global $wpdb, $current_user;
 }
 
 function ap_get_all_Oggetto_log($Oggetto,$IdOggetto=0,$IdAtto=0){
-global $wpdb, $current_user;
+global $wpdb;
 	$condizione="WHERE Oggetto=". (int)$Oggetto;
 	if ($IdOggetto!=0)
 		$condizione.=" and IdOggetto=". (int)$IdOggetto ;
-	if ($IdAtto!=0)
+	if ($IdAtto!=0 and $IdOggetto!=0)
 		$condizione.=" or IdAtto=".(int)$IdAtto;
+	if ($IdAtto!=0 and $IdOggetto==0)
+		$condizione.=" and IdAtto=".(int)$IdAtto;
+//	echo "SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data;";exit;
 	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data;");	
+}
+
+function ap_get_Stat_Visite($IdAtto){
+global $wpdb;
+	return $wpdb->get_results("SELECT date(`Data`) AS Data, count( `Data` ) AS Accessi
+							   FROM $wpdb->table_name_Log
+							   WHERE `Oggetto` =5
+							   AND `IdOggetto` =".$IdAtto."
+							   GROUP BY date( `Data` )
+							   ORDER BY Data;");	
+}
+
+function ap_get_Stat_Download($IdAtto){
+global $wpdb;
+	return $wpdb->get_results("SELECT date( `Data` ) AS Data, TitoloAllegato, Allegato, count( `Data` ) AS Accessi
+							   FROM `wp_albopretorio_log`
+							   INNER JOIN $wpdb->table_name_Allegati 
+							   	ON $wpdb->table_name_Log.`IdOggetto` = $wpdb->table_name_Allegati.IdAllegato
+							   WHERE `Oggetto` =6
+							   AND $wpdb->table_name_Allegati.`IdAtto` =$IdAtto
+							   GROUP BY date( `Data` ) , IdOggetto
+							   ORDER BY Data");	
 }
 
 ################################################################################
@@ -383,7 +411,7 @@ function ap_get_categorie_gerarchica() {
 function ap_del_categorie($id) {
 	global $wpdb;
 	if ((ap_num_atti_categoria($id)>0) or (ap_num_figli_categorie($id)>0)){
-		return array("atti" => ap_num_atti_categorie($id),
+		return array("atti" => ap_num_atti_categoria($id),
 		             "figli" => ap_num_figli_categorie($id));
 	}
 	else{
@@ -517,7 +545,8 @@ function ap_approva_atto($IdAtto){
 	    	return 'Atto non PUBBLICATO:%%br%%Errore: '.$wpdb->last_error;
 	    }
 	    else{
-			ap_insert_log( 2,4,$IdAtto,"{Numero Assegnato}==> $NumeroOpzione ");	
+			ap_insert_log( 1,4,$IdAtto,"{Stato Atto}==> Pubblicato 
+			 							{Numero Assegnato}==> $NumeroOpzione ");	
 			$NumeroOpzione+=1;
 			update_option('opt_AP_NumeroProgressivo',$NumeroOpzione );
 			return 'Atto PUBBLICATO';

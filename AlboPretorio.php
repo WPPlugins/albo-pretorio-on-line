@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:1.7
+Version:1.8
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -37,7 +37,7 @@ define("AP_BASE_DIR",substr(WP_PLUGIN_DIR,0,strpos(WP_PLUGIN_DIR,"wp-content", 0
 if (!class_exists('AlboPretorio')) {
  class AlboPretorio {
 	
-	var $version     = '1.4';
+	var $version     = '1.7';
 	var $minium_WP   = '3.1';
 	var $options     = '';
 	
@@ -57,18 +57,272 @@ if (!class_exists('AlboPretorio')) {
 
 		// Hook di inizializzazione che registra il punto di avvio del pluggin
 		add_action('init', array('AlboPretorio', 'update_AlboPretorio_settings'));
-
+		add_action('init', array('AlboPretorio', 'init') );
 		if (!is_admin()) 
 			if (!function_exists('albo_styles'))
 				add_action('wp_print_styles', array('AlboPretorio','albo_styles'));
 		
 		add_shortcode('Albo', array('AlboPretorio', 'VisualizzaAtti'));
 		add_action('wp_head', array('AlboPretorio','head_Front_End'));
+		add_action( 'admin_menu', array (&$this, 'add_menu') ); 
+		add_action( 'wp_ajax_logdati', array('AlboPretorio','get_crealog'));
+		$role =& get_role( 'amministratore_albo' );
+	}
+
+	function get_crealog(){
+		global $AP_OnLine;
+		$Tipo=$_POST['Tipo'];
+		$IdOggetto=$_POST['IdOggetto'];
+		$IdAtto=$_POST['IdAtto'];
+		if ($Tipo==99){
+			echo $AP_OnLine->CreaStatistiche($IdAtto);
+		}else{
+			echo $AP_OnLine->CreaLog($Tipo,$IdOggetto,$IdAtto);
+		}
+		die();
+	}
+
+	function CreaStatistiche($IdAtto){
+		$righeVisiteAtto=ap_get_Stat_Visite($IdAtto);
+		$righeVisiteDownload=ap_get_Stat_Download($IdAtto);
+		$HtmlTesto='
+			<h3>Visite Atto</h3>
+			<table class="widefat">
+			    <thead>
+				<tr>
+					<th style="font-size:1.2em;">Data</th>
+					<th style="font-size:1.2em;">Numero Visite</th>
+				</tr>
+			    </thead>
+			    <tbody id="righe-log">';
+		foreach ($righeVisiteAtto as $riga) {
+			$HtmlTesto.= '<tr >
+						<td >'.VisualizzaData($riga->Data).'</td>
+						<td >'.$riga->Accessi.'</td>
+					</tr>';
+			}
+		$HtmlTesto.= '    </tbody>
+			</table>';
+		$HtmlTesto.='
+			<h3>Download Allegati</h3>
+			<table class="widefat">
+			    <thead>
+				<tr>
+					<th style="font-size:1.2em;">Data</th>
+					<th style="font-size:1.2em;">Nome Allegato</th>
+					<th style="font-size:1.2em;">File</th>
+					<th style="font-size:1.2em;">Numero Visite</th>
+				</tr>
+			    </thead>
+			    <tbody id="righe-log">';
+		foreach ($righeVisiteDownload as $riga) {
+			$HtmlTesto.= '<tr >
+						<td >'.VisualizzaData($riga->Data).'</td>
+						<td >'.$riga->TitoloAllegato.'</td>
+						<td >'.$riga->Allegato.'</td>
+						<td >'.$riga->Accessi.'</td>
+					</tr>';
+			}
+		$HtmlTesto.= '    </tbody>
+			</table>';
+		return $HtmlTesto;	
 	}
 	
+	function CreaLog($Tipo,$IdOggetto,$IdAtto){
+		if ($Tipo==1)
+			$righe=ap_get_all_Oggetto_log($Tipo,$IdOggetto);
+		else
+			$righe=ap_get_all_Oggetto_log($Tipo,0,$IdAtto);
+		$HtmlTesto='
+			<table class="widefat">
+			    <thead>
+				<tr>
+					<th style="font-size:1.2em;">Data</th>
+					<th style="font-size:1.2em;">Operazione</th>
+					<th style="font-size:1.2em;">Informazioni</th>
+				</tr>
+			    </thead>
+			    <tbody id="righe-log">';
+		foreach ($righe as $riga) {
+			switch ($riga->TipoOperazione){
+			 	case 1:
+			 		$Operazione="Inserimento";
+			 		break;
+			 	case 2:
+			 		$Operazione="Modifica";
+					break;
+			 	case 3:
+			 		$Operazione="Cancellazione";
+					break;
+			 	case 4:
+			 		$Operazione="Approvazione";
+					break;
+			}
+			$HtmlTesto.= '<tr  title="'.$riga->Utente.' da '.$riga->IPAddress.'">
+						<td >'.$riga->Data.'</th>
+						<td >'.$Operazione.'</th>
+						<td >'.stripslashes($riga->Operazione).'</td>
+					</tr>';
+		}
+		$HtmlTesto.= '    </tbody>
+			</table>';
+		return $HtmlTesto;	
+	}
+
+		static function add_menu(){
+  		add_menu_page('Panoramica', 'Albo Pretorio', 'gest_atti_albo', 'Albo_Pretorio',array( 'AlboPretorio','show_menu'));
+		$atti_page=add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array( 'AlboPretorio','show_menu'));
+//		add_submenu_page( 'albo-options', 'Allegati', 'Allegati', 'manage_options', 'allegati', array('APAdminPanel', 'show_menu'));
+		$categorie_page=add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array( 'AlboPretorio', 'show_menu'));
+		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
+		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array( 'AlboPretorio','show_menu'));
+		$css_page=add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss',array( 'AlboPretorio', 'show_menu'));
+		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
+		add_action( 'admin_head-'. $categorie_page, array( 'AlboPretorio','ap_head'));
+		add_action( 'admin_head-'. $responsabili_page, array( 'AlboPretorio','ap_head'));
+		add_action( 'admin_head-'. $parametri_page,array( 'AlboPretorio', 'ap_head'));
+		add_action( 'admin_head-'. $css_page, array( 'AlboPretorio','ap_head'));
+	}
+	
+	function show_menu() {
+		global $AP_OnLine;
+
+		switch ($_REQUEST['page']){
+			case "Albo_Pretorio" :
+				$AP_OnLine->AP_menu();
+				break;
+			case "config" :
+				$AP_OnLine->AP_config();
+				break;
+			case "categorie" :
+				include_once ( dirname (__FILE__) . '/admin/categorie.php' );	// admin functions
+				break;
+			case "responsabili" :
+				include_once ( dirname (__FILE__) . '/admin/responsabili.php' );	// admin functions
+				break;
+			case "atti" :
+				include_once ( dirname (__FILE__) . '/admin/atti.php' );	// admin functions
+				break;
+			case "allegati" :
+				include_once ( dirname (__FILE__) . '/admin/allegati.php' );	// admin functions
+				break;
+			case "editorcss":
+				include_once ( dirname (__FILE__) . '/admin/editor.php' );	// admin functions
+				break;
+		}
+	}
+	
+	function init() {
+		if (is_admin()) return;
+		wp_enqueue_script('jquery');
+	}
+
+################################################################################
+// ADMIN HEADER
+################################################################################
+
+	function ap_head() {
+		global $wp_db_version, $wp_dlm_root;
+		?>
+		<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>css/epoch_styles.css" />
+		<link rel="stylesheet" type="text/css" href="<?php echo Albo_URL; ?>css/styles.css" />
+		<script type="text/javascript" src="<?php echo Albo_URL; ?>js/epoch_classes.js"></script>
+		<script type="text/javascript">
+			var Cal1, Cal2, Cal3; 
+			window.onload = function() {
+				Cal1 = new Epoch('cal1','popup',document.getElementById('Calendario1'),false);
+				Cal2 = new Epoch('cal2','popup',document.getElementById('Calendario2'),false);
+				Cal3 = new Epoch('cal3','popup',document.getElementById('Calendario3'),false);
+			};
+		</script>
+		<script language="JavaScript">
+			function change(html){
+				description.innerHTML=html
+			}
+		</script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			jQuery.noConflict();
+			(function($) {
+			
+				$(function() {
+		
+					$('a.dc').click(function(){
+						var answer = confirm("Confermi la cancellazione della Categoria `" + $(this).attr('rel') + '` ?')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
+	
+					$('a.dr').click(function(){
+						var answer = confirm("Confermi la cancellazione del Responsabile del Trattamento `" + $(this).attr('rel') + '` ?')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
+	
+					$('a.da').click(function(){
+						var answer = confirm("Confermi la cancellazione del\'Allegato `" + $(this).attr('rel') + '` ?')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
+					$('a.ac').click(function(){
+						var answer = confirm("Confermi la cancellazione dell' Atto: `" + $(this).attr('rel') + '` ?')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
+			
+					$('a.ap').click(function(){
+						var answer = confirm("approvazione Atto: `" + $(this).attr('rel') + '`\nAttenzione la Data Pubblicazione verra` impostata ad oggi ?')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
+					$('input.update').click(function(){
+						var answer = confirm("confermi la modifica della Categoria " + $(this).attr('rel') + '?')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
+					$('a.addstatdw').click(function() {
+					 var link=$(this).attr('rel');
+					 $.get(link,function(data){
+     					$('#DatiLog').html(data);
+						}, "json");
+					});
+					
+				});
+			
+			})(jQuery);
+	
+		/* ]]> */
+		</script>
+	<?php
+	}
+
 	function head_Front_End() {
 		?>
-		<script type="text/javascript" src="<?php echo Albo_URL; ?>/js/epoch_classes.js"></script>
+		<script type="text/javascript" src="<?php echo Albo_URL; ?>js/epoch_classes.js"></script>
 		<script type="text/javascript">
 			var Cal1, Cal2; 
 			window.onload = function() {
@@ -76,8 +330,18 @@ if (!class_exists('AlboPretorio')) {
 				Cal2 = new Epoch('cal2','popup',document.getElementById('Calendario2'),false);
 			};
 		</script>
-	
-
+		<script type="text/javascript">
+			jQuery.noConflict();
+			(function($) {
+				$(function() {
+						$('a.addstatdw').click(function() {
+						 var link=$(this).attr('rel');
+							jQuery.ajax({type: "get",url: $(this).attr('rel')}); //close jQuery.ajax
+						return true;		 
+						});
+				});
+			})(jQuery);
+		</script>
 	<?php
 	}
 
@@ -87,7 +351,6 @@ if (!class_exists('AlboPretorio')) {
 			// Load backend libraries
 			if ( is_admin() ) {	
 				require_once (dirname (__FILE__) . '/admin/admin.php');
-				$this->APAdminPanel = new APAdminPanel();
 			}	
 		}
 	
@@ -330,7 +593,7 @@ if (!class_exists('AlboPretorio')) {
 			add_option('opt_AP_NumeroProgressivo', '0');
 		}
 		if(get_option('opt_AP_FolderUpload') == '' || !get_option('opt_AP_FolderUpload')){
-			add_option('opt_AP_FolderUpload', $dirUpload);
+			add_option('opt_AP_FolderUpload', 'wp-content/uploads');
 		}
 		if(get_option('opt_AP_VisualizzaEnte') == '' || !get_option('opt_AP_VisualizzaEnte')){
 			add_option('opt_AP_VisualizzaEnte', 'Si');

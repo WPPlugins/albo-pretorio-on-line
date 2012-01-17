@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.7
+ * @since 1.8
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -17,6 +17,9 @@ switch ($_REQUEST['action']){
 		break;
 	case 'categoria':
 		Lista_Atti($Parametri,0,$_REQUEST['cat']);
+		break;
+	case 'addstatall':
+		ap_insert_log(6,5,$_GET['id'],"Download",$_GET['idAtto']);
 		break;
 	default: 
 		switch ($_REQUEST['filtra']){
@@ -37,6 +40,7 @@ function VisualizzaAtto($id,$rif){
 	$allegati=ap_get_all_allegati_atto($id);
 	$responsabile=ap_get_responsabile($risultato->RespProc);
 	$responsabile=$responsabile[0];
+	ap_insert_log(5,5,$id,"Visualizzazione");
 	echo '
 <div class="Visalbo">
 <h2>Dati atto</h2>
@@ -111,15 +115,16 @@ echo'
 	
 }
 echo '<h3>Allegati</h3>';
+//print_r($_SERVER);
 foreach ($allegati as $allegato) {
 	echo '<div class="Visallegato">
 			<div style="float:left;display:inline;width: 60px;height:60px;">
-				    <img src="'.Albo_URL.'/img/Pdf.png" alt="Icona Visualizza Atto" style="margin-left:10px;margin-top:10px;"/>
+				    <img src="'.Albo_URL.'img/Pdf.png" alt="Icona Visualizza Atto" style="margin-left:10px;margin-top:10px;"/>
 			</div>
 			<div>
 				<p>
 					'.$allegato->TitoloAllegato.' <br />
-					<a href="'.DaPath_a_URL($allegato->Allegato).'" target="_parent"">'. basename( $allegato->Allegato).'</a>
+					<a href="'.DaPath_a_URL($allegato->Allegato).'" target="_parent" class="addstatdw" rel="'.$_SERVER['HTTP_REFERER'].'?action=addstatall&id='.$allegato->IdAllegato.'&idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a>
 				</p>
 			</div>
 		</div>';
