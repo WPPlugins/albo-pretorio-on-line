@@ -19,39 +19,19 @@ div.ricerca_col_SX{
 	float: left;display: inline;width:64%;
 }
 div.ricerca_col_DX{
-	float:right;width:35%;
-}
-div.ricerca select{
-	font-size: 10px;
+	float:right;
+	width:35%;
 }
 div.ricerca .Titolo{
 	text-align: center;
-	color: Blue;
-	font-size: 12px;
 }
 
 div.Visallegato{
 	width: 100%;
-	border: thin dashed Blue;
+	border: thin dashed;
 }
 div.Visalbo{
 	width: 100%;
-}
-div.Visalbo h2{
-	font-size: 2em;
-	text-transform: capitalize;
-	color: Blue;
-	text-align: center;
-}
-div.Visalbo h3{
-	font-size: 1.5em;
-	text-transform: capitalize;
-	color: Blue;
-}
-div.Visalbo h4{
-	font-size: 1.1em;
-	text-transform: capitalize;
-	color: Blue;
 }
 .tabVisalbo{
 	width: 100%;
@@ -59,7 +39,7 @@ div.Visalbo h4{
 	margin: 0;
 }
 .tabVisalbo td{
-	font-size: 10px;
+	font-size: 0,8em;
 	vertical-align: top;
 	border: thin solid Black;
 	background-color: #F3F3F3;
@@ -73,7 +53,7 @@ div.Visalbo h4{
 .tabVisalbo th{
 	text-transform: capitalize;
 	text-align: right;
-	font-size: 10px;
+	font-size: 0.8em;
 	font-weight: bold;
 	width: 160px;
 	padding-right: 5px;
@@ -84,7 +64,7 @@ div.Visalbo h4{
 	margin: 0;
 }
 .tabVisResp td{
-	font-size: 10px;
+	font-size: 0.8em;
 	vertical-align: top;
 	padding: 5px;
 	color: Blue;
@@ -95,13 +75,13 @@ div.Visalbo h4{
 .tabVisResp th{
 	text-transform: capitalize;
 	text-align: right;
-	font-size: 10px;
+	font-size: 0.8em;
 	font-weight: bold;
 	width: 160px;
 	padding-right: 5px;
 }
 .tabVisalbo td{
-	font-size: 10px;
+	font-size: 0.8em;
 	vertical-align: top;
 	border: thin solid Black;
 	background-color: #F3F3F3;
@@ -115,7 +95,7 @@ div.Visalbo h4{
 .tabVisalbo th{
 	text-transform: capitalize;
 	text-align: right;
-	font-size: 10px;
+	font-size: 0.8em;
 	font-weight: bold;
 	width: 160px;
 	padding-right: 5px;
@@ -132,7 +112,7 @@ div.Visalbo h4{
 	text-decoration:none;
 }
 .tabalbo td{
-	font-size: 10px;
+	font-size: 0.8em;
 	padding: 4px 4px 4px;
 	vertical-align: top;
 }
@@ -142,13 +122,13 @@ div.Visalbo h4{
 	padding: 4px 4px 4px;
 	text-align: left;
 	line-height: 1.3em;
-	font-size: 12px;
+	font-size: 0.9em;
 	font-weight: bold;
 }
 .tabalbo th.FE{
 	text-transform: capitalize;
 	text-align: right;
-	font-size: 10px;
+	font-size: 0.8em;
 	font-weight: bold;
 	width: 160px;
 	padding-right: 5px;
@@ -168,7 +148,7 @@ a.pagina {
 	cursor:default;
 	height:30px;
 	line-height:30px;
-	font-size:11px;}
+	font-size:0.9em;}
 	
 .tablenav .tablenav-pages a,.tablenav-pages span.current{
  	text-decoration:none;
@@ -179,7 +159,7 @@ a.pagina {
 }
 .tablenav{
  	margin-right:10px;
-	font-size:12px;
+	font-size:0.9em;
 	font-style:italic;}
 .tablenav .actions{
  	padding:2px 8px 0 0;}

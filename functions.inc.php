@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.8
+ * @since 1.9
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -364,8 +364,8 @@ function ap_get_nuvola_categorie($link,$Stato ) {
 		foreach ($categorie as $c) {
 			$numAtti=ap_num_atti_categoria($c->IdCategoria,$Stato);
 			if ($numAtti){
-				$pix=(int) 8 + ($numAtti /$TotAtti)*10;
-				$output .= "<a href='".$link."=".$c->IdCategoria."' title='Ci sono ".$numAtti." Atti nella Categoria ".$c->Nome."'><span style='font-size:".$pix."px;'>".$c->Nome."</span></a><br />\n";	
+				$pix=(int) 1 + ($numAtti /$TotAtti);
+				$output .= "<a href='".$link."=".$c->IdCategoria."' title='Ci sono ".$numAtti." Atti nella Categoria ".$c->Nome."'><span style='font-size:".$pix."em;'>".$c->Nome."</span></a><br />\n";	
 			}
 				
 		}

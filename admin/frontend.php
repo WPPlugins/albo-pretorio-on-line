@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.8
+ * @since 1.9
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -124,7 +124,7 @@ foreach ($allegati as $allegato) {
 			<div>
 				<p>
 					'.$allegato->TitoloAllegato.' <br />
-					<a href="'.DaPath_a_URL($allegato->Allegato).'" target="_parent" class="addstatdw" rel="'.$_SERVER['HTTP_REFERER'].'?action=addstatall&id='.$allegato->IdAllegato.'&idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a>
+					<a href="'.DaPath_a_URL($allegato->Allegato).'" onclick="window.open(this.href,\'_blank\');return false;" class="addstatdw" rel="'.$_SERVER['HTTP_REFERER'].'?action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a>
 				</p>
 			</div>
 		</div>';
@@ -138,7 +138,7 @@ $anni=ap_get_dropdown_anni_atti('anno','anno','postform','','',1);
 $categorie=ap_get_dropdown_categorie('categorie','categorie','postform','','',false,true); 
 Bonifica_Url();
 if (strpos($_SERVER['REQUEST_URI'],"?")>0)
-	$sep="&";
+	$sep="&amp;";
 else
 	$sep="?";
 $titFiltri=get_option('opt_AP_LivelloTitoloFiltri');
@@ -147,12 +147,13 @@ if ($titFiltri=='')
 $HTML='<div class="ricerca">
 	<div class="ricerca_col_SX">
 		<'.$titFiltri.'>Filtri</'.$titFiltri.'>
-		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="get">';
+		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="get">
+		<fieldset>';
 		if (strpos($_SERVER['REQUEST_URI'],'page_id')>0){
 			$HTML.= '<input type="hidden" name="page_id" value="'.Estrai_PageID_Url().'" />';
 		}	
 $HTML.= '
-			<table id="filtro-atti" class="tabella-dati-albo" style="text-align:left;">
+			<table id="tabella-filtro-atti" class="tabella-dati-albo" style="text-align:left;">
 				<tr>
 					<th>Anno</th>
 					<td>'.$anni.'</td>
@@ -173,12 +174,13 @@ $HTML.= '
 					<td colspan="2" style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
 				</tr>		
 			</table>
+			</fieldset>
 		</form>
 	</div>
 	<div class="ricerca_col_DX">
 		<'.$titFiltri.'>Categorie</'.$titFiltri.'>
 		<p class="finestra_ricerca">'
-		.ap_get_nuvola_categorie($_SERVER['REQUEST_URI'].$sep."action=categoria&cat",1).'
+		.ap_get_nuvola_categorie($_SERVER['REQUEST_URI'].$sep."action=categoria&amp;cat",1).'
 		</p>
 	</div>
 	<br style="clear:both;" />
@@ -234,12 +236,12 @@ echo'<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titP
 				if ($Para=='')
 					$Para.=$k.'='.$v;
 				else
-					$Para.='&'.$k.'='.$v;
+					$Para.='&amp;'.$k.'='.$v;
 		}
 		if ($Para=='')
 			$Para="?Pag=";
 		else
-			$Para="?".$Para."&Pag=";
+			$Para="?".$Para."&amp;Pag=";
 		$Npag=(int)$TotAtti/$N_A_pp;
 		if ($TotAtti%$N_A_pp>0){
 			$Npag++;
@@ -291,11 +293,11 @@ echo '	<div class="tabalbo">
 		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
 		Bonifica_Url();
 		if (strpos($_SERVER['REQUEST_URI'],"?")>0)
-			$sep="&";
+			$sep="&amp;";
 		else
 			$sep="?";
 		echo '<tr>
-		        <td><a href="'.$_SERVER['REQUEST_URI'].$sep.'action=visatto&id='.$riga->IdAtto.'&rif='.$riferimento.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
+		        <td><a href="'.$_SERVER['REQUEST_URI'].$sep.'action=visatto&amp;id='.$riga->IdAtto.'&amp;rif='.$riferimento.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
 				</td>
 				<td>
 					'.$riga->Riferimento .'
