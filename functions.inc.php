@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.9
+ * @since 2.0
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -45,7 +45,7 @@ function DaPath_a_URL($File){
 	return $Url;
 	
 }
-function UniqueFileName($filename,$inc=0){
+function UniqueFileNameOLD($filename,$inc=0){
 	$baseName=$filename;
 	while (file_exists($filename)){
 		$arrfile=explode(".", $baseName);
@@ -59,6 +59,18 @@ function UniqueFileName($filename,$inc=0){
 	}
 	return $filename;	
 }
+
+function UniqueFileName($filename,$inc=0){
+	$baseName=$filename;
+	while (file_exists($filename)){
+		$inc++;
+		$filename=substr($baseName,0,strrpos($baseName,".")).$inc.substr($baseName,strrpos($baseName,"."),strlen($baseName)-strrpos($baseName,"."));
+	}
+	return $filename;	
+}
+
+
+
 function ap_get_num_allegati($id){
 	global $wpdb;
 	return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdAllegato) FROM $wpdb->table_name_Allegati WHERE IdAtto=%d",(int)$id)));

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.9
+ * @since 2.0
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -248,11 +248,11 @@ function Memo_allegato_atto(){
 		    	}else{
 					$destination_path = addslashes(AP_BASE_DIR).get_option('opt_AP_FolderUpload').'/';
 			   		$result = 0;
-			   		UniqueFileName(stripcslashes($destination_path) . basename( $_FILES['file']['name']));
-				   	$target_path = UniqueFileName(stripcslashes($destination_path) . basename( $_FILES['file']['name']));
+			   		UniqueFileName(stripslashes($destination_path) . basename( $_FILES['file']['name']));
+				   	$target_path = UniqueFileName(stripslashes($destination_path) . basename( $_FILES['file']['name']));
 					   if(@move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
-	    				$messages= "File caricato%%br%%Nome: " . basename( $target_path);
-	    				ap_insert_allegato($_REQUEST['Descrizione'],$target_path,$_REQUEST['id']);
+	    				$messages= "File caricato%%br%%Nome: " . basename( $target_path)." %%br%%Percorso completo : ".str_replace("\\","/",$target_path);
+	    				ap_insert_allegato($_REQUEST['Descrizione'],str_replace("\\","/",$target_path),$_REQUEST['id']);
 			   		}else{
 						$messages= "Il File non caricato: " . $target_path;
 					}

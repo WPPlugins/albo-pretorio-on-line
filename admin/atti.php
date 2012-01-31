@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 1.9
+ * @since 2.0
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -76,9 +76,10 @@ if ($ret!=""){
 	$dif=datediff("d",cvdate($atto->DataInizio),cvdate($atto->DataFine));
 	$NumeroOpzione=get_option('opt_AP_NumeroProgressivo');
 echo'
-<div class="wrap nosubsub">
-<img src="'.Albo_URL.'/img/approva32.png" alt="Icona Approvazione Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Approvazione Atto</h2>';
+<div class="wrap">
+<div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/approva32.png" alt="Icona Approvazione Atto"/></div>
+	<h2 style="display:inline;margin-left:10px;">Approvazione Atto</h2>
+	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
 	if ( $ret!="" ) {
 		echo '<div id="message" class="updated"><p>'.$ret.'</p></div>';
 	}
@@ -287,10 +288,12 @@ function Nuovo_atto(){
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
 	$risultatocategoria=$risultatocategoria[0];
 	echo '
-<div class="wrap nosubsub">
-<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Nuovo Atto</h2>
-<br class="clear" />
+<div class="wrap">
+<div style="display:inline;float:left;">
+	<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto"/>
+</div>
+	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
+	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>
 <div id="col-container">
 <form id="addatto" method="post" action="?page=atti" class="validate">
 <input type="hidden" name="action" value="add-atto" />
@@ -363,10 +366,9 @@ function Edit_atto($id){
 $atto=ap_get_atto($id);
 $atto=$atto[0];
 	echo '
-<div class="wrap nosubsub">
-<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Modifica Atto</h2>
-<br class="clear" />
+<div class="wrap">
+<div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto" /></div>
+<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2><a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>
 <div id="col-container">
 <form id="addatto" method="post" action="?page=atti" class="validate">
 <input type="hidden" name="action" value="memo-atto" />
@@ -440,17 +442,20 @@ function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
 	$risultato=$risultato[0];
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
 	$risultatocategoria=$risultatocategoria[0];
-	$dirUpload =  stripslashes(get_option('opt_AP_FolderUpload'));
+	$dirUpload =  get_option('opt_AP_FolderUpload').'/';
 	echo '
-<div class="wrap nosubsub">
-<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>';
+<div class="wrap">
+<div style="display:inline;float:left;">
+	<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto"/>
+</div>	
+	<h2  style="display:inline;margin-left:10px;">Atto</h2>
+	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
 	if ( $messaggio!="" ) {
 	 	$messaggio=str_replace("%%br%%", "<br />", $messaggio);
 		echo '<div id="message" class="updated"><p>'.$messaggio.'</p></div>';
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('messaggio'), $_SERVER['REQUEST_URI']);
 	}
-echo' <h2 style="margin-left:40px;">Atto</h2>
-<br class="clear" />
+echo'
 <div id="col-container">
 <div id="col-right">
 <div class="col-wrap">';
@@ -509,7 +514,7 @@ if ($IdAllegato!=0){
 					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'" rel="'.$riga->TitoloAllegato.'">
 						<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>
-					<a href="'.$Albo_URL .'/allegati/'.basename($riga->Allegato).'" target="_parent">
+					<a href="'.DaPath_a_URL($riga->Allegato).'" target="_parent">
 							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>
 				<td >'.$riga->TitoloAllegato.'</th>
