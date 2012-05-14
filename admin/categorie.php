@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.1
+ * @since 2.2
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -18,11 +18,12 @@ $messages[5] = __('Item not updated.');
 $messages[6] = __('Item not deleted.');
 $messages[7] = __('Impossibile cancellare Categorie che contengono Categorie Figlio. Cancellare prima i Figli');
 $messages[8] = __('Impossibile cancellare Categorie che sono collegate ad Atti');
+$messages[9] = __('Bisogna assegnare il nome alla nuova categoria');
 
 ?>
 <div class="wrap nosubsub">
 <img src="<?php echo Albo_URL; ?>/img/categoria32.png" alt="Icona Visualizza Categorie Atti" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Categorie Atti</h2>
+<h2 style="margin-left:40px;">Categorie Atti<a href="?page=categorie" class="add-new-h2">Aggiungi nuovo</a></h2>
 
 <?php 
 if ( isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message'] ) ) {
@@ -41,7 +42,7 @@ if ($_REQUEST['action']=="edit"){
 <div id="col-container">
 <div id="col-right">
 <div class="col-wrap">
-<h3>Elenco Categorie gi&agrave; codificate</h3>
+<h3>Elenco Categorie codificate</h3>
 <table class="widefat" id="elenco-categorie"> 
     <thead>
     	<tr>
@@ -145,7 +146,7 @@ echo '    </tbody>
 <div class="form-field  form-required">
 	<label for="tag-durata">Durata</label>
 	<input name="cat-durata" id="cat-durata" type="text" value="<?php if($edit) echo $risultato[0]->Giorni; else echo "0"; ?>" size="4" aria-required="true" />
-	<p>Durata di default della validit&agrave; degli atti di questa categoria</p>
+	<p>Durata di default, espressa in giorni, di validit&agrave; degli atti di questa categoria</p>
 </div>
 
 <?php

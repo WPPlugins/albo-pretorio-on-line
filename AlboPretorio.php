@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.1
+Version:2.2
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -30,14 +30,16 @@ if ($_GET['update'] == 'true')
 			<p><strong>Impostazioni salvate.</strong></p></div>";
 
 include_once(dirname (__FILE__) .'/functions.inc.php');				/* Various functions used throughout */
+include_once(dirname (__FILE__) .'/AlboPretorio.widget.inc');
 define("Albo_URL",plugin_dir_url(dirname (__FILE__).'/AlboPretorio.php'));
 define("Albo_DIR",dirname (__FILE__));
-define("AP_BASE_DIR",substr(WP_PLUGIN_DIR,0,strpos(WP_PLUGIN_DIR,"wp-content", 0)));
+$uploads = wp_upload_dir(); 
+define("AP_BASE_DIR",substr($uploads['basedir'],0,strpos($uploads['basedir'],"wp-content", 0)));
 
 if (!class_exists('AlboPretorio')) {
  class AlboPretorio {
 	
-	var $version     = '1.7';
+	var $version     = '2.2';
 	var $minium_WP   = '3.1';
 	var $options     = '';
 	
@@ -58,6 +60,7 @@ if (!class_exists('AlboPretorio')) {
 		// Hook di inizializzazione che registra il punto di avvio del pluggin
 		add_action('init', array('AlboPretorio', 'update_AlboPretorio_settings'));
 		add_action('init', array('AlboPretorio', 'init') );
+		add_action('init', array('AlboPretorio', 'ilc_farbtastic_script'));
 		if (!is_admin()) 
 			if (!function_exists('albo_styles'))
 				add_action('wp_print_styles', array('AlboPretorio','albo_styles'));
@@ -82,58 +85,79 @@ if (!class_exists('AlboPretorio')) {
 		die();
 	}
 
-	function CreaStatistiche($IdAtto){
+	function ilc_farbtastic_script() {
+ 		wp_enqueue_style( 'farbtastic' );
+  		wp_enqueue_script( 'farbtastic' );
+	}
+	
+	function CreaStatistiche($IdAtto,$Oggetto){
 		$righeVisiteAtto=ap_get_Stat_Visite($IdAtto);
 		$righeVisiteDownload=ap_get_Stat_Download($IdAtto);
-		$HtmlTesto='
-			<h3>Visite Atto</h3>
-			<table class="widefat">
-			    <thead>
-				<tr>
-					<th style="font-size:1.2em;">Data</th>
-					<th style="font-size:1.2em;">Numero Visite</th>
-				</tr>
-			    </thead>
-			    <tbody id="righe-log">';
-		foreach ($righeVisiteAtto as $riga) {
-			$HtmlTesto.= '<tr >
-						<td >'.VisualizzaData($riga->Data).'</td>
-						<td >'.$riga->Accessi.'</td>
-					</tr>';
-			}
-		$HtmlTesto.= '    </tbody>
-			</table>';
-		$HtmlTesto.='
-			<h3>Download Allegati</h3>
-			<table class="widefat">
-			    <thead>
-				<tr>
-					<th style="font-size:1.2em;">Data</th>
-					<th style="font-size:1.2em;">Nome Allegato</th>
-					<th style="font-size:1.2em;">File</th>
-					<th style="font-size:1.2em;">Numero Visite</th>
-				</tr>
-			    </thead>
-			    <tbody id="righe-log">';
-		foreach ($righeVisiteDownload as $riga) {
-			$HtmlTesto.= '<tr >
-						<td >'.VisualizzaData($riga->Data).'</td>
-						<td >'.$riga->TitoloAllegato.'</td>
-						<td >'.$riga->Allegato.'</td>
-						<td >'.$riga->Accessi.'</td>
-					</tr>';
-			}
-		$HtmlTesto.= '    </tbody>
-			</table>';
+		if ($Oggetto==5){
+			$HtmlTesto='
+				<h3>Totale Visite Atto '.ap_get_Stat_Num_log($IdAtto,5).'</h3>
+				<table class="widefat">
+				    <thead>
+					<tr>
+						<th style="font-size:1.2em;">Data</th>
+						<th style="font-size:1.2em;">Numero Visite</th>
+					</tr>
+				    </thead>
+				    <tbody>';
+			foreach ($righeVisiteAtto as $riga) {
+				$HtmlTesto.= '<tr >
+							<td >'.VisualizzaData($riga->Data).'</td>
+							<td >'.$riga->Accessi.'</td>
+						</tr>';
+				}
+			$HtmlTesto.= '    </tbody>
+				</table>';
+		}else{
+			$HtmlTesto.='
+				<h3>Totale Download Allegati '.ap_get_Stat_Num_log($IdAtto,6).'</h3>
+				<table class="widefat">
+				    <thead>
+					<tr>
+						<th style="font-size:1.2em;">Data</th>
+						<th style="font-size:1.2em;">Nome Allegato</th>
+						<th style="font-size:1.2em;">File</th>
+						<th style="font-size:1.2em;">Numero Download</th>
+					</tr>
+				    </thead>
+				    <tbody>';
+			foreach ($righeVisiteDownload as $riga) {
+				$HtmlTesto.= '<tr >
+							<td >'.VisualizzaData($riga->Data).'</td>
+							<td >'.$riga->TitoloAllegato.'</td>
+							<td >'.$riga->Allegato.'</td>
+							<td >'.$riga->Accessi.'</td>
+						</tr>';
+				}
+			$HtmlTesto.= '    </tbody>
+				</table>';
+		}
 		return $HtmlTesto;	
 	}
 	
 	function CreaLog($Tipo,$IdOggetto,$IdAtto){
-		if ($Tipo==1)
-			$righe=ap_get_all_Oggetto_log($Tipo,$IdOggetto);
-		else
-			$righe=ap_get_all_Oggetto_log($Tipo,0,$IdAtto);
-		$HtmlTesto='
+	//	echo $Tipo;
+		$HtmlTesto='';
+		switch ($Tipo){
+			case 1:
+				$righe=ap_get_all_Oggetto_log($Tipo,$IdOggetto);
+				break;
+			case 3:
+				$righe=ap_get_all_Oggetto_log($Tipo,0,$IdOggetto);
+				break;
+			case 5:
+			case 6:
+				return $this->CreaStatistiche($IdOggetto,$Tipo);
+				break;
+		}
+		if ($Tipo!=5 or $Tipo!=6){
+			$HtmlTesto.='<br />';
+		}
+		$HtmlTesto.='
 			<table class="widefat">
 			    <thead>
 				<tr>
@@ -142,7 +166,7 @@ if (!class_exists('AlboPretorio')) {
 					<th style="font-size:1.2em;">Informazioni</th>
 				</tr>
 			    </thead>
-			    <tbody id="righe-log">';
+			    <tbody>';
 		foreach ($righe as $riga) {
 			switch ($riga->TipoOperazione){
 			 	case 1:
@@ -159,29 +183,30 @@ if (!class_exists('AlboPretorio')) {
 					break;
 			}
 			$HtmlTesto.= '<tr  title="'.$riga->Utente.' da '.$riga->IPAddress.'">
-						<td >'.$riga->Data.'</th>
+						<td >'.VisualizzaData($riga->Data)." ".VisualizzaOra($riga->Data).'</th>
 						<td >'.$Operazione.'</th>
 						<td >'.stripslashes($riga->Operazione).'</td>
 					</tr>';
 		}
 		$HtmlTesto.= '    </tbody>
-			</table>';
+				</table>';
 		return $HtmlTesto;	
 	}
 
 		static function add_menu(){
   		add_menu_page('Panoramica', 'Albo Pretorio', 'gest_atti_albo', 'Albo_Pretorio',array( 'AlboPretorio','show_menu'));
 		$atti_page=add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array( 'AlboPretorio','show_menu'));
-//		add_submenu_page( 'albo-options', 'Allegati', 'Allegati', 'manage_options', 'allegati', array('APAdminPanel', 'show_menu'));
 		$categorie_page=add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array( 'AlboPretorio', 'show_menu'));
 		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
 		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array( 'AlboPretorio','show_menu'));
 		$css_page=add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss',array( 'AlboPretorio', 'show_menu'));
+		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessi', array('AlboPretorio', 'show_menu'));
 		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
 		add_action( 'admin_head-'. $categorie_page, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $responsabili_page, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $parametri_page,array( 'AlboPretorio', 'ap_head'));
 		add_action( 'admin_head-'. $css_page, array( 'AlboPretorio','ap_head'));
+		add_action( 'admin_head-'. $permessi, array( 'AlboPretorio','ap_head'));
 	}
 	
 	function show_menu() {
@@ -195,19 +220,28 @@ if (!class_exists('AlboPretorio')) {
 				$AP_OnLine->AP_config();
 				break;
 			case "categorie" :
-				include_once ( dirname (__FILE__) . '/admin/categorie.php' );	// admin functions
+			// interfaccia per la gestione delle categorie
+				include_once ( dirname (__FILE__) . '/admin/categorie.php' );	
 				break;
 			case "responsabili" :
-				include_once ( dirname (__FILE__) . '/admin/responsabili.php' );	// admin functions
+			// interfaccia per la gestione dei responsabili
+				include_once ( dirname (__FILE__) . '/admin/responsabili.php' );	
 				break;
 			case "atti" :
-				include_once ( dirname (__FILE__) . '/admin/atti.php' );	// admin functions
+			// interfaccia per la gestione degli atti
+				include_once ( dirname (__FILE__) . '/admin/atti.php' );
 				break;
 			case "allegati" :
-				include_once ( dirname (__FILE__) . '/admin/allegati.php' );	// admin functions
+			// interfaccia per la gestione degli allegati
+				include_once ( dirname (__FILE__) . '/admin/allegati.php' );
 				break;
 			case "editorcss":
-				include_once ( dirname (__FILE__) . '/admin/editor.php' );	// admin functions
+			// interfaccia per la gestione dell'editor dei CSS
+				include_once ( dirname (__FILE__) . '/admin/editor.php' );
+				break;
+			case "permessi":
+			// interfaccia per la gestione dei permessi
+				include_once ( dirname (__FILE__) . '/admin/permessi.php' );
 				break;
 		}
 	}
@@ -240,13 +274,22 @@ if (!class_exists('AlboPretorio')) {
 				description.innerHTML=html
 			}
 		</script>
+		
 		<script type="text/javascript">
 		/* <![CDATA[ */
 			jQuery.noConflict();
 			(function($) {
 			
 				$(function() {
-
+					$('a.annullaatto').click(function(){
+						var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
+						if (answer){
+							return true;
+						}
+						else{
+							return false;
+						}					
+					});
 					$('a.tornaindietro').click(function(){
 						location.href=$(this).attr('rel');
 					});
@@ -272,7 +315,7 @@ if (!class_exists('AlboPretorio')) {
 					});
 	
 					$('a.da').click(function(){
-						var answer = confirm("Confermi la cancellazione del\'Allegato `" + $(this).attr('rel') + '` ?')
+						var answer = confirm("Confermi la cancellazione del\'Allegato `" + $(this).attr('rel') + '` ?\n\nATTENZIONE questa operazione cancellera\' anche il file sul server!\n\nSei sicuro di voler CANCELLARE l\'allegato?')
 						if (answer){
 							return true;
 						}
@@ -321,6 +364,54 @@ if (!class_exists('AlboPretorio')) {
 	
 		/* ]]> */
 		</script>
+		<script type="text/javascript">
+		 
+		  jQuery(document).ready(function() {
+		  
+		  	jQuery('input.infolog').click(function() { //start function when Random button is clicked
+		var tipo;
+		switch (jQuery(this).attr('value')){
+			case "Atti":
+				tipo=1;
+				break;
+			case "Allegati":
+				tipo=3;
+				break;
+			case "Statistiche Visite":
+				tipo=5;
+				break;
+			case "Statistiche Download":
+				tipo=6;
+				break;
+		}
+		jQuery.ajax({
+			type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo $_REQUEST['id']; ?>', IdAtto: '<?php echo $IdAtto; ?>'},
+			beforeSend: function() {
+			 jQuery("#DatiLog").html('');
+			 jQuery("#loading").fadeIn('fast');}, 
+			success: function(html){
+				jQuery("#loading").fadeOut('fast');
+				jQuery("#DatiLog").html(html); 
+			}
+		}); //close jQuery.ajax
+		return false;
+	})
+
+		    jQuery('#ilctabscolorpicker').hide();
+		    jQuery('#ilctabscolorpicker').farbtastic("#color");
+		    jQuery("#color").click(function(){jQuery('#ilctabscolorpicker').slideToggle()});
+		  
+		    jQuery('#ilctabscolorpickerp').hide();
+		    jQuery('#ilctabscolorpickerp').farbtastic("#colorp");
+		    jQuery("#colorp").click(function(){jQuery('#ilctabscolorpickerp').slideToggle()});
+		  
+		    jQuery('#ilctabscolorpickerd').hide();
+		    jQuery('#ilctabscolorpickerd').farbtastic("#colord");
+		    jQuery("#colord").click(function(){jQuery('#ilctabscolorpickerd').slideToggle()});
+		  });
+		 
+		</script>
+		
 	<?php
 	}
 
@@ -335,6 +426,7 @@ if (!class_exists('AlboPretorio')) {
 				Cal2 = new Epoch('cal2','popup',document.getElementById('Calendario2'),false);
 			};
 		</script>
+
 		<script type="text/javascript">
 			jQuery.noConflict();
 			(function($) {
@@ -370,8 +462,10 @@ if (!class_exists('AlboPretorio')) {
 
 	function AP_menu(){
 	global $wpdb;
+	  
 	  if ($_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
+		update_option('opt_AP_NumeroProgressivo',0 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	  }
 	  $n_atti = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti;" ) );	 
@@ -397,6 +491,7 @@ if (!class_exists('AlboPretorio')) {
 					<th>Attivi</th>
 					<th>Scaduti</th>
 				</tr>
+			</thead>
 			<tbody>
 				<tr class="first">
 					<td style="text-align:left;width:200px;" >Atti</td>
@@ -422,17 +517,24 @@ if (!class_exists('AlboPretorio')) {
 				<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
 					<form id="agg_anno_progressivo" method="post" action="?page=config">
 						<input type="hidden" name="action" value="setta-anno" />
-					<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo"  />
+					<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 					</form>
 				</div>
 			 </div>';
 	}
+	echo '<div class="wrap">
+			<p>Plugin realizzato da Scimone Ignazio, per avere informazioni e supporto potete visitare il sito ufficiale del plugin <a href="http://www.sisviluppo.info">http://www.sisviluppo.info</a>
+			</p>
+			<p>Documentazione del plugin <a href="'.Albo_URL.'documenti/Albo_Pretorio_On_line.pdf">Manuale Albo Pretorio</a></p>
+			</div>  
+		';
 	}	
 
 	function AP_config(){
 	   global $current_user,$stato;
 	  if ($_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
+		update_option('opt_AP_NumeroProgressivo',0 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	  }
 	  get_currentuserinfo();
@@ -445,6 +547,9 @@ if (!class_exists('AlboPretorio')) {
 	  $livelloTitoloEnte=get_option('opt_AP_LivelloTitoloEnte');
 	  $livelloTitoloPagina=get_option('opt_AP_LivelloTitoloPagina');
 	  $livelloTitoloFiltri=get_option('opt_AP_LivelloTitoloFiltri');
+	  $colAnnullati=get_option('opt_AP_ColoreAnnullati');
+	  $colPari=get_option('opt_AP_ColorePari');
+	  $colDispari=get_option('opt_AP_ColoreDispari');
 	  if ($visente=="Si")
 	  	$ve_selezionato='checked="checked"';
 	  else
@@ -470,23 +575,23 @@ if (!class_exists('AlboPretorio')) {
 	  <input type="hidden" name="c_AnnoProgressivo" value="'.$nanno.'"/>
 	  <table class="form-table">
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Nome Ente</label></th>
-			<td><input type="text" name="c_Ente" value="'.$ente.'" size="100"/></td>
+			<th scope="row"><label for="nomeente">Nome Ente</label></th>
+			<td><input type="text" name="c_Ente" value="'.$ente.'" size="100" id="nomeente"/></td>
 		</tr>
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Visualizza Nome Ente</label></th>
-			<td><input type="checkbox" name="c_VEnte" value="Si" '.$ve_selezionato.'/></td>
+			<th scope="row"><label for="visente">Visualizza Nome Ente</label></th>
+			<td><input type="checkbox" name="c_VEnte" value="Si" '.$ve_selezionato.' id="visente"/></td>
 		</tr>		
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Utilizza effetti testo Shadow</label></th>
-			<td><input type="checkbox" name="c_TE" value="Si" '.$ve_efftext.'/></td>
+			<th scope="row"><label for="effShadow">Utilizza effetti testo Shadow</label></th>
+			<td><input type="checkbox" name="c_TE" value="Si" '.$ve_efftext.' id="effShadow"/></td>
 		</tr>		
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Utilizza effetti CSS3</label></th>
-			<td><input type="checkbox" name="c_CSS3" value="Si" '.$ve_effcss3.'/></td>
+			<th scope="row"><label for="effCSS3">Utilizza effetti CSS3</label></th>
+			<td><input type="checkbox" name="c_CSS3" value="Si" '.$ve_effcss3.'  id="effCSS3"/></td>
 		</tr>		
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Titolo Nome Ente</label></th>
+			<th scope="row"><label for="LivelloTitoloEnte">Titolo Nome Ente</label></th>
 			<td>
 				<select name="c_LTE" id="LivelloTitoloEnte" >';
 			for ($i=2;$i<5;$i++){
@@ -498,7 +603,7 @@ if (!class_exists('AlboPretorio')) {
 		echo '</select></td>
 		</tr>		
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Titolo Pagina Albo</label></th>
+			<th scope="row"><label for="LivelloTitoloPagina">Titolo Pagina Albo</label></th>
 			<td>
 				<select name="c_LTP" id="LivelloTitoloPagina" >';
 			for ($i=2;$i<5;$i++){
@@ -510,7 +615,7 @@ if (!class_exists('AlboPretorio')) {
 		echo '</select></td>
 		</tr>		
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Titolo Filtri</label></th>
+			<th scope="row"><label for="LivelloTitoloFiltri">Titolo Filtri</label></th>
 			<td>
 				<select name="c_LTF" id="LivelloTitoloFiltri" >';
 			for ($i=2;$i<5;$i++){
@@ -522,17 +627,38 @@ if (!class_exists('AlboPretorio')) {
 		echo '</select></td>
 		</tr>		
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Numero Progressivo</label></th>
-			<td><input type="text" name="c_NumeroProgressivo" value="'.$nprog.'" size="5"/>/ '.$nanno.'</td>
+			<th scope="row">Numero Progressivo</th>
+			<td><strong> '.$nprog. ' / '.$nanno.'</strong></td>
 		</tr>
 		<tr valign="top">
-			<th scope="row"><label for="blogname">Cartella Upload</label></th>
-			<td><input type="text" name="c_dirUpload" value="'.$dirUpload.'" size="80"/><input type="button" value="Valore di Default" onclick="this.form.c_dirUpload.value=\'wp-content/uploads\'"><br />inserire una cartella valida partendo da <strong>'.AP_BASE_DIR.'</strong></td>
+			<th scope="row"><label for="dirUpload">Cartella Upload</label></th>
+			<td><input type="text" name="c_dirUpload" value="'.$dirUpload.'" size="80" id="dirUpload"/><input type="button" value="Valore di Default" onclick="this.form.c_dirUpload.value=\'wp-content/uploads\'"><br />inserire una cartella valida partendo da <strong>'.AP_BASE_DIR.'</strong></td>
+		</tr>
+		<tr>
+			<td colspan="2" style="font-size:1.2em;"><strong>Colori di sfondo delle righe della Tabella Elenco Atti</strong></td>
+		<tr>
+		<tr>
+			<th scope="row"><label for="color">Righe Atti Annullati</label></th>
+			<td> <input type="text" id="color" name="color" value="'.$colAnnullati.'" size="5"/>
+			    <div id="ilctabscolorpicker"></div>
+			</td>
+		</tr>
+			<th scope="row"><label for="colorpari">Righe Pari</label></th>
+			<td> <input type="text" id="colorp" name="colorp" value="'.$colPari.'" size="5"/>
+			    <div id="ilctabscolorpickerp"></div>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="colordispari">Righe Dispari</label></th>
+			<td> <input type="text" id="colord" name="colord" value="'.$colDispari.'" size="5"/>
+			    <div id="ilctabscolorpickerd"></div>
+			</td>
 		</tr>
 		</table>
 	    <p class="submit">
 	        <input type="submit" name="AlboPretorio_submit_button" value="Salva Modifiche" />
-	    </p>
+	    </p> 
+   
 	    </form>
 	    </div>';
 		if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
@@ -540,11 +666,12 @@ if (!class_exists('AlboPretorio')) {
 					<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
 						<form id="agg_anno_progressivo" method="post" action="?page=config">
 						<input type="hidden" name="action" value="setta-anno" />
-						<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo"  />
+						<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 						</form>
 					</div>
 				  </div>';
 		}
+
 	}
 	function define_tables() {		
 		global $wpdb,$table_prefix;
@@ -604,10 +731,10 @@ if (!class_exists('AlboPretorio')) {
 			add_option('opt_AP_VisualizzaEnte', 'Si');
 		}
 		if(get_option('opt_AP_EffettiTesto') == '' || !get_option('opt_AP_EffettiTesto')){
-			add_option('opt_AP_EffettiTesto', 'Si');
+			add_option('opt_AP_EffettiTesto', 'No');
 		}
 		if(get_option('opt_AP_EffettiCSS3') == '' || !get_option('opt_AP_EffettiCSS3')){
-			add_option('opt_AP_EffettiCSS3', 'Si');
+			add_option('opt_AP_EffettiCSS3', 'No');
 		}
 		if(get_option('opt_AP_LivelloTitoloEnte') == '' || !get_option('opt_AP_LivelloTitoloEnte')){
 			add_option('opt_AP_LivelloTitoloEnte', 'h2');
@@ -618,7 +745,16 @@ if (!class_exists('AlboPretorio')) {
 		if(get_option('opt_AP_LivelloTitoloFiltri') == '' || !get_option('opt_AP_LivelloTitoloFiltri')){
 			add_option('opt_AP_LivelloTitoloFiltri', 'h4');
 		}
-		
+		if(get_option('opt_AP_ColoreAnnullati') == '' || !get_option('opt_AP_ColoreAnnullati')){
+			add_option('opt_AP_ColoreAnnullati', '#FFCFBD');
+		}
+		if(get_option('opt_AP_ColorePari') == '' || !get_option('opt_AP_ColorePari')){
+			add_option('opt_AP_ColorePari', '#ECECEC');
+		}
+		if(get_option('opt_AP_ColoreDispari') == '' || !get_option('opt_AP_ColoreDispari')){
+			add_option('opt_AP_ColoreDispari', '#FFF');
+		}
+
 		$sql_Atti = "CREATE TABLE IF NOT EXISTS ".$wpdb->table_name_Atti." (
 		  `IdAtto` int(11) NOT NULL auto_increment,
 		  `Numero` int(4) NOT NULL default 0,
@@ -682,6 +818,10 @@ if (!class_exists('AlboPretorio')) {
 			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "RespProc", "INT NOT NULL")))
 				echo $ret;
 		}
+		if (!existFieldInTable($wpdb->table_name_Atti, "DataAnnullamento")){
+			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "DataAnnullamento", " date default '0000-00-00'")))
+				echo $ret;
+		}
 	}  	 
 	static function deactivate() {
 		
@@ -705,7 +845,7 @@ if (!class_exists('AlboPretorio')) {
             'admin_albo',
             'gest_atti_albo');
 
-        /* Ciclo che elimona i ruoli solo se non ci sono utenti assegnati a quel ruolo, altrimenti non disinstalla */
+        /* Ciclo che elimina i ruoli solo se non ci sono utenti assegnati a quel ruolo, altrimenti non disinstalla */
         foreach ( $roles_to_delete as $role ) {
 
             $users = get_users( array( 'role' => $role ) );
@@ -718,7 +858,7 @@ if (!class_exists('AlboPretorio')) {
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Atti);
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Allegati);
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Categorie);
-		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Log);
+//		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_Log);
 		$wpdb->query("DROP TABLE IF EXISTS ".$wpdb->table_name_RespProc);
 		
 		// Eliminazioni Opzioni
@@ -733,6 +873,9 @@ if (!class_exists('AlboPretorio')) {
 		delete_option( 'opt_AP_LivelloTitoloFiltri' );
 		delete_option( 'opt_AP_FolderUpload' );
 		delete_option( 'opt_AP_VisualizzaEnte' );  
+		delete_option( 'opt_AP_ColoreAnnullati' );  
+		delete_option( 'opt_AP_ColorePari' );  
+		delete_option( 'opt_AP_ColoreDispari' );  
 	}
 	function update_AlboPretorio_settings(){
 	    if($_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
@@ -742,13 +885,18 @@ if (!class_exists('AlboPretorio')) {
 			else
 				update_option('opt_AP_VisualizzaEnte','No' );
 		    update_option('opt_AP_AnnoProgressivo',$_POST['c_AnnoProgressivo'] );
-		    update_option('opt_AP_NumeroProgressivo',$_POST['c_NumeroProgressivo'] );
+		    //update_option('opt_AP_NumeroProgressivo',$_POST['c_NumeroProgressivo'] );
 		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
 		    update_option('opt_AP_EffettiCSS3',$_POST['c_CSS3'] );
 		    update_option('opt_AP_LivelloTitoloEnte',$_POST['c_LTE'] );
 		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
 		    update_option('opt_AP_LivelloTitoloFiltri',$_POST['c_LTF'] );
 		    update_option('opt_AP_FolderUpload',$_POST['c_dirUpload'] );
+		    if(!is_dir(AP_BASE_DIR.$_POST['c_dirUpload']))   
+				mkdir(AP_BASE_DIR.$_POST['c_dirUpload'], 0777);
+			update_option('opt_AP_ColoreAnnullati',$_POST['color'] );
+			update_option('opt_AP_ColorePari',$_POST['colorp'] );
+			update_option('opt_AP_ColoreDispari',$_POST['colord'] );
 			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=config&update=true'); 
   		}
 	}

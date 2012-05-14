@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.1
+ * @since 2.2
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -13,7 +13,7 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 
 switch ($_REQUEST['action']){
 	case 'visatto':
-		VisualizzaAtto($_REQUEST['id'],$_REQUEST['rif']);
+		VisualizzaAtto($_REQUEST['id']);
 		break;
 	case 'categoria':
 		Lista_Atti($Parametri,0,$_REQUEST['cat']);
@@ -32,7 +32,7 @@ switch ($_REQUEST['action']){
 		}
 }
 
-function VisualizzaAtto($id,$rif){
+function VisualizzaAtto($id){
 	$risultato=ap_get_atto($id);
 	$risultato=$risultato[0];
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
@@ -41,10 +41,16 @@ function VisualizzaAtto($id,$rif){
 	$responsabile=ap_get_responsabile($risultato->RespProc);
 	$responsabile=$responsabile[0];
 	ap_insert_log(5,5,$id,"Visualizzazione");
-	echo '
-<div class="Visalbo">
-<h2>Dati atto</h2>
-<a href="'.$rif.'" title="Torna alla lista degli atti">Torna alla Lista</a>
+	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
+	if($risultato->DataAnnullamento!='0000-00-00')
+		$Annullato='<p style="background-color: '.$coloreAnnullati.';text-align:center;font-size:1.5em;">Atto Annullato dal Responsabile del Procedimento</p>';
+	else
+		$Annullato='';
+echo '
+<div class="Visalbo" >
+<h2 >Dati atto</h2>
+<a href="'.get_permalink( ).'" title="Torna alla lista degli atti">Torna alla Lista</a>
+'.$Annullato.'
 <table class="tabVisalbo">
 	    <tbody id="dati-atto">
 		<tr>
@@ -117,17 +123,36 @@ echo'
 echo '<h3>Allegati</h3>';
 //print_r($_SERVER);
 foreach ($allegati as $allegato) {
+ 	switch (ExtensionType($allegato->Allegato)){
+		case 'pdf':
+			$Estensione="Pdf.png";
+			$Verifica="";
+			break;
+		case "p7m":
+			$Estensione="firmato.png";
+			$Verifica='<br /><a href="http://postecert.poste.it/verificatore/servletverificatorep7m?tipoOp=10" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da poste.it</a>';
+			break;
+	}
 	echo '<div class="Visallegato">
-			<div style="float:left;display:inline;width: 60px;height:60px;">
-				    <img src="'.Albo_URL.'img/Pdf.png" alt="Icona Visualizza Atto" style="margin-left:10px;margin-top:10px;"/>
+			<div class="Allegato">
+				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona Visualizza Atto" style="margin-left:10px;margin-top:10px;"/>
 			</div>
 			<div>
 				<p>
-					'.$allegato->TitoloAllegato.' <br />
-					<a href="'.DaPath_a_URL($allegato->Allegato).'" onclick="window.open(this.href,\'_blank\');return false;" class="addstatdw" rel="'.$_SERVER['HTTP_REFERER'].'?action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a>
-				</p>
+					'.$allegato->TitoloAllegato.' <br />';
+			if (strpos(get_permalink(),"?")>0)
+				$sep="&amp;";
+			else
+				$sep="?";
+			if (is_file($allegato->Allegato))
+				echo '        <a href="'.DaPath_a_URL($allegato->Allegato).'" onclick="window.open(this.href,\'_blank\');return false;" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+			else
+				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
+echo'				</p>
 			</div>
-		</div>';
+			<div style="clear:both;"></div>
+		</div>
+		';
 	}
 echo '
 </div>
@@ -146,32 +171,33 @@ if ($titFiltri=='')
 	$titFiltri="h3";
 $HTML='<div class="ricerca">
 	<div class="ricerca_col_SX">
-		<'.$titFiltri.'>Filtri</'.$titFiltri.'>
+		<'.$titFiltri.' style="margin-bottom:10px;">Filtri</'.$titFiltri.'>
 		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="get">
 		<fieldset>';
 		if (strpos($_SERVER['REQUEST_URI'],'page_id')>0){
 			$HTML.= '<input type="hidden" name="page_id" value="'.Estrai_PageID_Url().'" />';
 		}	
 $HTML.= '
-			<table id="tabella-filtro-atti" class="tabella-dati-albo" style="text-align:left;">
+			<table id="tabella-filtro-atti" class="tabella-dati-albo" >
 				<tr>
-					<th>Anno</th>
+					<th scope="row">Anno</th>
 					<td>'.$anni.'</td>
 				</tr>
 				<tr>
-					<th>Oggetto</th>
-					<td><input type="text" size="35" maxlength="150" name="oggetto" /></td>
+					<th scope="row"><label for="oggetto">Oggetto</label></th>
+					<td><input type="text" size="35" maxlength="150" name="oggetto" id ="oggetto"/></td>
 				</tr>
 				<tr>
-					<th>da Data</th>
-					<td><input name="DataInizio" id="Calendario1" type="text" value="" size="8" /></td>
+					<th scope="row"><label for="DataInizio">da Data</label></th>
+					<td><input name="DataInizio" id="Calendario1" type="text" value="" size="8" id ="DataInizio" /></td>
 				</tr>
 				<tr>
-					<th>a Data</th>
-					<td><input name="DataFine" id="Calendario2" type="text" value="" size="8" /></td>
+					<th scope="wor"><label for="DataFine">a Data</label></th>
+					<td><input name="DataFine" id="Calendario2" type="text" value="" size="8" id ="DataFine" /></td>
 				</tr>
 				<tr>
-					<td colspan="2" style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
+					<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
+					<td style="text-align:center;"><input type="submit" name="annullafiltro" id="annullafiltro" class="bottoneFE" value="Annulla Filtro"  /></td>
 				</tr>		
 			</table>
 			</fieldset>
@@ -217,12 +243,16 @@ switch ($Parametri['stato']){
 	}
 	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',0,0,true);
 	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',$Da,$A); 
-$titEnte=get_option('opt_AP_LivelloTitoloEnte');
-if ($titEnte=='')
-	$titEnte="h2";
-$titPagina=get_option('opt_AP_LivelloTitoloPagina');
-if ($titPagina=='')
-	$titPagina="h3";
+	$titEnte=get_option('opt_AP_LivelloTitoloEnte');
+	if ($titEnte=='')
+		$titEnte="h2";
+	$titPagina=get_option('opt_AP_LivelloTitoloPagina');
+	if ($titPagina=='')
+		$titPagina="h3";
+	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
+	$colorePari=get_option('opt_AP_ColorePari');
+	$coloreDispari=get_option('opt_AP_ColoreDispari');
+
 echo' <div class="Visalbo">';
 if (get_option('opt_AP_VisualizzaEnte')=='Si')
 		echo '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
@@ -271,48 +301,59 @@ echo'<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titP
     	</div>
 	</div>';
 	}		
-echo '	<div class="tabalbo">
-		<table id="elenco-atti" class="tabella-dati-albo"> 
-	    <thead>
+echo '	<div class="tabalbo">                                 
+		<table id="elenco-atti" class="tabella-dati-albo" summary="atti validi per riferimento, oggetto e categoria"> 
+	    <caption>Atti in corso di validit&agrave;</caption>
+		<thead>
 	    	<tr>
-	        	<th>progressivo</th>
-	        	<th>Riferimento</th>
-	        	<th>Oggetto</th>
-	        	<th>Validit&agrave;</th>
-	        	<th>Categoria</th>
+	        	<th scope="col"> progressivo</th>
+	        	<th scope="col">Riferimento</th>
+	        	<th scope="col" style="width:200px;">Oggetto</th>
+	        	<th scope="col">Validit&agrave;</th>
+	        	<th scope="col" style="width:150px;">Categoria</th>
 			</tr>
 	    </thead>
 	    <tbody>';
-	    $riferimento=$_SERVER['REDIRECT_URL'];
-		if ($_SERVER['QUERY_STRING']) 
-			$riferimento.="?".$_SERVER['QUERY_STRING'];
+	    $CeAnnullato=false;
 	if ($lista){
+	 	$pari=true;
 		foreach($lista as $riga){
-		$categoria=ap_get_categoria($riga->IdCategoria);
-		$cat=$categoria[0]->Nome;
-		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-		Bonifica_Url();
-		if (strpos($_SERVER['REQUEST_URI'],"?")>0)
-			$sep="&amp;";
-		else
-			$sep="?";
-		echo '<tr>
-		        <td><a href="'.$_SERVER['REQUEST_URI'].$sep.'action=visatto&amp;id='.$riga->IdAtto.'&amp;rif='.$riferimento.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
-				</td>
-				<td>
-					'.$riga->Riferimento .'
-				</td>
-				<td>
-					'.$riga->Oggetto .'  
-				</td>
-				<td>
-					'.VisualizzaData($riga->DataInizio) .'<br />'.VisualizzaData($riga->DataFine) .'  
-				</td>
-				<td>
-					'.$cat .'  
-				</td>
-			</tr>'; 
-		}
+			$categoria=ap_get_categoria($riga->IdCategoria);
+			$cat=$categoria[0]->Nome;
+			$NumeroAtto=ap_get_num_anno($riga->IdAtto);
+	//		Bonifica_Url();
+			$classe='';
+			if ($pari And $coloreDispari) 
+				$classe='style="background-color: '.$coloreDispari.';"';
+			if (!$pari And $colorePari)
+				$classe='style="background-color: '.$colorePari.';"';
+			$pari=!$pari;
+			if($riga->DataAnnullamento!='0000-00-00'){
+				$classe='style="background-color: '.$coloreAnnullati.';"';
+				$CeAnnullato=true;
+			}else
+				$Annullato='';
+			if (strpos(get_permalink(),"?")>0)
+				$sep="&amp;";
+			else
+				$sep="?";
+			echo '<tr >
+			        <td '.$classe.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
+					</td>
+					<td '.$classe.'>
+						'.$riga->Riferimento .'
+					</td>
+					<td '.$classe.'>
+						'.$riga->Oggetto .'  
+					</td>
+					<td '.$classe.'>
+						'.VisualizzaData($riga->DataInizio) .'<br />'.VisualizzaData($riga->DataFine) .'  
+					</td>
+					<td '.$classe.'>
+						'.$cat .'  
+					</td>
+				</tr>'; 
+			}
 	} else {
 			echo '<tr>
 					<td colspan="6">Nessun Atto Codificato</td>
@@ -321,7 +362,9 @@ echo '	<div class="tabalbo">
 	echo '
      </tbody>
     </table>';
-echo '</div>
-</div><!-- /wrap -->	';
+echo '</div>';
+	if ($CeAnnullato) 
+		echo '<p>Le righe evidenziate con questo sfondo <span style="background-color: '.$coloreAnnullati.';">&nbsp;&nbsp;&nbsp;</span> indicano Atti Annullati</p>';
+echo '</div><!-- /wrap -->	';
 }
 ?>

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.1
+ * @since 2.2
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -39,8 +39,8 @@ switch ( $_REQUEST['action'] ) {
 		break;
 	case 'add-responsabile':
 		$location = "?page=responsabili" ;
-		if (!is_email( $_REQUEST['resp-email'] )){
-			$location = add_query_arg( 'errore', 'Email non valida', $location );
+		if (!is_email( $_REQUEST['resp-email']) or $_POST['resp-cognome']==''){
+			$location = add_query_arg( 'errore', !is_email( $_REQUEST['resp-email']) ? 'Email non valida': "Bisogna valorizzare il Cognome del Responsabile", $location );
 			$location = add_query_arg( 'message', 4, $location );
 			$location = add_query_arg( 'resp-cognome', $_POST['resp-cognome'], $location );
 			$location = add_query_arg( 'resp-nome', $_POST['resp-nome'], $location );
@@ -80,13 +80,13 @@ switch ( $_REQUEST['action'] ) {
 			$location = add_query_arg( 'id', $_REQUEST['id'], $location );
 		}
 		else
-			if (ap_memo_responsabile($_REQUEST['id'],
+			if (!is_wp_error(ap_memo_responsabile($_REQUEST['id'],
 								  $_REQUEST['resp-cognome'],
 								  $_REQUEST['resp-nome'],
 								  $_REQUEST['resp-email'],
 								  $_REQUEST['resp-telefono'],
 								  $_REQUEST['resp-orario'],
-								  $_REQUEST['resp-note']))
+								  $_REQUEST['resp-note'])))
 				$location = add_query_arg( 'message', 3, $location );
 			else
 				$location = add_query_arg( 'message', 5, $location );
@@ -109,11 +109,15 @@ switch ( $_REQUEST['action'] ) {
 		break;
 	case 'add-categorie':
 		$location = "?page=categorie" ;
-		$ret=ap_insert_categoria($_POST['cat-name'],$_POST['cat-parente'],$_POST['cat-descrizione'],$_POST['cat-durata']);
-		if ( !$ret && !is_wp_error( $ret ) )
-			$location = add_query_arg( 'message', 1, $location );
-		else
-			$location = add_query_arg( 'message', 4, $location );
+		if ($_POST['cat-name']=='')
+			$location = add_query_arg( 'message', 9, $location );
+		else{
+			$ret=ap_insert_categoria($_POST['cat-name'],$_POST['cat-parente'],$_POST['cat-descrizione'],$_POST['cat-durata']);
+			if ( !$ret && !is_wp_error( $ret ) )
+				$location = add_query_arg( 'message', 1, $location );
+			else
+				$location = add_query_arg( 'message', 4, $location );
+		}			
 		wp_redirect( $location );
 		break;
 	case 'delete-categorie':
@@ -166,19 +170,42 @@ switch ( $_REQUEST['action'] ) {
 		wp_redirect( $location );
 		break;
 	case "add-atto" :
+		$NonValidato=false;
+		if ($_POST['Categoria']==0){
+			$NonValidato=true;
+			$message="Impossibile memorizzare l'atto:<br />Bisogna selezionare una Categoria";
+		}
+		if ($_POST['Responsabile']==0){
+			$NonValidato=true;
+			$message="Impossibile memorizzare l'atto:<br />Bisogna selezionare un Responsabile del Procedimento";
+		}
 		$location = "?page=atti" ;
-		$ret=ap_insert_atto($_POST['Data'],
-		                    $_POST['Riferimento'],
-							$_POST['Oggetto'],
-							$_POST['DataInizio'],
-							$_POST['DataFine'],
-							$_POST['Note'],
-							$_POST['Categoria'],
-							$_POST['Responsabile']);
-		if ( !$ret && !is_wp_error( $ret ) )
-			$location = add_query_arg( 'message', 1, $location );
-		else
-			$location = add_query_arg( 'message', 4, $location );
+		if ($NonValidato){
+			$location = add_query_arg( 'msg', $message, $location );
+			$location = add_query_arg( 'action', "new-atto", $location );	
+			$location = add_query_arg( 'id', $_POST['id'], $location );	
+			$location = add_query_arg( 'Data', $_POST['Data'], $location );	
+			$location = add_query_arg( 'Riferimento', $_POST['Riferimento'], $location );	
+			$location = add_query_arg( 'Oggetto', $_POST['Oggetto'], $location );	
+			$location = add_query_arg( 'DataInizio', $_POST['DataInizio'], $location );	
+			$location = add_query_arg( 'DataFine', $_POST['DataFine'], $location );	
+			$location = add_query_arg( 'Note', $_POST['Note'], $location );	
+			$location = add_query_arg( 'Categoria', $_POST['Categoria'], $location );	
+			$location = add_query_arg( 'Responsabile', $_POST['Responsabile'], $location );	
+		}else{
+			$ret=ap_insert_atto($_POST['Data'],
+			                    $_POST['Riferimento'],
+								$_POST['Oggetto'],
+								$_POST['DataInizio'],
+								$_POST['DataFine'],
+								$_POST['Note'],
+								$_POST['Categoria'],
+								$_POST['Responsabile']);
+			if ( !$ret && !is_wp_error( $ret ) )
+				$location = add_query_arg( 'message', 1, $location );
+			else
+				$location = add_query_arg( 'message', 4, $location );
+		}
 		wp_redirect( $location );
 		break;
 	case "memo-atto" :
@@ -201,10 +228,15 @@ switch ( $_REQUEST['action'] ) {
 	case "memo-allegato-atto":
 		$location = "?page=atti" ;
 		$messaggio =addslashes(str_replace(" ","%20",Memo_allegato_atto()));
-		$location = add_query_arg(array ( 'action' => 'allegati-atto', 
+		if (isset($_REQUEST['ref']))
+			$location = add_query_arg(array ( 'action' => $_REQUEST['ref'], 
+										  'messaggio' => $messaggio,
+										  'id' => $_REQUEST['id']) , $location );
+		else
+			$location = add_query_arg(array ( 'action' => 'allegati-atto', 
 		                                  'messaggio' => $messaggio,
 										  'id' => $_REQUEST['id']) , $location );
-		wp_redirect( $location );
+		wp_redirect( $location );	
 		break;	
 	case "update-allegato-atto":
 		$location='?page=atti&action=allegati-atto&id='.$_REQUEST['id'];
@@ -223,6 +255,10 @@ switch ( $_REQUEST['action'] ) {
 		break;
 }
 
+
+
+
+
 function Memo_allegato_atto(){
 	if ($_REQUEST["operazione"]=="upload"){
 	 	if ((($_FILES["file"]["size"] / 1024)/1024)<1){
@@ -236,25 +272,26 @@ function Memo_allegato_atto(){
 		if ($_FILES['file']['tmp_name']==''){
 			$messages[4]= "Fine non selezionato Oppure operazione annullata";
 		}else{
-			if ($_FILES["file"]["type"] != "application/pdf"){
-				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF";
+//			if ($_FILES["file"]["type"] != "application/pdf"){
+//				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
+			if (!isAllowedExtension(strtolower($_FILES["file"]["name"]))){
+				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
 			}else{
-			 	
 				if (($DimFile>20) and ($UnitM==" MB")){
 					$messages= "Il file caricato è di ".$DimFile." Mb, il limite massimo &egrave; di 20 Mb";
 				}else{
 				  if ($_FILES["file"]["error"] > 0){
 					$messages= "Errore: " . $_FILES["file"]["error"];
 		    	}else{
-					$destination_path = addslashes(AP_BASE_DIR).get_option('opt_AP_FolderUpload').'/';
+					$destination_path = AP_BASE_DIR.get_option('opt_AP_FolderUpload').'/';
 			   		$result = 0;
-			   		UniqueFileName(stripslashes($destination_path) . basename( $_FILES['file']['name']));
-				   	$target_path = UniqueFileName(stripslashes($destination_path) . basename( $_FILES['file']['name']));
-					   if(@move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
+				   	$target_path = UniqueFileName($destination_path . basename( $_FILES['file']['name']));
+					if(@move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
 	    				$messages= "File caricato%%br%%Nome: " . basename( $target_path)." %%br%%Percorso completo : ".str_replace("\\","/",$target_path);
 	    				ap_insert_allegato($_REQUEST['Descrizione'],str_replace("\\","/",$target_path),$_REQUEST['id']);
 			   		}else{
-						$messages= "Il File non caricato: " . $target_path;
+						$messages= "Il File non caricato: " .str_replace("\\","/",$target_path)."%%b%% Errore:".$_FILES['file']['error'];
+						//print($messages);exit;
 					}
 				}
 		  	}

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.1
+ * @since 2.2
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -21,6 +21,10 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 	<input type="hidden" name="operazione" value="upload" />
 	<input type="hidden" name="action" value="memo-allegato-atto" />
 	<input type="hidden" name="id" value="<?php echo $_REQUEST['id']; ?>" />
+<?php 
+	if (isset($_REQUEST['ref']))
+		echo '<input type="hidden" name="ref" value="'.$_REQUEST['ref'].'" />';
+?>	
 	<table class="widefat">
 	    <thead>
 		<tr>

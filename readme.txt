@@ -4,7 +4,7 @@ Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 2.1
+Stable tag: 2.2
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -31,6 +31,14 @@ dove stato può assumere i seguenti valori
 
 per_page indica il numero massimo di atti che vengono visualizza in ogni pagina
 == Changelog ==
+= 2.2 =
+- <strong>Revisionato</strong> il sistema dei log, adesso è possibile ricostruire cronologicamente tutti gli eventi legati agli oggetti della gestione.
+- <strong>Revisionato</strong> il codice XHTML ed il CSS, sono stati eliminati i colori del testo ed altre impostazioni che potevano dare fastidio al template utilizzato.
+- <strong>Inserito</strong> in Parametri la gestione del colore di sfondo degli atti Annullati
+- <strong>Inserita</strong> la possibilità di ANNULLARE un atto nel periodo di pubblicazione
+- <strong>Inserito</strong> il Widget per la visualizzazione degli atti in una sidebar
+- <strong>Modificati</strong> i valori di default <em>Utilizza effetti testo Shadowin</em> ed <em> Utilizza effetti CSS3</em> che adesso dopo l'attivazione del plugin saranno disattivati
+- <strong>Modificato</strong> il comportameto del plugin nella fase di configurazione, quando viene specificata una cartella che non esiste in <em>Cartella Upload</em>, adesso verr&agrave; creata automaticamente
 = 2.1 =
 - <strong>Inserito</strong> il codice per garantire la non indicizzazione della pagina dell'albo e conseguentemente dei link (allegati) in essa contenuti
 = 2.0 =
@@ -70,9 +78,9 @@ Aggiornare sempre il plugin all'ultima versione fini a che non si arriva ad una 
 <strong>Aggiornamento alla versione 1.5:
 Aggiornare in Parametri, la cartella di Upload.</strong>
 == Note ==
-Versione ancora in fase di sviluppo 
-NON UTILIZZARE IN AMBIENTI OPERATIVI
-L'AUTORE NON SI ASSUME NESSUNA RESPONSABILITA' SUL FUNZIONAMENTO DEL PLUGIN
+Versione in fase di beta test 
+E' consigliato l'uso anche in ambienti operativi, per segnalare errori o problemi di utilizzo usare l'indirizzo email ignazio.scimone@gmail.com segnalando il sito in cui e' installato il plugin, una breve descrizione del problema riscontrato, la persona di riferimento con indirizzo email.
+Non prendo in considerazione richieste non corredate da tutti i dati sopraelencati. 
 == Uso ==
 Per maggiori informazioni e per assistenza il sito di riferimento e' http://www.sisviluppo.info dove e' attivo anche un forum
 

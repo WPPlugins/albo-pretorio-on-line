@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.1
+ * @since 2.2
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -13,6 +13,29 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 ################################################################################
 // Funzioni 
 ################################################################################
+function Formato_Dimensione_File($a_bytes)
+{
+    if ($a_bytes < 1024) {
+        return $a_bytes .' Byte';
+    } elseif ($a_bytes < 1048576) {
+        return round($a_bytes / 1024) .' KB';
+    } elseif ($a_bytes < 1073741824) {
+        return round($a_bytes / 1048576) . ' MB';
+    } elseif ($a_bytes < 1099511627776) {
+        return round($a_bytes / 1073741824) . ' GB';
+    } elseif ($a_bytes < 1125899906842624) {
+        return round($a_bytes / 1099511627776) .' TB';
+    } elseif ($a_bytes < 1152921504606846976) {
+        return round($a_bytes / 1125899906842624) .' PB';
+    } elseif ($a_bytes < 1180591620717411303424) {
+        return round($a_bytes / 1152921504606846976) .' EB';
+    } elseif ($a_bytes < 1208925819614629174706176) {
+        return round($a_bytes / 1180591620717411303424) .' ZB';
+    } else {
+        return round($a_bytes / 1208925819614629174706176) .' YB';
+    }
+}
+
 function isTable($NomeTabella){
 	global $wpdb;
 	$Tabella=$wpdb->get_row("SHOW TABLES LIKE '$NomeTabella'", ARRAY_A);
@@ -41,8 +64,9 @@ function AddFiledTable($Tabella, $Campo, $Parametri){
 
 function DaPath_a_URL($File){
 	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
-	$Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
-	return $Url;
+	$allegato=$base.strstr($File, "wp-content");
+	//$Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
+	return str_replace("\\","/",$allegato);
 	
 }
 function UniqueFileNameOLD($filename,$inc=0){
@@ -69,6 +93,13 @@ function UniqueFileName($filename,$inc=0){
 	return $filename;	
 }
 
+function isAllowedExtension($fileName) {
+	$EstensioniValide = array("pdf", "p7m");
+  return in_array(end(explode(".", $fileName)), $EstensioniValide);
+}
+function ExtensionType($fileName) {
+  return end(explode(".", $fileName));
+}
 
 
 function ap_get_num_allegati($id){
@@ -101,6 +132,7 @@ function ListaElementiArray($var) {
 
 function cvdate($data){
 	$rsl = explode ('-',$data);
+//print("mm=".$rsl[1]." gg=". $rsl[2]."  aaaa=".$rsl[0]);
 	return mktime(0,0,0,$rsl[1], $rsl[2],$rsl[0]);
 }
 
@@ -204,9 +236,13 @@ $rsl = array_reverse($rsl);
 return implode($rsl,'-');
 }
 function VisualizzaData($dataDB){
+$dataDB=substr($dataDB,0,10);
 $rsl = explode ('-',$dataDB);
 $rsl = array_reverse($rsl);
 return implode($rsl,'/');
+}
+function VisualizzaOra($dataDB){
+return substr($dataDB,10);
 }
 ################################################################################
 // Funzioni Log
@@ -226,18 +262,19 @@ TipoOperazione int(1)
 	3=> Cancellazione
 	4=> Pubblicazione
 	5=> Incremento (solo per le statistiche)
+	6=> Annullamento
 */
 				  
 function ap_insert_log($Oggetto,$TipoOperazione,$IdOggetto,$Operazione,$IdAtto=0){
 global $wpdb;
     get_currentuserinfo();
 	$wpdb->insert($wpdb->table_name_Log,array('IPAddress' => $_SERVER['REMOTE_ADDR'],
-	                                                'Utente' => $current_user->user_login,
-													'Oggetto' => $Oggetto,
-													'IdOggetto' => $IdOggetto,
-													'IdAtto' => $IdAtto,
-													'TipoOperazione' => $TipoOperazione,
-													'Operazione' => $Operazione));	
+	                                          'Utente' => $current_user->user_login,
+											  'Oggetto' => $Oggetto,
+										      'IdOggetto' => $IdOggetto,
+											  'IdAtto' => $IdAtto,
+											  'TipoOperazione' => $TipoOperazione,
+											  'Operazione' => $Operazione));	
 }
 
 function ap_get_all_Oggetto_log($Oggetto,$IdOggetto=0,$IdAtto=0){
@@ -249,22 +286,35 @@ global $wpdb;
 		$condizione.=" or IdAtto=".(int)$IdAtto;
 	if ($IdAtto!=0 and $IdOggetto==0)
 		$condizione.=" and IdAtto=".(int)$IdAtto;
-//	echo "SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data;";exit;
-	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data;");	
+//	echo "SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data;";
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Log ".$condizione." order by Data DESC;");	
 }
 
 function ap_get_Stat_Visite($IdAtto){
 global $wpdb;
-	return $wpdb->get_results("SELECT date(`Data`) AS Data, count( `Data` ) AS Accessi
+	return $wpdb->get_results("SELECT date( `Data` ) AS Data, count( `Data` ) AS Accessi
 							   FROM $wpdb->table_name_Log
 							   WHERE `Oggetto` =5
 							   AND `IdOggetto` =".$IdAtto."
 							   GROUP BY date( `Data` )
-							   ORDER BY Data;");	
+							   ORDER BY Data DESC;");	
+}
+function ap_get_Stat_Num_log($IdAtto,$Oggetto){
+global $wpdb;
+	switch ($Oggetto){
+		case 5:
+			return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdOggetto) FROM $wpdb->table_name_Log WHERE Oggetto = %d AND IdOggetto = %d",(int) $Oggetto,(int)$IdAtto)));	
+			break;
+		case 6:
+			return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdOggetto) FROM $wpdb->table_name_Log WHERE Oggetto = %d AND IdAtto = %d",(int) $Oggetto,(int)$IdAtto)));	
+			break;
+	}	
 }
 
 function ap_get_Stat_Download($IdAtto){
 global $wpdb;
+
+
 	return $wpdb->get_results("SELECT date( `Data` ) AS Data, TitoloAllegato, Allegato, count( `Data` ) AS Accessi
 							   FROM `wp_albopretorio_log`
 							   INNER JOIN $wpdb->table_name_Allegati 
@@ -272,7 +322,7 @@ global $wpdb;
 							   WHERE `Oggetto` =6
 							   AND $wpdb->table_name_Allegati.`IdAtto` =$IdAtto
 							   GROUP BY date( `Data` ) , IdOggetto
-							   ORDER BY Data");	
+							   ORDER BY Data DESC");	
 }
 
 ################################################################################
@@ -284,16 +334,35 @@ function ap_insert_categoria($cat_name,$cat_parente,$cat_descrizione,$cat_durata
 	global $wpdb;
 	if ( false === $wpdb->insert($wpdb->table_name_Categorie,array('Nome' => $cat_name,'Genitore' => $cat_parente,'Descrizione' => $cat_descrizione,'Giorni' => $cat_durata)))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire la Nuova Categoria'.$wpdb->last_error, $wpdb->last_error);
-    else
-    	ap_insert_log(2,1,$wpdb->insert_id,"{IdOggetto}==> $wpdb->insert_id
+    else{
+    	$NomeCategoria=ap_get_categoria($Categoria);
+    	$NomeCategoria=$NomeCategoria[0];
+		ap_insert_log(2,1,$wpdb->insert_id,"{IdCategoria}==> $wpdb->insert_id
 		                                    {Nome}==> $cat_name 
 		                                    {Descrizione}==> $cat_descrizione 
-											{Durata}==> $cat_durata 
-											{Parente}==> $cat_parente");
+											{Durata}==> $cat_durata
+											{IdGenitore}==> $cat_parente
+											{Genitore}==> $NomeCategoria->Nome");
+	}
 }
 
 function ap_memo_categorie($id,$cat_name,$cat_parente,$cat_descrizione,$cat_durata){
 	global $wpdb;
+	$Categoria=ap_get_categoria($id);
+	$Categoria=$Categoria[0];
+	$Log='{Id}==>'.$id .' ' ;
+	if ($Categoria->Nome!=$cat_name)
+		$Log.='{Nome}==> '.$cat_name.' ';
+	if ($Categoria->Genitore!=$cat_parente){
+		$Log.='{IdGenitore}==> '.$cat_parente.' ';
+		$CategoriaPadre=ap_get_categoria($cat_parente);
+		$CategoriaPadre=$CategoriaPadre[0];
+		$Log.='{Genitore}==> '.$CategoriaPadre->Nome.' ';
+	}
+	if ($Categoria->Descrizione!=$cat_descrizione)
+		$Log.='{Descrizione}==> '.$cat_descrizione.' ';
+	if ($Categoria->Giorni!=$cat_durata)
+		$Log.='{Giorni}==> '.$cat_durata.' ';
 	if ( false === $wpdb->update($wpdb->table_name_Categorie,
 					array('Nome' => $cat_name,
 						  'Genitore' => $cat_parente,
@@ -308,7 +377,7 @@ function ap_memo_categorie($id,$cat_name,$cat_parente,$cat_descrizione,$cat_dura
 						  ))
     	return new WP_Error('db_update_error', 'Non sono riuscito a modifire la Categoria'.$wpdb->last_error, $wpdb->last_error);
     else
-    	ap_insert_log(2,2,$id,"{Nome}==> $cat_name {Descrizione}==> $cat_descrizione {Durata}==> $cat_durata {Parente}==> $cat_parente");
+    	ap_insert_log(2,2,$id,$Log);
 	
 }
 
@@ -464,16 +533,26 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
  
 // echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo Atto'.$wpdb->last_error, $wpdb->last_error);}
-    else
-    	ap_insert_log(1,1,$wpdb->insert_id,"{Numero} $Numero/$Anno 
-							 {Data}==> $Data 
-		                     {Riferimento}==> $Riferimento 
-							 {Oggetto}==> $Oggetto 
-							 {IdOggetto}==> $wpdb->insert_id
-							 {DataInizio}==> $DataInizio
-							 {DataFine}==> $DataFine
-							 {Responsabile}==> $Responsabile"
+    else{
+    	$NomeCategoria=ap_get_categoria($Categoria);
+    	$NomeCategoria=$NomeCategoria[0];
+		$NomeResponsabile=ap_get_responsabile($Responsabile);
+		$NomeResponsabile=$NomeResponsabile[0];
+		ap_insert_log(1,1,$wpdb->insert_id,"{IdAtto}==> $wpdb->insert_id
+											{Numero} $Numero/$Anno 
+											{Data}==> $Data 
+						                    {Riferimento}==> $Riferimento 
+											{Oggetto}==> $Oggetto 
+											{IdOggetto}==> $wpdb->insert_id
+											{DataInizio}==> $DataInizio
+											{DataFine}==> $DataFine
+											{Note}=> $Note
+											{Categoria}==> $NomeCategoria->Nome
+											{IdCategoria}==> $Categoria
+											{Responsabile}==> $NomeResponsabile->Cognome $NomeResponsabile->Nome
+											{IdResponsabile}==>$Responsabile"
 							  );
+	}
 }
 function ap_del_atto($id) {
 	global $wpdb;
@@ -491,6 +570,33 @@ function ap_del_atto($id) {
 
 function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
 	global $wpdb;
+	$Atto=ap_get_atto($id);
+	$Atto=$Atto[0];
+	$Log='' ;
+	if ($Atto->Data!=$Data)
+		$Log.='{Data}==> '.$Data.' ';
+	if ($Atto->Riferimento!=$Riferimento)
+		$Log.='{Riferimento}==> '.$Riferimento.' ';
+	if ($Atto->Oggetto!=$Oggetto)
+		$Log.='{Oggetto}==> '.$Oggetto.' ';
+	if ($Atto->DataInizio!=$DataInizio)
+		$Log.='{DataInizio}==> '.$DataInizio.' ';
+	if ($Atto->DataFine!=$DataFine)
+		$Log.='{DataFine}==> '.$DataFine.' ';
+	if ($Atto->Informazioni!=$Note)
+		$Log.='{Informazioni}==> '.$Note.' ';
+	if ($Atto->IdCategoria!=$Categoria){
+    	$NomeCategoria=ap_get_categoria($Categoria);
+    	$NomeCategoria=$NomeCategoria[0];
+		$Log.='{IdCategoria}==> '.$Categoria.' ';
+		$Log.='{Categoria}==> '.$NomeCategoria->Nome.' ';
+	}
+	if ($Atto->RespProc!=$Responsabile){
+ 		$NomeResponsabile=ap_get_responsabile($Responsabile);
+		$NomeResponsabile=$NomeResponsabile[0];
+		$Log.='{IdRespProc}==> '.$Responsabile.' ';
+		$Log.='{RespProc}==> '.$NomeResponsabile->Cognome .' '. $NomeResponsabile->Nome.' ';
+	}
 	$Data=convertiData($Data);
 	$DataInizio=convertiData($DataInizio);
 	$DataFine=convertiData($DataFine);
@@ -515,14 +621,7 @@ function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Not
 						  array('%d')))
     	return new WP_Error('db_update_error', 'Non sono riuscito a modifire l\' Atto'.$wpdb->last_error, $wpdb->last_error);
     else
-    	ap_insert_log(1,2,$id,"{Numero} $Numero/$Anno 
-							 {Data}==> $Data 
-		                     {Riferimento}==> $Riferimento 
-							 {Oggetto}==> $Oggetto 
-							 {DataInizio}==> $DataInizio
-							 {DataFine}==> $DataFine
-							 {Note}==> $Note
-							 {IdCategoria}==> $Categoria");
+    	ap_insert_log(1,2,$id,$Log);
 	
 }
 
@@ -549,8 +648,7 @@ function ap_approva_atto($IdAtto){
 		$x=$wpdb->update($wpdb->table_name_Atti,
 									 array('Numero' => $NumeroOpzione),
 									 array( 'IdAtto' => $IdAtto ),
-									 array('%d',
-										   '%s'),
+									 array('%d'),
 									 array('%d'));
 	//  visualizza Sql Updateecho $wpdb->print_error();exit;
 	 	if ($x==0){
@@ -564,6 +662,18 @@ function ap_approva_atto($IdAtto){
 			return 'Atto PUBBLICATO';
 		}
 	}
+}
+
+function ap_annulla_atto($IdAtto){
+	global $wpdb;
+	$risultato=ap_get_atto($IdAtto);
+	$risultato=$risultato[0];
+	$x=$wpdb->update($wpdb->table_name_Atti,array('DataAnnullamento' => date('Y-m-d')),
+									 array( 'IdAtto' => $IdAtto ),
+									 array('%s'),
+									 array('%d'));
+	ap_insert_log(1,6,$IdAtto,"{Stato Atto}==> Annullato");	
+	return 'Atto ANNULLATO';
 }
 
 function ap_get_dropdown_anni_atti($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuno",$Stato=0) {
@@ -626,7 +736,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 */	
 	global $wpdb;
 	if ($OrderBy!=""){
-		$OrderBy=" Oerder By ".$OrderBy;
+		$OrderBy=" Order By ".$OrderBy;
 	}
 	$Limite=" Limit ".$DaRiga.",".$ARiga;
 	switch ($Stato){
@@ -737,10 +847,10 @@ global $wpdb;
 				'IdAtto' => $IdAtto)))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo allegato'.$wpdb->last_error, $wpdb->last_error);
     else
-    	ap_insert_log(3,1,$wpdb->insert_id,"{Titolo} $TitoloAllegato 
-							 {Allegato}==> $Allegato 
-		                     {IdAtto}==> $IdAtto" 
-							  ,$IdAtto);
+    	ap_insert_log(3,1,$wpdb->insert_id,"{IdAllegato}==> $wpdb->insert_id
+											{Titolo}==> $TitoloAllegato 
+											{Allegato}==> $Allegato 
+											{IdAtto}==> $IdAtto", $IdAtto);
 }
 
 function ap_del_allegato_atto($idAllegato,$idAtto=0,$nomeAllegato=''){
@@ -807,11 +917,30 @@ function ap_insert_responsabile($resp_cognome,$resp_nome,$resp_email,$resp_telef
     	ap_insert_log(4,1,$wpdb->insert_id,"{IdResponsabile}==> $wpdb->insert_id
 		                                    {Cognome}==> $resp_cognome 
 		                                    {Nome}==> $resp_nome 
-											{Email}==> $resp_email");
+											{Email}==> $resp_email
+											{Telefono}==> $resp_telefono
+											{Orario}==> $resp_orario
+											{Note}==> $resp_note");
 }
 function ap_memo_responsabile($Id,$resp_cognome,$resp_nome,$resp_email,$resp_telefono,$resp_orario,$resp_note){
 	global $wpdb;
-	$num=$wpdb->update($wpdb->table_name_RespProc,
+	$Responsabile=ap_get_responsabile($Id);
+	$Responsabile=$Responsabile[0];
+	$Log='{Id}==>'.$Id .' ' ;
+	if ($Responsabile->Cognome!=$resp_cognome)
+		$Log.='{Cognome}==> '.$resp_cognome.' ';
+	if ($Responsabile->Nome!=$resp_nome)
+		$Log.='{Nome}==> '.$resp_nome.' ';
+	if ($Responsabile->Email!=$resp_email)
+		$Log.='{Email}==> '.$cat_parente.' ';
+	if ($Responsabile->Telefono!=$resp_telefono)
+		$Log.='{Telefono}==> '.$resp_telefono.' ';
+	if ($Responsabile->Orario!=$resp_orario)
+		$Log.='{Orario}==> '.$resp_orario.' ';
+	if ($Responsabile->Note!=$resp_note)
+		$Log.='{Note}==> '.$resp_note.' ';
+	
+	if ( false === $wpdb->update($wpdb->table_name_RespProc,
 					array('Cognome' => $resp_cognome,
 	                      'Nome' => $resp_nome,
 						  'Email' => $resp_email,
@@ -824,16 +953,10 @@ function ap_memo_responsabile($Id,$resp_cognome,$resp_nome,$resp_email,$resp_tel
 						   '%s',
 						   '%s',
 						   '%s',
-						   '%s'));
-//	echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;
-	if (false===$num)
-		return false;
-	else {
-		ap_insert_log(4,2,$id,"{IdResponsabile}==> $Id
-		                       {Cognome}==> $resp_cognome
-		                       {Nome}==> $resp_nome");
-		return true;
-	}
+						   '%s')))
+	    	return new WP_Error('db_update_error', 'Non sono riuscito a modifire il resposnabile del Trattamento'.$wpdb->last_error, $wpdb->last_error);
+	else 
+		ap_insert_log(4,2,$id,$Log);
 }
 
 function ap_del_responsabile($id) {
@@ -847,5 +970,13 @@ function ap_del_responsabile($id) {
 		return $result;
 	}
 }
+################################################################################
+// Funzioni Permessi
+################################################################################
 
+function ap_get_users(){
+	global $wpdb;  
+	$users = $wpdb->get_results('SELECT ID, user_login FROM '.$wpdb->users); 
+    return $users;  
+}
 ?>

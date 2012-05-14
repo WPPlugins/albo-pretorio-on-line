@@ -1,7 +1,8 @@
 table.tabella-dati-albo{
-	padding: 10;
-	margin: 0;
-	width:90%;
+	padding-left: 10;
+	margin-top: 10;
+	width: 100%;
+	text-align:left;
 }
 
 .finestra_ricerca{
@@ -13,15 +14,22 @@ table.tabella-dati-albo{
 div.ricerca{
 	border: thin solid Black;
 	padding: 5px;
-	font-size: 10px;
+	font-size: 1em;
 }
 div.ricerca_col_SX{
-	float: left;display: inline;width:64%;
+	float: left;
+	display: inline;
+	width:64%;
 }
 div.ricerca_col_DX{
 	float:right;
 	width:35%;
+	font-size: 1em;
 }
+div.ricerca_col_DX a{
+	font-size: 0.8em;
+}
+
 div.ricerca .Titolo{
 	text-align: center;
 }
@@ -29,22 +37,32 @@ div.ricerca .Titolo{
 div.Visallegato{
 	width: 100%;
 	border: thin dashed;
+	font-size: 1em;
 }
+
+div.Visallegato .Allegato{
+	float: left;
+	display: inline;
+	width: 60px;
+	height: 60px;
+}
+
 div.Visalbo{
-	width: 100%;
+	width: 99%;
+	font-size: 1em;
 }
 .tabVisalbo{
 	width: 100%;
 	clear: both;
 	margin: 0;
 }
+
 .tabVisalbo td{
-	font-size: 0,8em;
 	vertical-align: top;
-	border: thin solid Black;
+	line-height: 1.5em;
 	background-color: #F3F3F3;
 	padding: 5px;
-	color: Blue;
+	font-size: 1em;
 }
 
 .tabVisalbo a{
@@ -53,9 +71,9 @@ div.Visalbo{
 .tabVisalbo th{
 	text-transform: capitalize;
 	text-align: right;
-	font-size: 0.8em;
+	font-size: 1.1em;
 	font-weight: bold;
-	width: 160px;
+	width: 200px;
 	padding-right: 5px;
 }
 .tabVisResp{
@@ -64,10 +82,11 @@ div.Visalbo{
 	margin: 0;
 }
 .tabVisResp td{
-	font-size: 0.8em;
+	font-size: 1em;
 	vertical-align: top;
+	line-height: 1.5em;
 	padding: 5px;
-	color: Blue;
+	font-size: 1em;
 }
 .tabVisResp tr{
 	border: none;
@@ -75,31 +94,12 @@ div.Visalbo{
 .tabVisResp th{
 	text-transform: capitalize;
 	text-align: right;
-	font-size: 0.8em;
+	font-size: 1.1em;
 	font-weight: bold;
-	width: 160px;
+	width: 200px;
 	padding-right: 5px;
-}
-.tabVisalbo td{
-	font-size: 0.8em;
-	vertical-align: top;
-	border: thin solid Black;
-	background-color: #F3F3F3;
-	padding: 5px;
-	color: Blue;
 }
 
-.tabVisalbo a{
-	text-decoration:none;
-}
-.tabVisalbo th{
-	text-transform: capitalize;
-	text-align: right;
-	font-size: 0.8em;
-	font-weight: bold;
-	width: 160px;
-	padding-right: 5px;
-}
 .tabalbo{
 	border-width: 1px;
 	border-style: solid;
@@ -112,7 +112,7 @@ div.Visalbo{
 	text-decoration:none;
 }
 .tabalbo td{
-	font-size: 0.8em;
+	font-size: 1em;
 	padding: 4px 4px 4px;
 	vertical-align: top;
 }
@@ -122,7 +122,7 @@ div.Visalbo{
 	padding: 4px 4px 4px;
 	text-align: left;
 	line-height: 1.3em;
-	font-size: 0.9em;
+	font-size: 1.1em;
 	font-weight: bold;
 }
 .tabalbo th.FE{

@@ -5,12 +5,15 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.1
+ * @since 2.2
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 switch ($_REQUEST['action']){
+	case "annulla-atto":
+		Lista_Atti(ap_annulla_atto($_REQUEST['id']));
+		break;
 	case "logatto" :
 		echo json_encode(CreaLog(1,$IdAtto,0));
 		die();
@@ -29,7 +32,8 @@ switch ($_REQUEST['action']){
 		break;
 	case "setta-anno":
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
-	  	PreApprovazione($_REQUEST['id'],"Anno Progressivi Albo settato a ".date("Y"));
+	  	update_option('opt_AP_NumeroProgressivo',0 );
+		PreApprovazione($_REQUEST['id'],"Anno Albo settato a ".date("Y")." Numero prograssivo settato a 0");
 		break;
 	case "approva-atto" :
 		if ($_REQUEST['apa']){
@@ -90,7 +94,7 @@ if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 				<form id="agg_anno_progressivo" method="post" action="?page=atti">
 				<input type="hidden" name="action" value="setta-anno" />
 				<input type="hidden" name="id" value="'.$id.'" />
-				<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo"  />
+				<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 				</form>
 			</div>
 		</div>';
@@ -182,7 +186,7 @@ echo'<br />
 				}else{
 					$Passato=false;
 					echo '<td>Da revisionare</td>
-					      <td><a href="?page=atti&amp;id='.$id.'&amp;action=UpAllegati" class="add-new-h2">Inserisci Allegato</a></td>';
+					      <td><a href="?page=atti&amp;id='.$id.'&amp;action=UpAllegati&amp;ref=approva-atto" class="add-new-h2">Inserisci Allegato</a></td>';
 				}
 			echo '</tr>';
 		}
@@ -216,17 +220,12 @@ echo'
 foreach ($righe as $riga) {
 	echo '<tr>
 			<td>	
-				<a href="?page=atti&amp;action=delete-allegato-atto&amp;id='.$riga->IdAllegato.'" rel="'.$riga->TitoloAllegato.'" class="dc">
-					<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-				</a>
-				<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$riga->IdAllegato.'" rel="'.$riga->TitoloAllegato.'">
-					<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
-				</a>
-				<a href="'.Albo_URL.'/allegati/'.basename($riga->Allegato).'" target="_parent">
-						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
-				</a>
-			<td >'.$riga->TitoloAllegato.'</th>
-			<td >'. basename( $riga->Allegato).'</th>
+					<a href="'.DaPath_a_URL($riga->Allegato).'" target="_parent">
+							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+					</a>
+			</td>
+			<td >'.$riga->TitoloAllegato.'</td>
+			<td >'. basename( $riga->Allegato).'</td>
 		</tr>';
 }
 echo '    </tbody>
@@ -287,12 +286,20 @@ echo '</div>';
 function Nuovo_atto(){
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
 	$risultatocategoria=$risultatocategoria[0];
+	if ($_REQUEST['Data']=="")
+		$dataCorrente=date("d/m/Y");
+	else
+		$dataCorrente=$_REQUEST['Data'];
 	echo '
 <div class="wrap">
 <div style="display:inline;float:left;">
 	<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto"/>
-</div>
-	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
+</div>';
+	if ( $_REQUEST['msg'] !="") {
+		echo '<div id="message" class="updated"><p>'.$_REQUEST['msg'].'</p></div>';
+	}
+
+echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
 	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>
 <div id="col-container">
 <form id="addatto" method="post" action="?page=atti" class="validate">
@@ -314,37 +321,37 @@ function Nuovo_atto(){
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.date("d/m/Y").'" size="8" aria-required="true" /></td>
+			<td><input name="Data" id="Calendario1" type="text" value="'.$dataCorrente.'" size="8" aria-required="true" /></td>
 			<td>Data di codifica dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" value="" size="20" aria-required="true" /></td>
+			<td><input name="Riferimento" id="riferimento-atto" type="text" size="20" aria-required="true" value="'.$_REQUEST['Riferimento'].'" /></td>
 			<td>Numero di riferimento dell\'atto, es. N. Protocollo</td>
 		</tr>
 		<tr>
 			<th>Oggetto</th>
-			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="150" aria-required="true"></textarea></td>
+			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="150" aria-required="true">'.$_REQUEST['Oggetto'].'</textarea></td>
 			<td colspan="2">Oggetto, descrizione sintetica dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td><input name="DataInizio" id="Calendario2" type="text" value="" size="8" aria-required="true" /></td>
+			<td><input name="DataInizio" id="Calendario2" type="text" value="" size="8" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /></td>
 			<td>Data Inizio Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td><input name="DataFine" id="Calendario3" type="text" value="" size="8" aria-required="true" /></td>
+			<td><input name="DataFine" id="Calendario3" type="text" value="" size="8" aria-required="true" value="'.$_REQUEST['DataFine'].'" /></td>
 			<td>Data Fine Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Note</th>
-			<td><textarea  name="Note" rows="5" cols="60" wrap="ON" maxlength="255"></textarea></td>
+			<td><textarea  name="Note" id="Note-atto" rows="5" cols="60" wrap="ON" maxlength="255">'.$_REQUEST['Note'].'</textarea></td>
 			<td>Descrizione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Categoria</th>
-			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform','',0).'</td>
+			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform', '',0).'</td>
 			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</td>
 		</tr>
 		<tr>
@@ -452,7 +459,7 @@ function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
 	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
 	if ( $messaggio!="" ) {
 	 	$messaggio=str_replace("%%br%%", "<br />", $messaggio);
-		echo '<div id="message" class="updated"><p>'.$messaggio.'</p></div>';
+		print('<div id="message" class="updated"><p>'.$messaggio.'</p></div>');
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('messaggio'), $_SERVER['REQUEST_URI']);
 	}
 echo'
@@ -517,8 +524,9 @@ if ($IdAllegato!=0){
 					<a href="'.DaPath_a_URL($riga->Allegato).'" target="_parent">
 							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>
-				<td >'.$riga->TitoloAllegato.'</th>
-				<td >'. basename( $riga->Allegato).'</th>
+				</td>
+				<td >'.$riga->TitoloAllegato.'</td>
+				<td >'. basename( $riga->Allegato).'</td>
 			</tr>';
 	}
 	echo '    </tbody>
@@ -542,7 +550,7 @@ echo'</div>
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Data.'</td>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->Data).'</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
@@ -554,11 +562,11 @@ echo'</div>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataInizio.'</td>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataInizio).'</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataFine.'</td>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataFine).'</td>
 		</tr>
 		<tr>
 			<th>Note</th>
@@ -577,38 +585,6 @@ echo'</div>
 function View_atto($IdAtto){
 	global $AP_OnLine;
 ?>
-<script  type='text/javascript'>
-<!--
-// When the document loads do everything inside here ...
-jQuery(document).ready(function(){
-	jQuery('input.infolog').click(function() { //start function when Random button is clicked
-		var tipo;
-		switch (jQuery(this).attr('value')){
-			case "Atti":
-				tipo=1;
-				break;
-			case "Allegati":
-				tipo=3;
-				break;
-			case "Statistiche":
-				tipo=99;
-				break;
-		}
-		jQuery.ajax({
-			type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo $_GET['id']; ?>', IdAtto: '<?php echo $IdAtto; ?>'},
-			beforeSend: function() {
-			 jQuery("#DatiLog").html('');
-			 jQuery("#loading").fadeIn('fast');}, 
-			success: function(html){
-				jQuery("#loading").fadeOut('fast');
-				jQuery("#DatiLog").html(html); 
-			}
-		}); //close jQuery.ajax
-		return false;
-	})
-});
--->
-</script>
 <style type='text/css'>
 #loading { clear:both; background:url(images/loading.gif) center top no-repeat; text-align:center;padding:33px 0px 0px 0px; font-size:12px;display:none; font-family:Verdana, Arial, Helvetica, sans-serif; }
 </style>
@@ -622,72 +598,108 @@ jQuery(document).ready(function(){
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atto</h2>
+<h2 style="margin-left:40px;">Atto<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a></h2>
 
 <div id="col-container">
 	<div id="col-right">
 		<div class="col-wrap">
 			<h3>Log</h3>
 			<form action="" method="POST" id="formlog">
-			<p><input type="submit" name="action" id="LogAtti" value="Atti" class="infolog"/>
+			<input type="submit" name="action" id="LogAtti" value="Atti" class="infolog"/>
 			<input type="submit" name="action" id="LogAllegati" value="Allegati" class="infolog"/>
-			<input type="submit" name="action" id="LogStatistiche" value="Statistiche" class="infolog"/></p>
+			<input type="submit" name="action" id="LogStatisticheVisite" value="Statistiche Visite" class="infolog"/>
+			<input type="submit" name="action" id="LogStatisticheDownload" value="Statistiche Download" class="infolog"/>
 			</form>
 			<div id="loading">LOADING!</div>
 				<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div> 
 		</div>
 	</div>
-
 <div id="col-left">
-<div class="col-wrap">
-<br class="clear" />	
-<table class="widefat">
-	    <thead>
-		<tr>
-			<th colspan="2" style="text-align:center;font-size:1.2em;">Dati atto</th>
-		</tr>
-	    </thead>
-	    <tbody id="dati-atto">
-		<tr>
-			<th style="width:20%;">Numero Albo</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
-		</tr>
-		<tr>
-			<th>Data</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Data.'</td>
-		</tr>
-		<tr>
-			<th>Codice di Riferimento</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Riferimento).'</td>
-		</tr>
-		<tr>
-			<th>Oggetto</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Oggetto).'</td>
-		</tr>
-		<tr>
-			<th>Data inizio Pubblicazione</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataInizio.'</td>
-		</tr>
-		<tr>
-			<th>Data fine Pubblicazione</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->DataFine.'</td>
-		</tr>
-		<tr>
-			<th>Note</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
-		</tr>
-		<tr>
-			<th>Categoria</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
-		</tr>
-		<tr>
-			<th>Responsabile procedimento</th>
-			<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($responsabile->Cognome.' '.$responsabile->Nome.' '.$responsabile->Email).'</td>
-		</tr>	    </tbody>
-	</table>
+	<div class="col-wrap">
+		<br class="clear" />	
+		<table class="widefat">
+		    <thead>
+			<tr>
+				<th colspan="2" style="text-align:center;font-size:1.2em;">Dati atto</th>
+			</tr>
+		    </thead>
+		    <tbody id="dati-atto">';
+		if($risultato->DataAnnullamento!='0000-00-00')		
+			echo '		<tr>
+				<th style="width:20%;">Data Annullamento</th>
+				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:middle;">'.VisualizzaData($risultato->DataAnnullamento).'</td>
+			</tr>';
+		
+		echo '		<tr>
+				<th style="width:20%;">Numero Albo</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
+			</tr>
+			<tr>
+				<th>Data</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->Data).'</td>
+			</tr>
+			<tr>
+				<th>Codice di Riferimento</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Riferimento).'</td>
+			</tr>
+			<tr>
+				<th>Oggetto</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Oggetto).'</td>
+			</tr>
+			<tr>
+				<th>Data inizio Pubblicazione</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataInizio).'</td>
+			</tr>
+			<tr>
+				<th>Data fine Pubblicazione</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataFine).'</td>
+			</tr>
+			<tr>
+				<th>Note</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
+			</tr>
+			<tr>
+				<th>Categoria</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
+			</tr>
+			<tr>
+				<th>Responsabile procedimento</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($responsabile->Cognome.' '.$responsabile->Nome.' '.$responsabile->Email).'</td>
+			</tr>	    </tbody>
+		</table>
+	</div>';
+echo '<h3>Allegati</h3>
+	<div class="Visalbo">';
+$allegati=ap_get_all_allegati_atto($IdAtto);
+foreach ($allegati as $allegato) {
+ 	switch (ExtensionType($allegato->Allegato)){
+		case 'pdf':
+			$Estensione="Pdf.png";
+			$Verifica="";
+			break;
+		case "p7m":
+			$Estensione="firmato.png";
+			$Verifica='<br /><a href="http://postecert.poste.it/verificatore/servletverificatorep7m?tipoOp=10" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da poste.it</a>';
+			break;
+	}
+	echo '<div style="border: thin dashed;font-size: 1em;">
+			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
+			</div>
+			<div style="margin-top:0;">
+				<p style="margin-top:0;">'.$allegato->TitoloAllegato.' <br />';
+			if (is_file($allegato->Allegato))
+				echo '        <a href="'.DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+			else
+				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
+echo'				</p>
+			</div>
+			<div style="clear:both;"></div>
+		</div>';
+	}
+echo '	</div>
+		</div>
 	</div>
-</div>
-</div>
 </div>';	
 }
 
@@ -739,15 +751,20 @@ if ($Msg_op!=""){
 			</tr>
 	    </thead>
 	    <tbody id="the-list">';
+	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	$lista=ap_get_all_atti(); 
 	if ($lista){
 		foreach($lista as $riga){
 		$categoria=ap_get_categoria($riga->IdCategoria);
 		$cat=$categoria[0]->Nome;
 		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-		echo '<tr>
-	        	<td style="width:75px;">';
-		if ($NumeroAtto==0 )
+		if($riga->DataAnnullamento!='0000-00-00')
+			$Annullato='style="background-color: '.$coloreAnnullati.';"';
+		else
+			$Annullato='';
+		echo '<tr '.$Annullato.'>
+	        	<td style="width:80px;">';
+		if ($NumeroAtto ==0 )
 			echo'	<a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'" rel="'.$riga->Oggetto.'" tag="" class="ac">
 						<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
@@ -756,11 +773,24 @@ if ($Msg_op!=""){
 					</a>
 					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'" ">
 						<img src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
-					</a>';
-		echo '	<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
-						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>
-				</td>
+					<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
+						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+					</a>';
+		else{
+			echo '	<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
+						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+					</a>';
+			if ($Annullato!='')
+				echo ' <strong><span style="color:red;">Annullato</span></strong>';
+			else{
+			if ((cvdate($riga->DataInizio) <= cvdate(date("Y-m-d"))) and (cvdate($riga->DataFine) >= cvdate(date("Y-m-d"))) and current_user_can('admin_albo'))
+				echo ' <a class="annullaatto" href="?page=atti&amp;action=annulla-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+						<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
+					</a>';
+			}
+		}
+		echo '				</td>
 				<td>';
 		if ($NumeroAtto == 0)
 			if  (current_user_can('admin_albo')){
@@ -769,14 +799,18 @@ if ($Msg_op!=""){
 					</a>';
 			}else
 				echo "Bozza";
-		else
-			echo "Pub.";		
+		else{
+		 	$Stato="Pub.";
+			if (cvdate($riga->DataFine) < cvdate(date("Y-m-d")))
+				$Stato="Scaduto";
+			echo $Stato;		
+		}
 		echo '  </td> 
 		        <td>
 					'.$NumeroAtto.'/'.$riga->Anno .'
 				</td>
 				<td>
-					'.$riga->Data .'
+					'.VisualizzaData($riga->Data) .'
 				</td>
 				<td>
 					'.$riga->Riferimento .'
@@ -785,10 +819,10 @@ if ($Msg_op!=""){
 					'.$riga->Oggetto .'  
 				</td>
 				<td>
-					'.$riga->DataInizio .'  
+					'.VisualizzaData($riga->DataInizio) .'  
 				</td>
 				<td>
-					'.$riga->DataFine .'  
+					'.VisualizzaData($riga->DataFine) .'  
 				</td>
 				<td>
 					'.$cat .'  
