@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.2
+ * @since 2.3
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -17,7 +17,6 @@ switch ( $_REQUEST['action'] ) {
 			$newcontent = stripslashes($_REQUEST['newcontent']);
 			if (is_writeable($file)) {
 				//is_writable() not always reliable, check return value. see comments @ http://uk.php.net/is_writable
-				
 				$f = fopen($file, 'w+');
 				if ($f !== FALSE) {
 					fwrite($f, $newcontent);
@@ -28,7 +27,7 @@ switch ( $_REQUEST['action'] ) {
 			wp_redirect( $location );
 		break;	
 		case "delete-allegato-atto" :
-		$location = "?page=categorie" ;
+		$location = "?page=atti" ;
 		ap_del_allegato_atto($_REQUEST['idAllegato'],$_REQUEST['idAtto'],$_REQUEST['Allegato']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
@@ -94,9 +93,9 @@ switch ( $_REQUEST['action'] ) {
 //		echo $wpdb->last_query;exit; 
 		wp_redirect( $location );
 		break;
-	case 'delete-responsabile':
-		$location = "?page=responsabili" ;
-		$res=ap_del_responsabile($_GET['id']);
+	case 'delete-ente':
+		$location = "?page=enti" ;
+		$res=ap_del_ente($_GET['id']);
 		if (!is_array($res))
 			$location = add_query_arg( 'message', 2, $location );
 		else{
@@ -105,6 +104,76 @@ switch ( $_REQUEST['action'] ) {
 			else
 				$location = add_query_arg( 'message', 6, $location );
 		}
+		wp_redirect( $location );
+		break;
+	case 'add-ente':
+		$location = "?page=enti" ;
+		$errore="";
+		if ($_REQUEST['ente-nome']=='') $errore.="Bisogna valorizzare il Nome dell' Ente <br />";
+		if (!is_email( $_REQUEST['ente-email'])) $errore.="Email non valida <br />"; 
+		if (!is_email( $_REQUEST['ente-pec'])) $errore.="Pec non valida <br />"; 
+		if (strlen($errore)>0){
+			$location = add_query_arg( 'errore', $errore, $location );
+			$location = add_query_arg( 'message', 4, $location );
+			$location = add_query_arg( 'ente-nome', $_REQUEST['ente-nome'], $location );
+			$location = add_query_arg( 'ente-indirizzo', $_REQUEST['ente-indirizzo'], $location );
+			$location = add_query_arg( 'ente-url', $_REQUEST['ente-url'], $location );
+			$location = add_query_arg( 'ente-email', $_REQUEST['ente-email'], $location );
+			$location = add_query_arg( 'ente-pec', $_REQUEST['ente-pec'], $location );
+			$location = add_query_arg( 'ente-telefono', $_REQUEST['ente-telefono'], $location );
+			$location = add_query_arg( 'ente-fax', $_REQUEST['ente-fax'], $location );
+			$location = add_query_arg( 'ente-note', $_REQUEST['ente-note'], $location );
+			$location = add_query_arg( 'action', 'add', $location );
+		}
+		else{
+			$ret=ap_insert_ente($_REQUEST['ente-nome'],$_REQUEST['ente-indirizzo'],$_REQUEST['ente-url'],$_REQUEST['ente-email'],$_REQUEST['ente-pec'],$_REQUEST['ente-telefono'],$_REQUEST['ente-fax'],$_REQUEST['ente-note']);
+			if ( !$ret && !is_wp_error( $ret ) )
+				$location = add_query_arg( 'message', 1, $location );
+			else
+				$location = add_query_arg( 'message', 4, $location );
+		}
+		wp_redirect( $location );
+		break;
+	case 'edit-ente':
+		$location = "?page=enti" ;
+		$location = add_query_arg( 'id', $_GET['id'], $location );
+		$location = add_query_arg( 'action', 'edit', $location );
+		wp_redirect( $location );
+		break;
+	case 'memo-ente':
+		$location = "?page=enti" ;
+		$errore="";
+		if ($_REQUEST['ente-nome']=='') $errore.="Bisogna valorizzare il Nome dell' Ente <br />";
+		if (!is_email( $_REQUEST['ente-email'])) $errore.="Email non valida <br />"; 
+		if (!is_email( $_REQUEST['ente-pec'])) $errore.="Pec non valida <br />"; 
+		if (strlen($errore)>0){
+			$location = add_query_arg( 'errore', $errore, $location );
+			$location = add_query_arg( 'message', 4, $location );
+			$location = add_query_arg( 'ente-nome', $_REQUEST['ente-nome'], $location );
+			$location = add_query_arg( 'ente-indirizzo', $_REQUEST['ente-indirizzo'], $location );
+			$location = add_query_arg( 'ente-url', $_REQUEST['ente-url'], $location );
+			$location = add_query_arg( 'ente-email', $_REQUEST['ente-email'], $location );
+			$location = add_query_arg( 'ente-pec', $_REQUEST['ente-pec'], $location );
+			$location = add_query_arg( 'ente-telefono', $_REQUEST['ente-telefono'], $location );
+			$location = add_query_arg( 'ente-fax', $_REQUEST['ente-fax'], $location );
+			$location = add_query_arg( 'ente-note', $_REQUEST['ente-note'], $location );
+			$location = add_query_arg( 'action', 'add', $location );
+		}
+		else
+			if (!is_wp_error(ap_memo_ente($_REQUEST['id'],
+								  $_REQUEST['ente-nome'],
+								  $_REQUEST['ente-indirizzo'],
+								  $_REQUEST['ente-url'],
+								  $_REQUEST['ente-email'],
+								  $_REQUEST['ente-pec'],
+								  $_REQUEST['ente-telefono'],
+								  $_REQUEST['ente-fax'],
+								  $_REQUEST['ente-note'])))
+				$location = add_query_arg( 'message', 3, $location );
+			else
+				$location = add_query_arg( 'message', 5, $location );
+//		global $wpdb;
+//		echo $wpdb->last_query;exit; 
 		wp_redirect( $location );
 		break;
 	case 'add-categorie':
@@ -171,19 +240,21 @@ switch ( $_REQUEST['action'] ) {
 		break;
 	case "add-atto" :
 		$NonValidato=false;
+		$message="Impossibile memorizzare l'atto:";
 		if ($_POST['Categoria']==0){
 			$NonValidato=true;
-			$message="Impossibile memorizzare l'atto:<br />Bisogna selezionare una Categoria";
+			$message.="<br />Bisogna selezionare una Categoria ";
 		}
 		if ($_POST['Responsabile']==0){
 			$NonValidato=true;
-			$message="Impossibile memorizzare l'atto:<br />Bisogna selezionare un Responsabile del Procedimento";
+			$message.="<br />Bisogna selezionare un Responsabile del Procedimento ";
 		}
 		$location = "?page=atti" ;
 		if ($NonValidato){
 			$location = add_query_arg( 'msg', $message, $location );
 			$location = add_query_arg( 'action', "new-atto", $location );	
 			$location = add_query_arg( 'id', $_POST['id'], $location );	
+			$location = add_query_arg( 'Ente', $_POST['Ente'], $location );	
 			$location = add_query_arg( 'Data', $_POST['Data'], $location );	
 			$location = add_query_arg( 'Riferimento', $_POST['Riferimento'], $location );	
 			$location = add_query_arg( 'Oggetto', $_POST['Oggetto'], $location );	
@@ -193,7 +264,8 @@ switch ( $_REQUEST['action'] ) {
 			$location = add_query_arg( 'Categoria', $_POST['Categoria'], $location );	
 			$location = add_query_arg( 'Responsabile', $_POST['Responsabile'], $location );	
 		}else{
-			$ret=ap_insert_atto($_POST['Data'],
+			$ret=ap_insert_atto($_POST['Ente'],
+					            $_POST['Data'],
 			                    $_POST['Riferimento'],
 								$_POST['Oggetto'],
 								$_POST['DataInizio'],
@@ -211,6 +283,7 @@ switch ( $_REQUEST['action'] ) {
 	case "memo-atto" :
 		$location = "?page=atti" ;
 		$ret=ap_memo_atto($_REQUEST['id'],
+						  $_REQUEST['Ente'],
 		                  $_POST['Data'],
 		                  $_POST['Riferimento'],
 						  $_POST['Oggetto'],

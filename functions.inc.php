@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.2
+ * @since 2.3
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -255,6 +255,7 @@ Oggetto int(1)
 	4=> Responsabili
 	5=> Statistiche Visualizzazioni
 	6=> Statistiche Download Allegati
+	7=> Enti
 	
 TipoOperazione int(1)
 	1=> Inserimento
@@ -266,7 +267,7 @@ TipoOperazione int(1)
 */
 				  
 function ap_insert_log($Oggetto,$TipoOperazione,$IdOggetto,$Operazione,$IdAtto=0){
-global $wpdb;
+global $wpdb, $current_user;
     get_currentuserinfo();
 	$wpdb->insert($wpdb->table_name_Log,array('IPAddress' => $_SERVER['REMOTE_ADDR'],
 	                                          'Utente' => $current_user->user_login,
@@ -382,7 +383,7 @@ function ap_memo_categorie($id,$cat_name,$cat_parente,$cat_descrizione,$cat_dura
 }
 
 
-function ap_get_dropdown_categorie($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuno", $DefVisId=true, $ConAtti=false  ) {
+function ap_get_dropdown_categorie($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuna", $DefVisId=true, $ConAtti=false  ) {
 	global $wpdb;
 	if ($ConAtti)
 		$categorie = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Categorie WHERE IdCategoria in (SELECT IdCategoria FROM wp_albopretorio_atti) GROUP BY `IdCategoria`ORDER BY nome;");	
@@ -424,13 +425,44 @@ function ap_num_atti_categoria($IdCategoria,$Stato=0){
 			$Sql.=" And Numero >0 AND DataFine >= '".oggi()."' AND DataInizio <= '".oggi()."'";
 			break;
 		case 2:
-			$Sql=" And Numero >0 AND DataFine < '".oggi()."'";
+			$Sql.=" And Numero >0 AND DataFine <= '".oggi()."'";
 			break;
 	}
 	$Sql.=";";
 	return $wpdb->get_var( $wpdb->prepare( $Sql ) );
 	
 }
+function ap_get_dropdown_ricerca_categorie($select_name,$id_name,$class,$tab_index_attribute,$default="Nessuna",$Stato ) {
+/*
+ $Stato 
+ 	0 tutti
+ 	1 attivi
+ 	2 storici
+*/
+	global $wpdb;
+	$categorie = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Categorie ORDER BY nome;");	
+	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute>\n";
+	if ($default=="Nessuno"){
+		$output .= "\t<option value='0' selected='selected'>Nessuno</option>\n";
+	}else{
+		$output .= "\t<option value='0' >Nessuno</option>\n";
+	}
+	if ( ! empty( $categorie ) ) {	
+		foreach ($categorie as $c) {
+			$numAtti=ap_num_atti_categoria($c->IdCategoria,$Stato);
+			if ($numAtti){
+				$output .= "\t<option value='$c->IdCategoria' ";
+				if ($c->IdCategoria==$default){
+					$output .= 'selected="selected" ';
+				}
+				$output .=">$c->Nome ($numAtti)</option>\n";
+			}
+		}
+		$output .= "</select>\n";
+	}
+	return $output;
+}
+
 function ap_get_nuvola_categorie($link,$Stato ) {
 /*
  $Stato 
@@ -511,7 +543,7 @@ function ap_num_figli_categorie($id){
 // Funzioni Atti
 ################################################################################
 
-function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
+function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
 	global $wpdb;
 	$Anno=date("Y");
 	$Numero=0;
@@ -520,6 +552,7 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
 	$DataFine=convertiData($DataFine);
 	if ( false === $wpdb->insert(
 		$wpdb->table_name_Atti,array(
+				'Ente' => $Ente,
 				'Numero' => $Numero,
 				'Anno' =>  $Anno,
 				'Data' => $Data,
@@ -538,7 +571,11 @@ function ap_insert_atto($Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,
     	$NomeCategoria=$NomeCategoria[0];
 		$NomeResponsabile=ap_get_responsabile($Responsabile);
 		$NomeResponsabile=$NomeResponsabile[0];
+		$NomeEnte=ap_get_ente($Ente);
+		$NomeEnte=$NomeEnte->Nome;
 		ap_insert_log(1,1,$wpdb->insert_id,"{IdAtto}==> $wpdb->insert_id
+											{IdEnte} $Ente
+											{Ente} $NomeEnte
 											{Numero} $Numero/$Anno 
 											{Data}==> $Data 
 						                    {Riferimento}==> $Riferimento 
@@ -568,11 +605,15 @@ function ap_del_atto($id) {
 	}
 }
 
-function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
+function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
 	global $wpdb;
 	$Atto=ap_get_atto($id);
 	$Atto=$Atto[0];
 	$Log='' ;
+	if ($Atto->Ente!=$Ente)
+    	$NEnte=ap_get_ente($Ente);
+		$Log.='{IdEnte}==> '.$Ente.' ';
+		$Log.='{Ente}==> '.$NEnte->Nome.' ';
 	if ($Atto->Data!=$Data)
 		$Log.='{Data}==> '.$Data.' ';
 	if ($Atto->Riferimento!=$Riferimento)
@@ -601,7 +642,8 @@ function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Not
 	$DataInizio=convertiData($DataInizio);
 	$DataFine=convertiData($DataFine);
 	if ( false === $wpdb->update($wpdb->table_name_Atti,
-					array('Data' => $Data,
+					array('Ente' => $Ente,
+						  'Data' => $Data,
 						  'Riferimento' => $Riferimento,
 						  'Oggetto' => $Oggetto,
 						  'DataInizio' => $DataInizio,
@@ -610,7 +652,8 @@ function ap_memo_atto($id,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Not
 						  'IdCategoria' => $Categoria,
 						  'RespProc' => $Responsabile),
 						  array( 'IdAtto' => $id ),
-						  array('%s',
+						  array('%d',
+						        '%s',
 								'%s',
 								'%s',
 								'%s',
@@ -664,16 +707,18 @@ function ap_approva_atto($IdAtto){
 	}
 }
 
-function ap_annulla_atto($IdAtto){
+function ap_annulla_atto($IdAtto,$Motivo){
 	global $wpdb;
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
-	$x=$wpdb->update($wpdb->table_name_Atti,array('DataAnnullamento' => date('Y-m-d')),
+	if($x=$wpdb->update($wpdb->table_name_Atti,array('DataAnnullamento' => date('Y-m-d'),'MotivoAnnullamento' =>$Motivo),
 									 array( 'IdAtto' => $IdAtto ),
-									 array('%s'),
-									 array('%d'));
-	ap_insert_log(1,6,$IdAtto,"{Stato Atto}==> Annullato");	
-	return 'Atto ANNULLATO';
+									 array('%s','%s'),
+									 array('%d'))){
+		ap_insert_log(1,6,$IdAtto,"{Stato Atto}==> Annullato");
+		return 'Atto ANNULLATO';
+	}else
+		return "Atto non annullato errore: ".$wpdb->last_error;exit;		
 }
 
 function ap_get_dropdown_anni_atti($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuno",$Stato=0) {
@@ -724,7 +769,7 @@ function ap_get_num_anno($IdAtto){
 	return (int)($wpdb->get_var( $wpdb->prepare( "SELECT Numero FROM $wpdb->table_name_Atti WHERE IdAtto=%d",$IdAtto)));
 }
 
-function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Adata=0,$OrderBy="",$DaRiga=0,$ARiga=20,$Conteggio=false){
+function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Adata=0,$OrderBy="",$DaRiga=0,$ARiga=20,$Conteggio=false,$Annullati=true){
 /* Stato:
 		 0 - tutti
 		 1 - in corso di validità
@@ -739,36 +784,47 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		$OrderBy=" Order By ".$OrderBy;
 	}
 	$Limite=" Limit ".$DaRiga.",".$ARiga;
+
 	switch ($Stato){
 		case 0:
 			$Selezione=' WHERE 1';
 			break;
 		case 1:
-			$Selezione=' WHERE DataInizio<="'.oggi().'" AND DataFine>="'.oggi().'" AND Numero>0'; 
+			if ($Dadata!=0 and SeDate("<",convertiData($Dadata),oggi()))
+				$Selezione.=' WHERE DataInizio>="'.convertiData($Dadata).'" ';
+			else
+				$Selezione.=' WHERE DataInizio<="'.oggi().'" ';
+			if ($Adata!=0  and SeDate(">",convertiData($Adata),oggi()))
+				$Selezione.=' AND DataFine>="'.convertiData($Adata);
+			else
+				$Selezione.=' AND DataFine>="'.oggi();
+			$Selezione.='" AND Numero>0'; 
 			break;
 		case 2:
-			$Selezione=' WHERE DataInizio<="'.oggi().'" AND DataFine<="'.oggi().'" AND Numero>0'; 
+			if ($Dadata!=0  and SeDate("<",convertiData($Dadata),oggi()))
+				$Selezione.=' WHERE DataInizio>="'.convertiData($Dadata).'" ';
+			else
+				$Selezione.=' WHERE DataInizio<="'.oggi().'" ';
+			if ($Adata!=0   and SeDate("<",convertiData($Adata),oggi()))
+				$Selezione.=' AND DataFine<="'.convertiData($Adata);
+			else
+				$Selezione.=' AND DataFine<="'.oggi();
+			$Selezione.='" AND Numero>0'; 
 			break;
 		case 3:
 			$Selezione=' WHERE Numero=0'; 
 			break;
 	}
-	if ($Anno!=0){
+	if (!$Annullati)
+		$Selezione.=' And DataAnnullamento="0000-00-00"';
+	if ($Anno!=0)
 		$Selezione.=' And Anno="'.$Anno.'"';
-	}
-	if ($Categoria!=0){
+	if ($Categoria!=0)
 		$Selezione.=' And IdCategoria="'.$Categoria.'"';
-	}
-	if ($Oggetto!=''){
+	if ($Oggetto!='')
 		$Selezione.=' And Oggetto like "%'.$Oggetto.'%"';
-	}	
-	if ($Dadata!=0){
-		$Selezione.=' And DataInizio>="'.convertiData($Dadata).'"';
-	}	
-	if ($Adata!=0){
-		$Selezione.=' And DataFine<="'.convertiData($Adata).'"';
-	}	
-//	echo "SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
+	
+//echo "SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
 	if ($Conteggio){
 		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;" ));	
 	}else{
@@ -804,6 +860,65 @@ function ap_get_dropdown_atti($select_name,$id_name,$class,$tab_index_attribute,
 	$output .= "</select>\n";
 	return $output;
 }
+
+function ap_ripubblica_atti_correnti(){
+	global $wpdb;
+	$SqlAttiDaR='SELECT IdAtto, Numero, Anno, Data, DataInizio, DataFine  
+				 FROM '.$wpdb->table_name_Atti.' 
+				 WHERE DataInizio <= curdate() AND DataFine >= curdate() AND DataAnnullamento="0000-00-00" AND Numero>0 
+				 order by Anno, Numero';
+	$SqlDuplicaAtto='INSERT INTO '.$wpdb->table_name_Atti.' ( Data, Riferimento, Oggetto, DataInizio, DataFine, Informazioni, IdCategoria, RespProc, Ente)
+					 SELECT Data, Riferimento, Oggetto, curdate(), adddate(curdate(),datediff(DataFine,DataInizio)), Informazioni, IdCategoria, RespProc, Ente FROM '.$wpdb->table_name_Atti.' 
+					 WHERE IdAtto='; 
+	$AttiDaR = $wpdb->get_results($SqlAttiDaR);
+	if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
+		update_option('opt_AP_AnnoProgressivo',date("Y") );
+	  	update_option('opt_AP_NumeroProgressivo',0 );
+		$Anno=get_option('opt_AP_AnnoProgressivo');
+	}else{
+		$Anno=get_option('opt_AP_AnnoProgressivo');
+	}
+	$StatoOperazioni='';
+	foreach($AttiDaR as $AttoDaR){
+		$wpdb->query($SqlDuplicaAtto.$AttoDaR->IdAtto.';');
+		$StatoOperazioni.='Atto Originale Id '.$AttoDaR->IdAtto.' Numero '.$AttoDaR->Numero.'/'.$AttoDaR->Anno.' del '.$AttoDaR->Data.' Pubblicazione dal '.$AttoDaR->DataInizio.' al '.$AttoDaR->DataFine.'%%br%%';
+		$IdNewAtto=$wpdb->insert_id;
+		ap_insert_log(1,1,$IdNewAtto,"{IdAtto}==> $IdNewAtto
+		                              {AttoOriginale}==>$AttoDaR->IdAtto
+									  {Motivo}==>Ripubblicazione Atto");		
+		ap_update_selettivo_atto($IdNewAtto,array('Anno' => $Anno),array('%s'),"Modifica in Ripubblicazione Atto\n");
+		$RisApprovazione=ap_approva_atto($IdNewAtto);
+		$Atto=ap_get_atto($IdNewAtto);
+		$Atto=$Atto[0];
+		$StatoOperazioni.='Atto Duplicato Id '.$IdNewAtto.' Numero '.$Atto->Numero.'/'.$Atto->Anno.' del '.$Atto->Data.' Pubblicazione dal '.$Atto->DataInizio.' al '.$Atto->DataFine.'%%br%%';
+		$StatoOperazioni.=$RisApprovazione.' %%br%%';
+		if ($RisApprovazione!='Atto PUBBLICATO'){
+			ap_del_atto($IdNewAtto);
+		}else{
+			$SqlDuplicaAllegato='INSERT INTO '.$wpdb->table_name_Allegati.' ( TitoloAllegato,Allegato,IdAtto)
+						 SELECT TitoloAllegato,Allegato,'.$IdNewAtto.' as IdNuovoAtto FROM '.$wpdb->table_name_Allegati.'
+						 WHERE IdAllegato=';
+			$AllegatiAtto=ap_get_all_allegati_atto($AttoDaR->IdAtto);
+			foreach ($AllegatiAtto as $AllegatoAtto) {
+				$wpdb->query($SqlDuplicaAllegato.$AllegatoAtto->IdAllegato.';');
+				$IdNewAllegato=$wpdb->insert_id;
+				ap_insert_log(3,1,$wpdb->insert_id,"{IdAllegato}==> $IdNewAllegato
+												{VecchioAtto}==> $AllegatoAtto->IdAtto 
+												{Allegato}==> $Allegato 
+												{IdAtto}==> $IdNewAtto
+												{Motivo}==>Ripubblicazione Atto", $IdNewAtto);
+				$StatoOperazioni.='    Allegato Originale Id '.$AllegatoAtto->IdAllegato.' Duplicato Id '.$IdNewAllegato.' Allegato '.$Allegato.' %%br%%';
+			}
+			$StatoOperazioni.='Atto Id '.$AttoDaR->IdAtto.' Numero '.$AttoDaR->Numero.'/'.$AttoDaR->Anno.' del '.$AttoDaR->Data.' '.ap_annulla_atto($AttoDaR->IdAtto,"Annullamento per interruzione del sevizio di pubblicazione").'%%br%%';		
+		}
+	}
+	if ($wpdb->last_error==''){
+		return $StatoOperazioni."Ripubblicazione effettuata con successo";
+	}else{
+		return $StatoOperazioni."Ripubblicazione non effettuata a causa del seguente errore:".$wpdb->last_error;
+	}
+}
+
 ################################################################################
 // Funzioni Allegati
 ################################################################################
@@ -814,7 +929,7 @@ function ap_num_allegati_atto($id){
 }
 function ap_get_all_allegati_atto($idAtto){
 	global $wpdb;
-	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati WHERE IdAtto=". (int)$idAtto.";");
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati WHERE IdAtto=". (int)$idAtto." ORDER BY IdAllegato;");
 }
 
 function ap_get_allegato_atto($idAllegato){
@@ -978,5 +1093,144 @@ function ap_get_users(){
 	global $wpdb;  
 	$users = $wpdb->get_results('SELECT ID, user_login FROM '.$wpdb->users); 
     return $users;  
+}
+################################################################################
+// Funzioni Enti
+################################################################################
+function ap_get_dropdown_enti($select_name,$id_name,$class,$tab_index_attribute="", $default=0) {
+	global $wpdb;
+	$enti = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Enti ORDER BY nome;");	
+	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute>\n";
+	if ( ! empty( $enti ) ) {	
+		foreach ($enti as $c) {
+			$output .= "\t<option value='$c->IdEnte'";
+			if ($c->IdEnte==$default){
+				$output .= " selected=\"selected\" ";
+			}
+			$output .=" >$c->Nome</option>\n";
+		}
+	}
+	$output .= "</select>\n";
+	return $output;
+}
+
+function ap_num_enti_atto($id){
+	global $wpdb;
+	return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti WHERE IdEnte=%d",$id));
+}
+
+function ap_get_enti(){
+	global $wpdb;
+//	echo "SELECT * FROM $wpdb->table_name_Enti ORDER BY Nome;";
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Enti ORDER BY Nome;");	
+}
+function ap_get_ente($Id){
+	global $wpdb;
+//	echo "SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=$Id;";
+	$ente=$wpdb->get_results("SELECT * FROM $wpdb->table_name_Enti WHERE IdEnte=$Id;");
+	return $ente[0];	
+}
+function ap_get_ente_me(){
+	global $wpdb;
+	$ente=$wpdb->get_results("SELECT Nome FROM $wpdb->table_name_Enti WHERE IdEnte=0;");	
+	return $ente[0]->Nome;
+}
+function ap_set_ente_me($ente_nome){
+	global $wpdb;
+	if (true==$wpdb->update($wpdb->table_name_Enti,
+					array('Nome' => $ente_nome),
+					array('IdEnte' => 0),
+					array( '%s')))
+		ap_insert_log(7,2,0,"Aggiornamento Ente Sito");	
+}
+function ap_create_ente_me(){
+	global $wpdb;
+		if ($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdEnte) FROM $wpdb->table_name_Enti"))==0){
+			$wpdb->insert($wpdb->table_name_Enti,array('Nome' =>"Ente non definito"));
+			$wpdb->update($wpdb->table_name_Enti,
+									 array('IdEnte' => 0),
+									 array( 'IdEnte' => $wpdb->insert_id),
+									 array('%d'),
+									 array('%d'));	
+		}
+}
+
+function ap_insert_ente($ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente_pec,$ente_telefono,$ente_fax,$ente_note){
+	global $wpdb;
+	if ( false === $wpdb->insert($wpdb->table_name_Enti,array('Nome' => $ente_nome,
+	                                                              'Indirizzo' => $ente_indirizzo,
+	                                                              'Url' => $ente_url,
+																  'Email' => $ente_email,
+																  'Pec' => $ente_pec,
+																  'Telefono' => $ente_telefono,
+																  'Fax' => $ente_fax,
+																  'Note' => $ente_note))){
+//		echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
+        return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il Nuovo Ente'.$wpdb->last_error, $wpdb->last_error);}
+    else
+    	ap_insert_log(7,1,$wpdb->insert_id,"{IdEnte}==> $wpdb->insert_id
+		                                    {Nome}==> $ente_nome 
+											{Indirizzo}=> $ente_indirizzo
+											{Url}=> $ente_url
+											{Email}==> $ente_email
+											{Pec}==> $ente_pec
+											{Telefono}==> $ente_telefono
+											{fax}==> $ente_orario
+											{Note}==> $ente_note");
+}
+
+function ap_memo_ente($Id,$ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente_pec,$ente_telefono,$ente_fax,$ente_note){
+	global $wpdb;
+	$EnteL=ap_get_ente($Id);
+	$Log='{Id}==>'.$Id .' ' ;
+	if ($EnteL->Nome!=$ente_nome)
+		$Log.='{Nome}==> '.$ente_nome.' ';
+	if ($EnteL->Indirizzo!=$ente_indirizzo)
+		$Log.='{Indirizzo}==> '.$ente_indirizzo.' ';
+	if ($EnteL->Url!=$ente_url)
+		$Log.='{Url}==> '.$ente_url.' ';
+	if ($EnteL->Email!=$ente_email)
+		$Log.='{Email}==> '.$ente_email.' ';
+	if ($EnteL->Pec!=$ente_pec)
+		$Log.='{Pec}==> '.$ente_pec.' ';
+	if ($EnteL->Telefono!=$ente_telefono)
+		$Log.='{Telefono}==> '.$ente_telefono.' ';
+	if ($EnteL->Fax!=$ente_fax)
+		$Log.='{Fax}==> '.$ente_fax.' ';
+	if ($EnteL->Note!=$ente_note)
+		$Log.='{Note}==> '.$ente_note.' ';
+	
+	if ( false === $wpdb->update($wpdb->table_name_Enti,
+					array('Nome' => $ente_nome,
+						  'Indirizzo' => $ente_indirizzo,
+						  'Url' => $ente_url,
+						  'Email' => $ente_email,
+						  'Pec' => $ente_pec,
+						  'Telefono' => $ente_telefono,
+						  'Fax' => $ente_fax,
+						  'Note' => $ente_note),
+					array('IdEnte' => $Id),
+					array( '%s',
+						   '%s',
+						   '%s',
+						   '%s',
+						   '%s',
+						   '%s'),
+					array( '%d' )))
+	    	return new WP_Error('db_update_error', 'Non sono riuscito a modifire l\'Ente'.$wpdb->last_error, $wpdb->last_error);
+	else 
+		ap_insert_log(7,2,$id,$Log);
+}
+
+function ap_del_ente($id) {
+	global $wpdb;
+	$N_atti=ap_num_enti_atto($id);
+	if ($N_atti>0){
+		return array("atti" => $N_atti);
+	}else{
+	 	$result=$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Enti WHERE IdEnte=%d",$id));
+		ap_insert_log(7,3,$id,"Cancellazione Ente {IdEnte}==> $id",$id);
+		return $result;
+	}
 }
 ?>

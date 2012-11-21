@@ -5,14 +5,14 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.2
+ * @since 2.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 switch ($_REQUEST['action']){
 	case "annulla-atto":
-		Lista_Atti(ap_annulla_atto($_REQUEST['id']));
+		Lista_Atti(($_REQUEST['motivo']=="null") ? "Operazione di Annullamento Atto <strong>Annullata</strong>" :ap_annulla_atto($_REQUEST['id'],$_REQUEST['motivo']));
 		break;
 	case "logatto" :
 		echo json_encode(CreaLog(1,$IdAtto,0));
@@ -63,7 +63,7 @@ switch ($_REQUEST['action']){
 		Lista_Atti();
 		break;
 }
-
+unset($_REQUEST['action']);
 
 function PreApprovazione($id,$ret=''){
 global $wpdb;
@@ -295,13 +295,12 @@ function Nuovo_atto(){
 <div style="display:inline;float:left;">
 	<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto"/>
 </div>';
-	if ( $_REQUEST['msg'] !="") {
-		echo '<div id="message" class="updated"><p>'.$_REQUEST['msg'].'</p></div>';
-	}
-
 echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
-	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>
-<div id="col-container">
+	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
+if ( $_REQUEST['msg'] !="") {
+	echo '<div id="message" class="updated"><p>'.stripslashes($_REQUEST['msg']).'</p></div>';
+}
+echo'<div id="col-container">
 <form id="addatto" method="post" action="?page=atti" class="validate">
 <input type="hidden" name="action" value="add-atto" />
 <input type="hidden" name="id" value="'.$_REQUEST['id'].'" />
@@ -314,6 +313,11 @@ echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
 		</tr>
 	    </thead>
 	    <tbody id="dati-atto">
+		<tr>
+			<th>Ente Emittente</th>
+			<td>'.ap_get_dropdown_enti('Ente','Ente','postform','',$_REQUEST['Ente']).'</td>
+			<td>Ente che pubblica l\'atto;<br />potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</td>
+		</tr>
 		<tr>
 			<th>Numero Albo</th>
 			<td>&nbsp;&nbsp;/'.date("Y").'</td>
@@ -336,12 +340,12 @@ echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td><input name="DataInizio" id="Calendario2" type="text" value="" size="8" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /></td>
+			<td><input name="DataInizio" id="Calendario2" type="text" size="8" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /></td>
 			<td>Data Inizio Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td><input name="DataFine" id="Calendario3" type="text" value="" size="8" aria-required="true" value="'.$_REQUEST['DataFine'].'" /></td>
+			<td><input name="DataFine" id="Calendario3" type="text" size="8" aria-required="true" value="'.$_REQUEST['DataFine'].'" /></td>
 			<td>Data Fine Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
@@ -351,12 +355,12 @@ echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
 		</tr>
 		<tr>
 			<th>Categoria</th>
-			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform', '',0).'</td>
+			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$_REQUEST['Categoria']).'</td>
 			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</td>
 		</tr>
 		<tr>
 			<th>Responsabile Procedimento</th>
-			<td>'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform').'</td>
+			<td>'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$_REQUEST['Responsabile']).'</td>
 			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
 		</tr>
 		<tr>
@@ -375,7 +379,7 @@ $atto=$atto[0];
 	echo '
 <div class="wrap">
 <div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto" /></div>
-<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2><a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>
+<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2><a <a href="'.$_SERVER[HTTP_REFERER].'" class="add-new-h2">Torna indietro</a>
 <div id="col-container">
 <form id="addatto" method="post" action="?page=atti" class="validate">
 <input type="hidden" name="action" value="memo-atto" />
@@ -389,6 +393,11 @@ $atto=$atto[0];
 		</tr>
 	    </thead>
 	    <tbody id="dati-atto">
+		<tr>
+			<th>Ente</th>
+			<td>'.ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente).'</td>
+			<td>Ente che pubblica l\'atto;<br />potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</td>
+		</tr>
 		<tr>
 			<th>Numero Albo</th>
 			<td>'.$atto->Numero.'/'.$atto->Anno.'</td>
@@ -595,10 +604,12 @@ function View_atto($IdAtto){
 	$risultatocategoria=$risultatocategoria[0];
 	$responsabile=ap_get_responsabile($risultato->RespProc);
 	$responsabile=$responsabile[0];
+	$NomeEnte=ap_get_ente($risultato->Ente);
+	$NomeEnte=$NomeEnte->Nome;
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atto<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a></h2>
+<h2 style="margin-left:40px;">Atto<a href="'.$_SERVER[HTTP_REFERER].'" class="add-new-h2" >Torna indietro</a></h2>
 
 <div id="col-container">
 	<div id="col-right">
@@ -623,13 +634,20 @@ function View_atto($IdAtto){
 				<th colspan="2" style="text-align:center;font-size:1.2em;">Dati atto</th>
 			</tr>
 		    </thead>
-		    <tbody id="dati-atto">';
+		    <tbody id="dati-atto">
+			<tr>
+				<th style="width:20%;">Ente emittente</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$NomeEnte.'</td>
+			</tr>';
 		if($risultato->DataAnnullamento!='0000-00-00')		
 			echo '		<tr>
 				<th style="width:20%;">Data Annullamento</th>
 				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:middle;">'.VisualizzaData($risultato->DataAnnullamento).'</td>
+			</tr>
+	    	<tr>
+				<th style="width:20%;">Motivo Annullamento</th>
+				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:top;">'.$risultato->MotivoAnnullamento.'</td>
 			</tr>';
-		
 		echo '		<tr>
 				<th style="width:20%;">Numero Albo</th>
 				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
@@ -711,15 +729,27 @@ $messages[4] = __('Item not added.');
 $messages[5] = __('Item not updated.');
 $messages[6] = __('Item not deleted.');
 $messages[7] = __('Impossibile cancellare un Atto che contiene Allegati<br />Cancellare prima gli Allegati e poi riprovare');
+$N_A_pp=10;
+//Paginazione Inizializzazione
+	if (!isset($_REQUEST['Pag'])){
+		$Da=0;
+		$A=$N_A_pp;
+	}else{
+		$Da=($_REQUEST['Pag']-1)*$N_A_pp;
+		$A=$N_A_pp;
+	}
+	$TotAtti=ap_get_all_atti(0,0,0,'',0,0,'',0,0,true);
+//Gestione Messaggi di stato
 if (isset($_REQUEST['message'])) 
 	$msg = (int) $_REQUEST['message'];
 if ($Msg_op!=""){
 	$msg =9;
 	$messages[9]=str_replace("%%br%%","<br />",$Msg_op);
 }
+// Inizio interfaccia
 	echo' <div class="wrap">
 	      <img src="'.Albo_URL.'/img/atti32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atti <a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a> </h2>';
+<h2 style="margin-left:40px;">Atti <a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a></h2>';
 	if ( $msg ) {
 		echo '<div id="message" class="updated"><p>'.$messages[$msg].'</p></div>';
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
@@ -731,35 +761,119 @@ if ($Msg_op!=""){
 	}else{
 		$edit=False;
 	}
+	if(isset($_REQUEST['orderby']))
+		$orderby=$_REQUEST['orderby'];
+	else
+		$orderby='';
+	if(isset($_REQUEST['order']))
+		$order=$_REQUEST['order'];
+	else
+		$order='desc';
+	if($orderby=='')
+		$ordina="Data DESC";
+	else
+		$ordina=$orderby." ".$order;
+
 	echo '
 		<br class="clear" />
 		<div id="col-container">
 		<div class="col-wrap">
-		<h3>Elenco Atti gi&agrave; codificati</h3>
+		<h3>Elenco Atti gi&agrave; codificati</h3>';
+//Paginazione
+	if ($TotAtti>$N_A_pp){
+	    $Para='';
+	    foreach ($_REQUEST as $k => $v){
+			if ($k!="Pag")
+				if ($Para=='')
+					$Para.=$k.'='.$v;
+				else
+					$Para.='&amp;'.$k.'='.$v;
+		}
+		if ($Para=='')
+			$Para="?Pag=";
+		else
+			$Para="?".$Para."&amp;Pag=";
+		$Npag=(int)$TotAtti/$N_A_pp;
+		if ($TotAtti%$N_A_pp>0){
+			$Npag++;
+		}
+		echo '  	<div class="tablenav" style="float:right;margin-right:20px;margin-bottom:20px;" id="risultati">
+		<div class="tablenav-pages">
+    		<p><strong>N. Atti '.$TotAtti.'</strong>&nbsp;&nbsp; Pagine';
+    	if (isset($_REQUEST['Pag']) And $_REQUEST['Pag']>1 ){
+			$Pagcur=$_REQUEST['Pag'];
+			$PagPre=$Pagcur-1;
+			echo '&nbsp;<a href="'.$Para.$PagPre.'" class="next page-numbers">&laquo;</a>';
+		}else{
+			$Pagcur=1;
+		}
+		for($i=1;$i<=$Npag;$i++){
+			if ($i==$Pagcur){
+				echo '&nbsp;<span class="page-numbers current">'.$i.'</span>';
+			}else{
+				echo '&nbsp;<a href="'.$Para.$i.'" class="page-numbers" >'.$i.'</a>';		
+			}
+		}
+		$PagSuc=$Pagcur+1;
+	   	if ($PagSuc<=$Npag){
+			echo '&nbsp;<a href="'.$Para.$PagSuc.'" class="next page-numbers">&raquo;</a>';
+		}
+	echo'			</p>
+    	</div>
+	</div>';
+	}		
+//Fine Paginazione	
+	echo '	
 		<table class="widefat" id="elenco-atti"> 
 	    <thead>
 	    	<tr>
 	        	<th scope="col" style="width:20px;">Operazioni</th>
 	        	<th scope="col" style="width:10px;">Stato</th>
-	        	<th scope="col">Numero</th>
-	        	<th scope="col">Del</th>
+	        	<th scope="col" style="width:100px;">Ente</th>
+	        	<th scope="col">Numero</th>';
+	    if ($orderby=="Data"){
+	    	if($order=="asc"){
+			 	$titolo="Ordina in modo decrescente in base alla Data Creazione Atto";
+			 	$altorder= "desc";
+			}else{
+				$titolo="Ordina in modo crescente in base alla Data Creazione Atto";
+				$altorder= "asc";
+			}
+		}else{
+				$titolo="Ordina in modo crescente in base alla Data di Inizio Pubblicazione";
+				$altorder= "desc";
+		}
+	    echo ' 	<th scope="col" ><a href="?page=atti&orderby=Data&order='.$altorder.'" title="'.$titolo.'">Del</a></th>
 	        	<th scope="col">Riferimento</th>
-	        	<th scope="col">Oggetto</th>
-	        	<th scope="col">Inizio Pub.</th>
-	        	<th scope="col">Fine Pub.</th>
+	        	<th scope="col">Oggetto</th>';
+	    if ($orderby=="DataInizio"){
+	    	if($order=="asc"){
+			 	$titolo="Ordina in modo decrescente in base alla Data di Inizio Pubblicazione";
+			 	$altorder= "desc";
+			}else{
+				$titolo="Ordina in modo crescente in base alla Data di Inizio Pubblicazione";
+				$altorder= "asc";
+			}
+		}else{
+				$titolo="Ordina in modo crescente in base alla Data di Inizio Pubblicazione";
+				$altorder= "desc";
+		}
+	      echo '   <th scope="col" style="width:40px;"><a href="?page=atti&orderby=DataInizio&order='.$altorder.'"  title="'.$titolo.'">Inizio/Fine Pub.</a></th>
 	        	<th scope="col">Categoria</th>
 			</tr>
 	    </thead>
 	    <tbody id="the-list">';
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
-	$lista=ap_get_all_atti(); 
+	$lista=ap_get_all_atti(0,0,0,'', 0,0,$ordina,$Da,$A); 
 	if ($lista){
 		foreach($lista as $riga){
 		$categoria=ap_get_categoria($riga->IdCategoria);
 		$cat=$categoria[0]->Nome;
 		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
+		$Ente=ap_get_ente($riga->Ente);
+		$Ente=$Ente->Nome; 
 		if($riga->DataAnnullamento!='0000-00-00')
-			$Annullato='style="background-color: '.$coloreAnnullati.';"';
+			$Annullato='style="background-color: '.$coloreAnnullati.';" title="'.$riga->MotivoAnnullamento.'" ';
 		else
 			$Annullato='';
 		echo '<tr '.$Annullato.'>
@@ -807,6 +921,9 @@ if ($Msg_op!=""){
 		}
 		echo '  </td> 
 		        <td>
+					'.$Ente.'
+				</td>
+		        <td>
 					'.$NumeroAtto.'/'.$riga->Anno .'
 				</td>
 				<td>
@@ -820,8 +937,6 @@ if ($Msg_op!=""){
 				</td>
 				<td>
 					'.VisualizzaData($riga->DataInizio) .'  
-				</td>
-				<td>
 					'.VisualizzaData($riga->DataFine) .'  
 				</td>
 				<td>

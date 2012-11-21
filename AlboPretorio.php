@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.2
+Version:2.3
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -42,7 +42,6 @@ if (!class_exists('AlboPretorio')) {
 	var $version     = '2.2';
 	var $minium_WP   = '3.1';
 	var $options     = '';
-	
 
 	function AlboPretorio() {
 		// Inizializzazioni
@@ -198,15 +197,19 @@ if (!class_exists('AlboPretorio')) {
 		$atti_page=add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array( 'AlboPretorio','show_menu'));
 		$categorie_page=add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array( 'AlboPretorio', 'show_menu'));
 		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
+		$enti=add_submenu_page( 'Albo_Pretorio', 'Enti', 'Enti', 'admin_albo', 'enti', array('AlboPretorio', 'show_menu'));
 		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array( 'AlboPretorio','show_menu'));
 		$css_page=add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss',array( 'AlboPretorio', 'show_menu'));
 		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessi', array('AlboPretorio', 'show_menu'));
+		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utility', array('AlboPretorio', 'show_menu'));		
 		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
 		add_action( 'admin_head-'. $categorie_page, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $responsabili_page, array( 'AlboPretorio','ap_head'));
+		add_action( 'admin_head-'. $enti, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $parametri_page,array( 'AlboPretorio', 'ap_head'));
 		add_action( 'admin_head-'. $css_page, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $permessi, array( 'AlboPretorio','ap_head'));
+		add_action( 'admin_head-'. $utility, array( 'AlboPretorio','ap_head'));
 	}
 	
 	function show_menu() {
@@ -227,6 +230,10 @@ if (!class_exists('AlboPretorio')) {
 			// interfaccia per la gestione dei responsabili
 				include_once ( dirname (__FILE__) . '/admin/responsabili.php' );	
 				break;
+			case "enti" :
+			// interfaccia per la gestione dei responsabili
+				include_once ( dirname (__FILE__) . '/admin/enti.php' );	
+				break;
 			case "atti" :
 			// interfaccia per la gestione degli atti
 				include_once ( dirname (__FILE__) . '/admin/atti.php' );
@@ -242,6 +249,10 @@ if (!class_exists('AlboPretorio')) {
 			case "permessi":
 			// interfaccia per la gestione dei permessi
 				include_once ( dirname (__FILE__) . '/admin/permessi.php' );
+				break;
+			case "utility":
+			// interfaccia per la gestione dei permessi
+				include_once ( dirname (__FILE__) . '/admin/utility.php' );
 				break;
 		}
 	}
@@ -281,8 +292,8 @@ if (!class_exists('AlboPretorio')) {
 			(function($) {
 			
 				$(function() {
-					$('a.annullaatto').click(function(){
-						var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
+					$('a.ripubblica').click(function(){
+						var answer = confirm("Confermi la ripubblicazione dei " + $(this).attr('rel') + ' atti in corso di validita?')
 						if (answer){
 							return true;
 						}
@@ -290,10 +301,18 @@ if (!class_exists('AlboPretorio')) {
 							return false;
 						}					
 					});
-					$('a.tornaindietro').click(function(){
-						location.href=$(this).attr('rel');
+					$('a.annullaatto').click(function(){
+						var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
+						if (answer){
+							var Testoannullamento;
+							Testoannullamento=prompt("Motivo Annullamento Atto "+ $(this).attr('rel'),"Atto Annullato per");				
+							location.href=$(this).attr('href')+"&motivo="+Testoannullamento;
+							return false;
+						}
+						else{
+							return false;
+						}					
 					});
-		
 					$('a.dc').click(function(){
 						var answer = confirm("Confermi la cancellazione della Categoria `" + $(this).attr('rel') + '` ?')
 						if (answer){
@@ -332,7 +351,6 @@ if (!class_exists('AlboPretorio')) {
 							return false;
 						}					
 					});
-			
 					$('a.ap').click(function(){
 						var answer = confirm("approvazione Atto: `" + $(this).attr('rel') + '`\nAttenzione la Data Pubblicazione verra` impostata ad oggi ?')
 						if (answer){
@@ -416,32 +434,40 @@ if (!class_exists('AlboPretorio')) {
 	}
 
 	function head_Front_End() {
-		?>
-		<meta name="robots" content="noindex, nofollow, noarchive" />
-		<script type="text/javascript" src="<?php echo Albo_URL; ?>js/epoch_classes.js"></script>
-		<script type="text/javascript">
-			var Cal1, Cal2; 
-			window.onload = function() {
-				Cal1 = new Epoch('cal1','popup',document.getElementById('Calendario1'),false);
-				Cal2 = new Epoch('cal2','popup',document.getElementById('Calendario2'),false);
-			};
-		</script>
-
-		<script type="text/javascript">
-			jQuery.noConflict();
-			(function($) {
-				$(function() {
-						$('a.addstatdw').click(function() {
-						 var link=$(this).attr('rel');
-							jQuery.ajax({type: "get",url: $(this).attr('rel')}); //close jQuery.ajax
-						return true;		 
-						});
-				});
-			})(jQuery);
-		</script>
-	<?php
+			global $wp_query;
+			$postObj=$wp_query->get_queried_object();
+			if (strpos($postObj->post_content,"[Albo stato=")>0)
+				echo "<!--HEAD Albo Preotrio On line -->
+";
+				if(get_option(blog_public)==1)
+					echo "	<meta name='robots' content='noindex, nofollow, noarchive' />";
+				else
+					echo "	<meta name='robots' content='noarchive' />";
+				echo " 	
+	<script type='text/javascript' src='".Albo_URL."js/epoch_classes.js'></script>
+	<script type='text/javascript'>
+		var Cal1, Cal2; 
+		window.onload = function() {
+			Cal1 = new Epoch('cal1','popup',document.getElementById('Calendario1'),false);
+			Cal2 = new Epoch('cal2','popup',document.getElementById('Calendario2'),false);
+		};
+	</script>
+	
+	<script type='text/javascript'>
+		jQuery.noConflict();
+		(function($) {
+			$(function() {
+					$('a.addstatdw').click(function() {
+					 var link=$(this).attr('rel');
+						jQuery.ajax({type: 'get',url: $(this).attr('rel')}); //close jQuery.ajax
+					return true;		 
+					});
+			});
+		})(jQuery);
+	</script>
+<!--FINE HEAD Albo Preotrio On line -->
+";
 	}
-
 
 	function load_dependencies() {
 	
@@ -538,7 +564,7 @@ if (!class_exists('AlboPretorio')) {
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	  }
 	  get_currentuserinfo();
-	  $ente   = stripslashes(get_option('opt_AP_Ente'));
+	  $ente   = stripslashes(ap_get_ente_me());
 	  $nprog  =  get_option('opt_AP_NumeroProgressivo');
 	  $nanno=get_option('opt_AP_AnnoProgressivo');
 	  $visente=get_option('opt_AP_VisualizzaEnte');
@@ -682,6 +708,7 @@ if (!class_exists('AlboPretorio')) {
 		$wpdb->table_name_Allegati = $table_prefix . "albopretorio_allegati";
 		$wpdb->table_name_Log=$table_prefix . "albopretorio_log";
 		$wpdb->table_name_RespProc=$table_prefix . "albopretorio_resprocedura";
+		$wpdb->table_name_Enti=$table_prefix . "albopretorio_enti";
 	}
 
 	static function activate() {
@@ -715,9 +742,6 @@ if (!class_exists('AlboPretorio')) {
 		
 				// Add the admin menu
 
-		if(get_option('opt_AP_Ente' ) == '' || !get_option('opt_AP_Ente')){
-			add_option('opt_AP_Ente', 'Ente non definito');
-		}
 		if(get_option('opt_AP_AnnoProgressivo')  == '' || !get_option('opt_AP_AnnoProgressivo')){
 			add_option('opt_AP_AnnoProgressivo', ''.date("Y").'');
 		}
@@ -803,25 +827,56 @@ if (!class_exists('AlboPretorio')) {
           `Note` text,
 		   PRIMARY KEY  (`IdResponsabile`));";   
 		  
- 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+ 		$sql_Enti = "CREATE TABLE IF NOT EXISTS ".$wpdb->table_name_Enti." (
+		  `IdEnte` int(11) NOT NULL auto_increment,
+		  `Nome` varchar(100) NOT NULL,
+		  `Indirizzo` varchar(150) NOT NULL default '',
+		  `Url` varchar(100) NOT NULL default '',
+		  `Email` varchar(100) NOT NULL default '',
+		  `Pec` varchar(100) NOT NULL default '',
+		  `Telefono` varchar(40) NOT NULL default '',
+		  `Fax` varchar(40) NOT NULL default '',
+          `Note` text,
+		  PRIMARY KEY  (`Idente`));";
+		  
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		     dbDelta($sql_Atti);
 		     dbDelta($sql_Allegati);
 		     dbDelta($sql_Categorie);
 		     dbDelta($sql_Log);
 		     dbDelta($sql_RespProc);
+		     dbDelta($sql_Enti);
+		     
+		if(ap_get_ente_me() == '' || !ap_get_ente_me()){
+			ap_create_ente_me();
+		}
 		     
 /*************************************************************************************
 ** Area riservata per l'aggiunta di nuovi campi in una delle tabelle dell' albo ******
 *************************************************************************************/
           
-		if (!existFieldInTable($wpdb->table_name_Atti, "RespProc")){
-			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "RespProc", "INT NOT NULL")))
+	
+	
+	if (!existFieldInTable($wpdb->table_name_Atti, "RespProc")){
+			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "RespProc", " INT NOT NULL")))
 				echo $ret;
 		}
 		if (!existFieldInTable($wpdb->table_name_Atti, "DataAnnullamento")){
 			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "DataAnnullamento", " date default '0000-00-00'")))
 				echo $ret;
 		}
+		if (!existFieldInTable($wpdb->table_name_Atti, "MotivoAnnullamento")){
+			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "MotivoAnnullamento", " varchar(100) default ''")))
+				echo $ret;
+		}
+		if (!existFieldInTable($wpdb->table_name_Atti, "Ente")){
+			if (!($ret=AddFiledTable($wpdb->table_name_Atti, "Ente", " INT NOT NULL default 0"))){
+				
+				echo $ret;
+			}
+		}
+
+			
 	}  	 
 	static function deactivate() {
 		
@@ -879,8 +934,8 @@ if (!class_exists('AlboPretorio')) {
 	}
 	function update_AlboPretorio_settings(){
 	    if($_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
-		    update_option('opt_AP_Ente',$_POST['c_Ente'] );
-		    if ($_POST['c_VEnte']=='Si')
+		    ap_set_ente_me($_POST['c_Ente']);
+			if ($_POST['c_VEnte']=='Si')
 			    update_option('opt_AP_VisualizzaEnte','Si' );
 			else
 				update_option('opt_AP_VisualizzaEnte','No' );

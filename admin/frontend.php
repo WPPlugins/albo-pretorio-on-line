@@ -5,31 +5,30 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.2
+ * @since 2.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
-
 
 switch ($_REQUEST['action']){
 	case 'visatto':
 		VisualizzaAtto($_REQUEST['id']);
 		break;
-	case 'categoria':
-		Lista_Atti($Parametri,0,$_REQUEST['cat']);
-		break;
 	case 'addstatall':
 		ap_insert_log(6,5,$_GET['id'],"Download",$_GET['idAtto']);
 		break;
 	default: 
-		switch ($_REQUEST['filtra']){
-		 	case 'Filtra':
-		 		Lista_Atti($Parametri,$_REQUEST['anno'], 0,$_REQUEST['oggetto'],$_REQUEST['DataInizio'],$_REQUEST['DataFine']);
-		 		break;
-		 	default:
-			 	Lista_Atti($Parametri);
-			 	break;
-		}
+		if (isset($_REQUEST['filtra']))
+		 		Lista_Atti($Parametri,$_REQUEST['categoria'],$_REQUEST['anno'], $_REQUEST['oggetto'],$_REQUEST['DataInizio'],$_REQUEST['DataFine']);
+		else if(isset($_REQUEST['annullafiltro'])){
+				 unset($_REQUEST['categoria']);
+				 unset($_REQUEST['anno']);
+				 unset($_REQUEST['oggetto']);
+				 unset($_REQUEST['DataInizio']);
+				 unset($_REQUEST['DataFine']);
+				 Lista_Atti($Parametri);
+			}else
+				 Lista_Atti($Parametri);
 }
 
 function VisualizzaAtto($id){
@@ -43,7 +42,7 @@ function VisualizzaAtto($id){
 	ap_insert_log(5,5,$id,"Visualizzazione");
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	if($risultato->DataAnnullamento!='0000-00-00')
-		$Annullato='<p style="background-color: '.$coloreAnnullati.';text-align:center;font-size:1.5em;">Atto Annullato dal Responsabile del Procedimento</p>';
+		$Annullato='<p style="background-color: '.$coloreAnnullati.';text-align:center;font-size:1.5em;padding:5px;">Atto Annullato dal Responsabile del Procedimento<br /><br />Motivo: <span style="font-size:1;font-style: italic;">'.$risultato->MotivoAnnullamento.'</span></p>';
 	else
 		$Annullato='';
 echo '
@@ -54,36 +53,40 @@ echo '
 <table class="tabVisalbo">
 	    <tbody id="dati-atto">
 		<tr>
+			<th>Ente titolare dell\'Atto</th>
+			<td style="font-style: italic;font-size: 1.5em;vertical-align: middle;">'.ap_get_ente($risultato->Ente)->Nome.'</td>
+		</tr>
+		<tr>
 			<th>Numero Albo</th>
-			<td>'.$risultato->Numero."/".$risultato->Anno.'</td>
+			<td style="vertical-align: middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td>'.VisualizzaData($risultato->Data).'</td>
+			<td style="vertical-align: middle;">'.VisualizzaData($risultato->Data).'</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
-			<td>'.stripslashes($risultato->Riferimento).'</td>
+			<td style="vertical-align: middle;">'.stripslashes($risultato->Riferimento).'</td>
 		</tr>
 		<tr>
 			<th>Oggetto</th>
-			<td>'.stripslashes($risultato->Oggetto).'</td>
+			<td style="vertical-align: middle;">'.stripslashes($risultato->Oggetto).'</td>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td>'.VisualizzaData($risultato->DataInizio).'</td>
+			<td style="vertical-align: middle;">'.VisualizzaData($risultato->DataInizio).'</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td>'.VisualizzaData($risultato->DataFine).'</td>
+			<td style="vertical-align: middle;">'.VisualizzaData($risultato->DataFine).'</td>
 		</tr>
 		<tr>
 			<th>Note</th>
-			<td>'.stripslashes($risultato->Informazioni).'</td>
+			<td style="vertical-align: middle;">'.stripslashes($risultato->Informazioni).'</td>
 		</tr>
 		<tr>
 			<th>Categoria</th>
-			<td>'.stripslashes($risultatocategoria->Nome).'</td>
+			<td style="vertical-align: middle;">'.stripslashes($risultatocategoria->Nome).'</td>
 		</tr>
 	    </tbody>
 	</table>';
@@ -94,25 +97,25 @@ if ($responsabile){
 	    		<tbody id="dati-responsabile">
 				<tr>
 					<th>Persona</th>
-					<td>'.$responsabile->Cognome." ".$responsabile->Nome.'</td>
+					<td style="vertical-align: middle;">'.$responsabile->Cognome." ".$responsabile->Nome.'</td>
 				</tr>
 				<tr>
 					<th>email</th>
-					<td><a href="mailto:'.$responsabile->Email.'">'.$responsabile->Email.'</a></td>
+					<td style="vertical-align: middle;"><a href="mailto:'.$responsabile->Email.'">'.$responsabile->Email.'</a></td>
 				</tr>
 				<tr>
 					<th>Telefono</th>
-					<td>'.$responsabile->Telefono.'</td>
+					<td style="vertical-align: middle;">'.$responsabile->Telefono.'</td>
 				</tr>
 				<tr>
 					<th>Orario ricevimento</th>
-					<td>'.$responsabile->Orario.'</td>
+					<td style="vertical-align: middle;">'.$responsabile->Orario.'</td>
 				</tr>';
 if ($responsabile->Note)
 	echo'
 				<tr>
 					<th>Note</th>
-					<td>'.$responsabile->Note.'</td>
+					<td style="vertical-align: middle;">'.$responsabile->Note.'</td>
 				</tr>';
 echo'
 			    </tbody>
@@ -158,9 +161,9 @@ echo '
 </div>
 ';	
 }
-function VisualizzaRicerca(){
-$anni=ap_get_dropdown_anni_atti('anno','anno','postform','','',1); 
-$categorie=ap_get_dropdown_categorie('categorie','categorie','postform','','',false,true); 
+function VisualizzaRicerca($Stato=1){
+$anni=ap_get_dropdown_anni_atti('anno','anno','postform','',$_REQUEST['anno'],$Stato); 
+$categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',$_REQUEST['categoria'],$Stato); 
 Bonifica_Url();
 if (strpos($_SERVER['REQUEST_URI'],"?")>0)
 	$sep="&amp;";
@@ -170,9 +173,8 @@ $titFiltri=get_option('opt_AP_LivelloTitoloFiltri');
 if ($titFiltri=='')
 	$titFiltri="h3";
 $HTML='<div class="ricerca">
-	<div class="ricerca_col_SX">
 		<'.$titFiltri.' style="margin-bottom:10px;">Filtri</'.$titFiltri.'>
-		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="get">
+		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="post">
 		<fieldset>';
 		if (strpos($_SERVER['REQUEST_URI'],'page_id')>0){
 			$HTML.= '<input type="hidden" name="page_id" value="'.Estrai_PageID_Url().'" />';
@@ -180,20 +182,24 @@ $HTML='<div class="ricerca">
 $HTML.= '
 			<table id="tabella-filtro-atti" class="tabella-dati-albo" >
 				<tr>
+					<th scope="row">Categorie</th>
+					<td>'.$categorie.'</td>
+				</tr>
+				<tr>
 					<th scope="row">Anno</th>
 					<td>'.$anni.'</td>
 				</tr>
 				<tr>
 					<th scope="row"><label for="oggetto">Oggetto</label></th>
-					<td><input type="text" size="35" maxlength="150" name="oggetto" id ="oggetto"/></td>
+					<td><input type="text" size="50" maxlength="150" name="oggetto" id ="oggetto" value="'.$_REQUEST['oggetto'].'"/></td>
 				</tr>
 				<tr>
 					<th scope="row"><label for="DataInizio">da Data</label></th>
-					<td><input name="DataInizio" id="Calendario1" type="text" value="" size="8" id ="DataInizio" /></td>
+					<td><input name="DataInizio" id="Calendario1" type="text" value="'.$_REQUEST['DataInizio'].'" size="8" id ="DataInizio" /></td>
 				</tr>
 				<tr>
 					<th scope="wor"><label for="DataFine">a Data</label></th>
-					<td><input name="DataFine" id="Calendario2" type="text" value="" size="8" id ="DataFine" /></td>
+					<td><input name="DataFine" id="Calendario2" type="text" value="'.$_REQUEST['DataFine'].'" size="8" id ="DataFine" /></td>
 				</tr>
 				<tr>
 					<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
@@ -202,19 +208,11 @@ $HTML.= '
 			</table>
 			</fieldset>
 		</form>
-	</div>
-	<div class="ricerca_col_DX">
-		<'.$titFiltri.'>Categorie</'.$titFiltri.'>
-		<p class="finestra_ricerca">'
-		.ap_get_nuvola_categorie($_SERVER['REQUEST_URI'].$sep."action=categoria&amp;cat",1).'
-		</p>
-	</div>
-	<br style="clear:both;" />
 </div>';	
 return $HTML;
 }
 
-function Lista_Atti($Parametri,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Adata=0){
+function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata=0){
 switch ($Parametri['stato']){
 		case 0:
 			$TitoloAtti="Tutti gli Atti";
@@ -257,7 +255,7 @@ echo' <div class="Visalbo">';
 if (get_option('opt_AP_VisualizzaEnte')=='Si')
 		echo '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
 echo'<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>
-		'.VisualizzaRicerca().'
+		'.VisualizzaRicerca($Parametri['stato']).'
 		<br class="clear" />';
 	if ($TotAtti>$N_A_pp){
 	    $Para='';
@@ -306,11 +304,12 @@ echo '	<div class="tabalbo">
 	    <caption>Atti in corso di validit&agrave;</caption>
 		<thead>
 	    	<tr>
-	        	<th scope="col"> progressivo</th>
-	        	<th scope="col">Riferimento</th>
+	        	<th scope="col">Prog.</th>
+	        	<th scope="col">Ente</th>
+	        	<th scope="col">Rif.</th>
 	        	<th scope="col" style="width:200px;">Oggetto</th>
 	        	<th scope="col">Validit&agrave;</th>
-	        	<th scope="col" style="width:150px;">Categoria</th>
+	        	<th scope="col" style="width:100px;">Categoria</th>
 			</tr>
 	    </thead>
 	    <tbody>';
@@ -337,19 +336,22 @@ echo '	<div class="tabalbo">
 				$sep="&amp;";
 			else
 				$sep="?";
-			echo '<tr >
-			        <td '.$classe.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a><br />'.VisualizzaData($riga->Data).'
+			echo '<tr '.$classe.'>
+			        <td '.$Annullato.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a>
 					</td>
-					<td '.$classe.'>
+					<td '.$Annullato.'>
+						'.ap_get_ente($riga->Ente)->Nome .'
+					</td>
+					<td '.$Annullato.'>
 						'.$riga->Riferimento .'
 					</td>
-					<td '.$classe.'>
+					<td '.$Annullato.'>
 						'.$riga->Oggetto .'  
 					</td>
-					<td '.$classe.'>
+					<td '.$Annullato.'>
 						'.VisualizzaData($riga->DataInizio) .'<br />'.VisualizzaData($riga->DataFine) .'  
 					</td>
-					<td '.$classe.'>
+					<td '.$Annullato.'>
 						'.$cat .'  
 					</td>
 				</tr>'; 

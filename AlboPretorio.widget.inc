@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line Widget
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.2
+Version:2.3
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -125,7 +125,7 @@ public function widget( $args, $instance )
         $titolo = apply_filters('widget_title', $instance['titolo'] );
  		if ($titolo=='')
 			$titolo="Albo Pretorio";
-		$n_atti_attivi = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0;"));
+		$n_atti_attivi = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= CURDATE() And DataFine>= CURDATE() And Numero>0;"));
 		$n_atti_attivi_annullati = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0 And DataAnnullamento<>'0000-00-00';"));		
         echo $before_widget;
         echo $before_title .$titolo. $after_title;
@@ -175,10 +175,10 @@ $HtmlW.= '</div>';
 					<li><a href="#pp-tab-2"><?php echo $instance['titolo_elenco']; ?></a></li>
 				</ul>
 				<div id="pp-tab-1">
-                    <ul>
+                    <p>
 				        Atti Correnti <?php echo $n_atti_attivi; ?><br />
 				        di cui Annullati <?php echo $n_atti_attivi_annullati; ?>
-				    </ul>
+				    </p>
                 </div>
 				<div id="pp-tab-2">
                       <?php echo $HtmlW; ?>

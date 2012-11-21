@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.2
+ * @since 2.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -122,27 +122,27 @@ echo '    </tbody>
 <?php wp_nonce_field('add-tag', '_wpnonce_add-tag'); ?>
 
 <div class="form-field form-required">
-	<label for="tag-cognome">Cognome</label>
+	<label for="resp-cognome">Cognome</label>
 	<input name="resp-cognome" id="resp-cognome" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Cognome); else echo $_GET['resp-cognome']; ?>" size="20" aria-required="true" />
 </div>
 <div class="form-field form-required">
-	<label for="tag-nome">Nome</label>
+	<label for="resp-nome">Nome</label>
 	<input name="resp-nome" id="resp-nome" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Nome); else echo $_GET['resp-nome']; ?>" size="20" aria-required="true" />
 </div>
 <div class="form-field form-required">
-	<label for="tag-email">Email</label>
+	<label for="resp-email">Email</label>
 	<input name="resp-email" id="resp-email" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Email); else echo $_GET['resp-email'];?>" size="100" aria-required="true" />
 </div>
 <div class="form-field form-required">
-	<label for="tag-telefono">Telefono</label>
+	<label for="resp-telefono">Telefono</label>
 	<input name="resp-telefono" id="resp-telefono" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Telefono); else echo $_GET['resp-telefono']; ?>" size="30" aria-required="true" />
 </div>
 <div class="form-field form-required">
-	<label for="tag-orario">Orario ricevimento</label>
+	<label for="resp-orario">Orario ricevimento</label>
 	<input name="resp-orario" id="resp-orario" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Orario);  else echo $_GET['resp-orario'];?>" size="60" aria-required="true" />
 </div>
 <div class="form-field">
-	<label for="tag-description">Note</label>
+	<label for="resp-description">Note</label>
 	<textarea name="resp-note" id="resp-note" rows="5" cols="40"><?php if($edit) echo stripslashes($risultato[0]->Note); else echo $_GET['resp-note']; ?></textarea>
 	<p>inserire eventuali informazioni aggiuntive</p>
 </div>
