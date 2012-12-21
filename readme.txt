@@ -4,7 +4,7 @@ Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 2.3
+Stable tag: 2.4
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -31,6 +31,9 @@ dove stato può assumere i seguenti valori
 
 per_page indica il numero massimo di atti che vengono visualizza in ogni pagina
 == Changelog ==
+= 2.4 =
+- <strong>Risolto</strong> il problema di validazione del front end della pagina in cui viene visualizzato l'elenco degli atti
+- <strong>Risolto</strong> il problema di indicizzazione del sito quando veniva inserita la pagina dell'albo
 = 2.3 =
 - <strong>Implementata</strong> la gestione degli enti titolari dei singoli Atti. Negli atti verr&agrave; aggiunto un campo in cui specificare l'ente che ha emesso l'atto, mentre per gli atti gi&agrave; codificati verr&agrave; riportato il valore 0 utilizzato per l'ente titoalere del sito. L'ente 0 non si pu&ograve; cancellare, si pu&ograve;solo modificare
 - <strong>Implementata</strong> la procedura di ripubblicazione massiva degli atti attivi in caso di interruzione del servizio di pubblicazione, cio&egrave; nel caso in cui il sito va fuori servizio e risulta non accessibile.

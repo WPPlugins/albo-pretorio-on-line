@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.3
+ * @since 2.4
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -195,11 +195,11 @@ $HTML.= '
 				</tr>
 				<tr>
 					<th scope="row"><label for="DataInizio">da Data</label></th>
-					<td><input name="DataInizio" id="Calendario1" type="text" value="'.$_REQUEST['DataInizio'].'" size="8" id ="DataInizio" /></td>
+					<td><input name="DataInizio" id="Calendario1" type="text" value="'.$_REQUEST['DataInizio'].'" size="12"  /></td>
 				</tr>
 				<tr>
-					<th scope="wor"><label for="DataFine">a Data</label></th>
-					<td><input name="DataFine" id="Calendario2" type="text" value="'.$_REQUEST['DataFine'].'" size="8" id ="DataFine" /></td>
+					<th scope="row"><label for="DataFine">a Data</label></th>
+					<td><input name="DataFine" id="Calendario2" type="text" value="'.$_REQUEST['DataFine'].'" size="12"  /></td>
 				</tr>
 				<tr>
 					<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
@@ -330,28 +330,27 @@ echo '	<div class="tabalbo">
 			if($riga->DataAnnullamento!='0000-00-00'){
 				$classe='style="background-color: '.$coloreAnnullati.';"';
 				$CeAnnullato=true;
-			}else
-				$Annullato='';
+			}
 			if (strpos(get_permalink(),"?")>0)
 				$sep="&amp;";
 			else
 				$sep="?";
-			echo '<tr '.$classe.'>
-			        <td '.$Annullato.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a>
+			echo '<tr >
+			        <td '.$classe.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a>
 					</td>
-					<td '.$Annullato.'>
+					<td '.$classe.'>
 						'.ap_get_ente($riga->Ente)->Nome .'
 					</td>
-					<td '.$Annullato.'>
+					<td '.$classe.'>
 						'.$riga->Riferimento .'
 					</td>
-					<td '.$Annullato.'>
+					<td '.$classe.'>
 						'.$riga->Oggetto .'  
 					</td>
-					<td '.$Annullato.'>
+					<td '.$classe.'>
 						'.VisualizzaData($riga->DataInizio) .'<br />'.VisualizzaData($riga->DataFine) .'  
 					</td>
-					<td '.$Annullato.'>
+					<td '.$classe.'>
 						'.$cat .'  
 					</td>
 				</tr>'; 

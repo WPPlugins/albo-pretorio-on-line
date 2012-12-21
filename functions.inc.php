@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.3
+ * @since 2.4
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -770,6 +770,7 @@ function ap_get_num_anno($IdAtto){
 }
 
 function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Adata=0,$OrderBy="",$DaRiga=0,$ARiga=20,$Conteggio=false,$Annullati=true){
+
 /* Stato:
 		 0 - tutti
 		 1 - in corso di validità
@@ -795,7 +796,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 			else
 				$Selezione.=' WHERE DataInizio<="'.oggi().'" ';
 			if ($Adata!=0  and SeDate(">",convertiData($Adata),oggi()))
-				$Selezione.=' AND DataFine>="'.convertiData($Adata);
+				$Selezione.=' AND DataFine<="'.convertiData($Adata).'" And DataFine>="'.oggi();
 			else
 				$Selezione.=' AND DataFine>="'.oggi();
 			$Selezione.='" AND Numero>0'; 
@@ -824,7 +825,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 	if ($Oggetto!='')
 		$Selezione.=' And Oggetto like "%'.$Oggetto.'%"';
 	
-//echo "SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
+//echo "<BR /><BR />SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
 	if ($Conteggio){
 		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;" ));	
 	}else{
