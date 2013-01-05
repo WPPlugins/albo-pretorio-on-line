@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.4
+ * @since 2.5
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -429,7 +429,7 @@ function ap_num_atti_categoria($IdCategoria,$Stato=0){
 			break;
 	}
 	$Sql.=";";
-	return $wpdb->get_var( $wpdb->prepare( $Sql ) );
+	return $wpdb->get_var($Sql);
 	
 }
 function ap_get_dropdown_ricerca_categorie($select_name,$id_name,$class,$tab_index_attribute,$default="Nessuna",$Stato ) {
@@ -827,7 +827,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 	
 //echo "<BR /><BR />SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
 	if ($Conteggio){
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;" ));	
+		return $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;");	
 	}else{
 		return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;");	
 	}
@@ -1146,7 +1146,7 @@ function ap_set_ente_me($ente_nome){
 }
 function ap_create_ente_me(){
 	global $wpdb;
-		if ($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdEnte) FROM $wpdb->table_name_Enti"))==0){
+		if ($wpdb->get_var("SELECT COUNT(IdEnte) FROM $wpdb->table_name_Enti")==0){
 			$wpdb->insert($wpdb->table_name_Enti,array('Nome' =>"Ente non definito"));
 			$wpdb->update($wpdb->table_name_Enti,
 									 array('IdEnte' => 0),

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line Widget
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.4
+Version:2.5
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -38,7 +38,7 @@ class AlboPretorioWidget extends WP_Widget
 	 $defaults = array(
  		'titolo_statistiche' => 'Dati Atti',
         'titolo_elenco' => 'Atti Correnti',
-        'numero_atti' => NULL,
+        'numero_atti' => 10,
         'pagina_albo' => NULL,
         'ordine_campo' => NULL,
 		'ordinamento' => 'C'
@@ -125,8 +125,8 @@ public function widget( $args, $instance )
         $titolo = apply_filters('widget_title', $instance['titolo'] );
  		if ($titolo=='')
 			$titolo="Albo Pretorio";
-		$n_atti_attivi = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= CURDATE() And DataFine>= CURDATE() And Numero>0;"));
-		$n_atti_attivi_annullati = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0 And DataAnnullamento<>'0000-00-00';"));		
+		$n_atti_attivi = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= CURDATE() And DataFine>= CURDATE() And Numero>0;");
+		$n_atti_attivi_annullati = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0 And DataAnnullamento<>'0000-00-00';");		
         echo $before_widget;
         echo $before_title .$titolo. $after_title;
         echo "<div>";
