@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.5
+ * @since 2.6
  */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -685,6 +685,8 @@ function ap_approva_atto($IdAtto){
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
 	$NumeroOpzione=get_option('opt_AP_NumeroProgressivo');
+	if($risultato->Numero!=0)
+		return "Atto gia' PUBBLICATO con Numero Progressivo ".$risultato->Numero;
 	if ($NumeroDaDb!=$NumeroOpzione){
 		return "Atto non PUBBLICATO:%%br%%Progressivo da ultima pubblicazione=$NumeroDaDb%%br%% Progressivo da parametri=$NumeroOpzione";
 	}else{
@@ -824,7 +826,6 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		$Selezione.=' And IdCategoria="'.$Categoria.'"';
 	if ($Oggetto!='')
 		$Selezione.=' And Oggetto like "%'.$Oggetto.'%"';
-	
 //echo "<BR /><BR />SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;";
 	if ($Conteggio){
 		return $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;");	
@@ -874,7 +875,7 @@ function ap_ripubblica_atti_correnti(){
 	$AttiDaR = $wpdb->get_results($SqlAttiDaR);
 	if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
-	  	update_option('opt_AP_NumeroProgressivo',0 );
+	  	update_option('opt_AP_NumeroProgressivo',1 );
 		$Anno=get_option('opt_AP_AnnoProgressivo');
 	}else{
 		$Anno=get_option('opt_AP_AnnoProgressivo');

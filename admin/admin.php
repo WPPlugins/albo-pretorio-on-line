@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.5
+ * @since 2.6
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -351,7 +351,7 @@ function Memo_allegato_atto(){
 				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
 			}else{
 				if (($DimFile>20) and ($UnitM==" MB")){
-					$messages= "Il file caricato ш di ".$DimFile." Mb, il limite massimo &egrave; di 20 Mb";
+					$messages= "Il file caricato шадi ".$DimFile." Mb, il limite massimo &egrave; di 20 Mb";
 				}else{
 				  if ($_FILES["file"]["error"] > 0){
 					$messages= "Errore: " . $_FILES["file"]["error"];

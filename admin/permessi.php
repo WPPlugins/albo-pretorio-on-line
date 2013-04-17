@@ -5,13 +5,13 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.5
+ * @since 2.6
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 if ($_REQUEST['action']=="memoPermessi"){
 	$lista=ap_get_users(); 
-// Azzera capacità utenti di gestione ed amministrazione Albo Pretorio
+// Azzera capacità µtenti di gestione ed amministrazione Albo Pretorio
 	foreach($lista as $riga){
 		if (!(user_can( $riga->ID, 'create_users') or user_can( $riga->ID, 'manage_network'))) {
 			$users = new WP_User( $riga->ID);
@@ -19,7 +19,7 @@ if ($_REQUEST['action']=="memoPermessi"){
 			$users->remove_cap("admin_albo");
 		}
 	}	
-// Crea capacità utenti di gestione ed amministrazione Al Pretorio in base a quanto scelto dall'Utente
+// Crea capacità µtenti di gestione ed amministrazione Al Pretorio in base a quanto scelto dall'Utente
 	foreach($_REQUEST as $key=>$val){
 		$UID=substr($key,1);
 		if (is_numeric($UID)){

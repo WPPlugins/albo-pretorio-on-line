@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.5
+Version:2.6
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -497,7 +497,7 @@ if (!class_exists('AlboPretorio')) {
 	  
 	  if ($_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
-		update_option('opt_AP_NumeroProgressivo',0 );
+		update_option('opt_AP_NumeroProgressivo',1 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	  }
 	  $n_atti = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti;");	 
@@ -566,7 +566,7 @@ if (!class_exists('AlboPretorio')) {
 	   global $current_user,$stato;
 	  if ($_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
-		update_option('opt_AP_NumeroProgressivo',0 );
+		update_option('opt_AP_NumeroProgressivo',1 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	  }
 	  get_currentuserinfo();
@@ -752,7 +752,7 @@ if (!class_exists('AlboPretorio')) {
 			add_option('opt_AP_AnnoProgressivo', ''.date("Y").'');
 		}
 		if(get_option('opt_AP_NumeroProgressivo')  == '' || !get_option('opt_AP_NumeroProgressivo')){
-			add_option('opt_AP_NumeroProgressivo', '0');
+			add_option('opt_AP_NumeroProgressivo', '1');
 		}
 		if(get_option('opt_AP_FolderUpload') == '' || !get_option('opt_AP_FolderUpload')){
 			add_option('opt_AP_FolderUpload', 'wp-content/uploads');

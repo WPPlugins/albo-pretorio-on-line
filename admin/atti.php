@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.5
+ * @since 2.6
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -32,7 +32,7 @@ switch ($_REQUEST['action']){
 		break;
 	case "setta-anno":
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
-	  	update_option('opt_AP_NumeroProgressivo',0 );
+	  	update_option('opt_AP_NumeroProgressivo',1 );
 		PreApprovazione($_REQUEST['id'],"Anno Albo settato a ".date("Y")." Numero prograssivo settato a 0");
 		break;
 	case "approva-atto" :
@@ -83,7 +83,7 @@ echo'
 <div class="wrap">
 <div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/approva32.png" alt="Icona Approvazione Atto"/></div>
 	<h2 style="display:inline;margin-left:10px;">Approvazione Atto</h2>
-	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
+	<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 	if ( $ret!="" ) {
 		echo '<div id="message" class="updated"><p>'.$ret.'</p></div>';
 	}
@@ -296,7 +296,7 @@ function Nuovo_atto(){
 	<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto"/>
 </div>';
 echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
-	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
+	<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 if ( $_REQUEST['msg'] !="") {
 	echo '<div id="message" class="updated"><p>'.stripslashes($_REQUEST['msg']).'</p></div>';
 }
@@ -379,7 +379,8 @@ $atto=$atto[0];
 	echo '
 <div class="wrap">
 <div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto" /></div>
-<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2><a <a href="'.$_SERVER[HTTP_REFERER].'" class="add-new-h2">Torna indietro</a>
+<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2>
+<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
 <div id="col-container">
 <form id="addatto" method="post" action="?page=atti" class="validate">
 <input type="hidden" name="action" value="memo-atto" />
@@ -465,7 +466,7 @@ function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
 	<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto"/>
 </div>	
 	<h2  style="display:inline;margin-left:10px;">Atto</h2>
-	<a href="#" class="add-new-h2 tornaindietro" rel="'.$_SERVER[PHP_SELF].'?page=atti" >Torna indietro</a>';
+	<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 	if ( $messaggio!="" ) {
 	 	$messaggio=str_replace("%%br%%", "<br />", $messaggio);
 		print('<div id="message" class="updated"><p>'.$messaggio.'</p></div>');
@@ -609,7 +610,7 @@ function View_atto($IdAtto){
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atto<a href="'.$_SERVER[HTTP_REFERER].'" class="add-new-h2" >Torna indietro</a></h2>
+<h2 style="margin-left:40px;">Atto<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
 
 <div id="col-container">
 	<div id="col-right">

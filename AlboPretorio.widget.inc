@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line Widget
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.5
+Version:2.6
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -143,9 +143,8 @@ public function widget( $args, $instance )
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	$lista=ap_get_all_atti(1,0,0,'',0,0,$Ordinamento,0,$instance['numero_atti']); 
 
-	$HtmlW='';
+	$HtmlW.= "<ul>";
 	if ($lista){
-		$HtmlW.= "<ul>";
 		foreach($lista as $riga){
 			if($riga->DataAnnullamento!='0000-00-00'){
 				$Annullato='style="background-color: '.$coloreAnnullati.';"';
