@@ -4,7 +4,7 @@ Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 2.6
+Stable tag: 2.7
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -31,6 +31,18 @@ dove stato può assumere i seguenti valori
 
 per_page indica il numero massimo di atti che vengono visualizza in ogni pagina
 == Changelog ==
+= 2.7 =
+- <strong>Modificato</strong> l'ordine di visualizzazione degli atti nel front end, adesso vengono visualizzati per anno/numero in ordine inverso
+- <strong>Eliminato</strong> l'editor del foglio di stile
+- <strong>Eliminato</strong> il parametro Effetti Testo Shadow
+- <strong>Eliminato</strong> il parametro Effetti CSS3
+- <strong>Modificata</strong> la dimensione del riferimento dell'atto, passato da 20 a 100 caratteri 
+- <strong>Modificata</strong> la dimensione dell'OGGETTO dell'atto, passato da 150 a 200 caratteri 
+- <strong>Modificata</strong> la dimensione del riferimento dell'atto, passato da 20 a 100 caratteri 
+- <strong>Modificata</strong> la dimensione del Motivo dell'annullamento dell'atto, passato da 100 a 200 caratteri 
+- <strong>Inserita</strong> la funzione di backup dei dati dell'albo accessibile da utility, viene creata una cartella in wp-content/plugins/albo-pretorio-on-line/BackupDatiAlbo in cui vengono posizionati i files zippati il cui nome contiene la date e l'ora di creazione.
+Il file zippato contiene uno script Sql per la ricostruzione delle tabelle dell'albo con i dati e le impostazioni delle opzioni dell'albo compreso anche il numero progressivo e tutti gli allegati agli atti.
+- <strong>Inserita</strong> la funzione di verifica del Data Base, della struttura e di congruità dei dati.
 = 2.6 =
 - <strong>Corretti</strong> bugs relativi alla visualizzazione nel widget nel momento in cui non ci sono atti pubblicati
 - <strong>Corretto</strong> comportamento della procedura di pubblicazione.

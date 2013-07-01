@@ -315,7 +315,7 @@ echo'<div id="col-container">
 	    <tbody id="dati-atto">
 		<tr>
 			<th>Ente Emittente</th>
-			<td>'.ap_get_dropdown_enti('Ente','Ente','postform','',$_REQUEST['Ente']).'</td>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$_REQUEST['Ente']).'</td>
 			<td>Ente che pubblica l\'atto;<br />potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</td>
 		</tr>
 		<tr>
@@ -325,32 +325,32 @@ echo'<div id="col-container">
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.$dataCorrente.'" size="8" aria-required="true" /></td>
+			<td><input name="Data" id="Calendario1" type="text" value="'.$dataCorrente.'" maxlength="10" size="10" aria-required="true" /></td>
 			<td>Data di codifica dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" size="20" aria-required="true" value="'.$_REQUEST['Riferimento'].'" /></td>
+			<td><input name="Riferimento" id="riferimento-atto" type="text" maxlength="100" size="100" aria-required="true" value="'.$_REQUEST['Riferimento'].'" /></td>
 			<td>Numero di riferimento dell\'atto, es. N. Protocollo</td>
 		</tr>
 		<tr>
 			<th>Oggetto</th>
-			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="150" aria-required="true">'.$_REQUEST['Oggetto'].'</textarea></td>
+			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="97" maxlength="150" aria-required="true">'.$_REQUEST['Oggetto'].'</textarea></td>
 			<td colspan="2">Oggetto, descrizione sintetica dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td><input name="DataInizio" id="Calendario2" type="text" size="8" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /></td>
+			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /></td>
 			<td>Data Inizio Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td><input name="DataFine" id="Calendario3" type="text" size="8" aria-required="true" value="'.$_REQUEST['DataFine'].'" /></td>
+			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataFine'].'" /></td>
 			<td>Data Fine Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Note</th>
-			<td><textarea  name="Note" id="Note-atto" rows="5" cols="60" wrap="ON" maxlength="255">'.$_REQUEST['Note'].'</textarea></td>
+			<td><textarea  name="Note" id="Note-atto" rows="5" cols="97" wrap="ON" maxlength="255">'.$_REQUEST['Note'].'</textarea></td>
 			<td>Descrizione dell\'atto</td>
 		</tr>
 		<tr>
@@ -360,7 +360,7 @@ echo'<div id="col-container">
 		</tr>
 		<tr>
 			<th>Responsabile Procedimento</th>
-			<td>'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$_REQUEST['Responsabile']).'</td>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$_REQUEST['Responsabile']).'</td>
 			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
 		</tr>
 		<tr>
@@ -396,7 +396,7 @@ $atto=$atto[0];
 	    <tbody id="dati-atto">
 		<tr>
 			<th>Ente</th>
-			<td>'.ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente).'</td>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente).'</td>
 			<td>Ente che pubblica l\'atto;<br />potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</td>
 		</tr>
 		<tr>
@@ -406,12 +406,12 @@ $atto=$atto[0];
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.$atto->Data.'" size="8" aria-required="true" /></td>
+			<td><input name="Data" id="Calendario1" type="text" value="'.$atto->Data.'" maxlength="10" size="10" aria-required="true" /></td>
 			<td>Data di codifica dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" value="'.stripslashes($atto->Riferimento).'" size="20" aria-required="true" /></td>
+			<td><input name="Riferimento" id="riferimento-atto" type="text" value="'.stripslashes($atto->Riferimento).'" maxlength="20" size="22" aria-required="true" /></td>
 			<td>Numero di riferimento dell\'atto, es. N. Protocollo</td>
 		</tr>
 		<tr>
@@ -421,12 +421,12 @@ $atto=$atto[0];
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td><input name="DataInizio" id="Calendario2" type="text" value="'.$atto->DataInizio.'" size="8" aria-required="true" /></td>
+			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" value="'.$atto->DataInizio.'" maxlength="10" size="10" aria-required="true" /></td>
 			<td>Data Inizio Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td><input name="DataFine" id="Calendario3" type="text" value="'.$atto->DataFine.'" size="8" aria-required="true" /></td>
+			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" value="'.$atto->DataFine.'" maxlength="10" size="10" aria-required="true" /></td>
 			<td>Data Fine Pubblicazione dell\'atto</td>
 		</tr>
 		<tr>
@@ -441,7 +441,7 @@ $atto=$atto[0];
 		</tr>
 		<tr>
 			<th>Responsabile Procedimento </th>
-			<td>'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc).'</td>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc).'</td>
 			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
 		</tr>
 		<tr>

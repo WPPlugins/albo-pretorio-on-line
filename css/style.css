@@ -65,9 +65,6 @@ div.Visalbo{
 	font-size: 1em;
 }
 
-.tabVisalbo a{
-	text-decoration:none;
-}
 .tabVisalbo th{
 	text-transform: capitalize;
 	text-align: right;

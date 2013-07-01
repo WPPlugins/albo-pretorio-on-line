@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.6
+Version:2.7
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -196,10 +196,10 @@ if (!class_exists('AlboPretorio')) {
   		add_menu_page('Panoramica', 'Albo Pretorio', 'gest_atti_albo', 'Albo_Pretorio',array( 'AlboPretorio','show_menu'));
 		$atti_page=add_submenu_page( 'Albo_Pretorio', 'Atti', 'Atti', 'gest_atti_albo', 'atti', array( 'AlboPretorio','show_menu'));
 		$categorie_page=add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array( 'AlboPretorio', 'show_menu'));
-		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
 		$enti=add_submenu_page( 'Albo_Pretorio', 'Enti', 'Enti', 'admin_albo', 'enti', array('AlboPretorio', 'show_menu'));
+		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
 		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array( 'AlboPretorio','show_menu'));
-		$css_page=add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss',array( 'AlboPretorio', 'show_menu'));
+//		$css_page=add_submenu_page( 'Albo_Pretorio', 'Css', 'Css', 'admin_albo', 'editorcss',array( 'AlboPretorio', 'show_menu'));
 		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessi', array('AlboPretorio', 'show_menu'));
 		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utility', array('AlboPretorio', 'show_menu'));		
 		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
@@ -207,7 +207,7 @@ if (!class_exists('AlboPretorio')) {
 		add_action( 'admin_head-'. $responsabili_page, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $enti, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $parametri_page,array( 'AlboPretorio', 'ap_head'));
-		add_action( 'admin_head-'. $css_page, array( 'AlboPretorio','ap_head'));
+//		add_action( 'admin_head-'. $css_page, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $permessi, array( 'AlboPretorio','ap_head'));
 		add_action( 'admin_head-'. $utility, array( 'AlboPretorio','ap_head'));
 	}
@@ -574,8 +574,8 @@ if (!class_exists('AlboPretorio')) {
 	  $nprog  =  get_option('opt_AP_NumeroProgressivo');
 	  $nanno=get_option('opt_AP_AnnoProgressivo');
 	  $visente=get_option('opt_AP_VisualizzaEnte');
-	  $efftext=get_option('opt_AP_EffettiTesto');
-	  $effcss3=get_option('opt_AP_EffettiCSS3');
+//	  $efftext=get_option('opt_AP_EffettiTesto');
+//	  $effcss3=get_option('opt_AP_EffettiCSS3');
 	  $livelloTitoloEnte=get_option('opt_AP_LivelloTitoloEnte');
 	  $livelloTitoloPagina=get_option('opt_AP_LivelloTitoloPagina');
 	  $livelloTitoloFiltri=get_option('opt_AP_LivelloTitoloFiltri');
@@ -586,7 +586,7 @@ if (!class_exists('AlboPretorio')) {
 	  	$ve_selezionato='checked="checked"';
 	  else
 	  	$ve_selezionato='';
-	  if ($efftext=="Si")
+/*	  if ($efftext=="Si")
 	  	$ve_efftext='checked="checked"';
 	  else
 	  	$ve_efftext='';
@@ -594,6 +594,7 @@ if (!class_exists('AlboPretorio')) {
 	  	$ve_effcss3='checked="checked"';
 	  else
 	  	$ve_effcss3='';
+*/
 	  if (!$nanno){
 		$nanno=date("Y");
 		}
@@ -613,7 +614,8 @@ if (!class_exists('AlboPretorio')) {
 		<tr valign="top">
 			<th scope="row"><label for="visente">Visualizza Nome Ente</label></th>
 			<td><input type="checkbox" name="c_VEnte" value="Si" '.$ve_selezionato.' id="visente"/></td>
-		</tr>		
+		</tr>';		
+/*		
 		<tr valign="top">
 			<th scope="row"><label for="effShadow">Utilizza effetti testo Shadow</label></th>
 			<td><input type="checkbox" name="c_TE" value="Si" '.$ve_efftext.' id="effShadow"/></td>
@@ -622,6 +624,8 @@ if (!class_exists('AlboPretorio')) {
 			<th scope="row"><label for="effCSS3">Utilizza effetti CSS3</label></th>
 			<td><input type="checkbox" name="c_CSS3" value="Si" '.$ve_effcss3.'  id="effCSS3"/></td>
 		</tr>		
+*/
+echo '
 		<tr valign="top">
 			<th scope="row"><label for="LivelloTitoloEnte">Titolo Nome Ente</label></th>
 			<td>
@@ -760,12 +764,7 @@ if (!class_exists('AlboPretorio')) {
 		if(get_option('opt_AP_VisualizzaEnte') == '' || !get_option('opt_AP_VisualizzaEnte')){
 			add_option('opt_AP_VisualizzaEnte', 'Si');
 		}
-		if(get_option('opt_AP_EffettiTesto') == '' || !get_option('opt_AP_EffettiTesto')){
-			add_option('opt_AP_EffettiTesto', 'No');
-		}
-		if(get_option('opt_AP_EffettiCSS3') == '' || !get_option('opt_AP_EffettiCSS3')){
-			add_option('opt_AP_EffettiCSS3', 'No');
-		}
+
 		if(get_option('opt_AP_LivelloTitoloEnte') == '' || !get_option('opt_AP_LivelloTitoloEnte')){
 			add_option('opt_AP_LivelloTitoloEnte', 'h2');
 		}
@@ -785,12 +784,23 @@ if (!class_exists('AlboPretorio')) {
 			add_option('opt_AP_ColoreDispari', '#FFF');
 		}
 
+/**
+* Eliminazione Opzioni
+* 
+*/
+		if(get_option('opt_AP_EffettiTesto')!==TRUE){
+			delete_option('opt_AP_EffettiTesto');
+		}
+		if(get_option('opt_AP_EffettiCSS3') !==TRUE){
+			delete_option('opt_AP_EffettiCSS3');
+		}
+		
 		$sql_Atti = "CREATE TABLE IF NOT EXISTS ".$wpdb->table_name_Atti." (
 		  `IdAtto` int(11) NOT NULL auto_increment,
 		  `Numero` int(4) NOT NULL default 0,
 		  `Anno` int(4) NOT NULL default 0,
 		  `Data` date NOT NULL default '0000-00-00',
-		  `Riferimento` varchar(20) NOT NULL,
+		  `Riferimento` varchar(100) NOT NULL,
 		  `Oggetto` varchar(150) NOT NULL default '',
 		  `DataInizio` date NOT NULL default '0000-00-00',
 		  `DataFine` date default '0000-00-00',
@@ -881,6 +891,23 @@ if (!class_exists('AlboPretorio')) {
 				echo $ret;
 			}
 		}
+		if (strtolower(typeFieldInTable($wpdb->table_name_Atti,"Riferimento"))=="varchar(20)"){
+			if (!($ret=ModFiledTable($wpdb->table_name_Atti, "Riferimento", "varchar(100)"))){
+				echo $ret;
+			}
+		}
+		if (strtolower(typeFieldInTable($wpdb->table_name_Atti,"Oggetto"))=="varchar(150)"){
+			if (!($ret=ModFiledTable($wpdb->table_name_Atti, "Oggetto", "varchar(200)"))){
+				echo $ret;
+			}
+		}
+		if (strtolower(typeFieldInTable($wpdb->table_name_Atti,"MotivoAnnullamento"))=="varchar(100)"){
+			if (!($ret=ModFiledTable($wpdb->table_name_Atti, "MotivoAnnullamento", "varchar(200)"))){
+				echo $ret;
+			}
+		}
+			
+
 
 			
 	}  	 
@@ -927,8 +954,8 @@ if (!class_exists('AlboPretorio')) {
 		delete_option( 'opt_AP_NumeroProgressivo' );
 		delete_option( 'opt_AP_AnnoProgressivo' );
 		delete_option( 'opt_AP_NumeroProtocollo' );
-		delete_option( 'opt_AP_EffettiTesto' );
-		delete_option( 'opt_AP_EffettiCSS3' );
+//		delete_option( 'opt_AP_EffettiTesto' );
+//		delete_option( 'opt_AP_EffettiCSS3' );
 		delete_option( 'opt_AP_LivelloTitoloEnte' );
 		delete_option( 'opt_AP_LivelloTitoloPagina' );
 		delete_option( 'opt_AP_LivelloTitoloFiltri' );
@@ -948,8 +975,8 @@ if (!class_exists('AlboPretorio')) {
 		    update_option('opt_AP_AnnoProgressivo',$_POST['c_AnnoProgressivo'] );
 		    //update_option('opt_AP_NumeroProgressivo',$_POST['c_NumeroProgressivo'] );
 		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
-		    update_option('opt_AP_EffettiCSS3',$_POST['c_CSS3'] );
-		    update_option('opt_AP_LivelloTitoloEnte',$_POST['c_LTE'] );
+//		    update_option('opt_AP_EffettiCSS3',$_POST['c_CSS3'] );
+//		    update_option('opt_AP_LivelloTitoloEnte',$_POST['c_LTE'] );
 		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
 		    update_option('opt_AP_LivelloTitoloFiltri',$_POST['c_LTF'] );
 		    update_option('opt_AP_FolderUpload',$_POST['c_dirUpload'] );
@@ -969,7 +996,9 @@ if (!class_exists('AlboPretorio')) {
             wp_register_style('AlboPretorio', $myStyleUrl);
             wp_enqueue_style( 'AlboPretorio');
         }
-        if (get_option('opt_AP_EffettiTesto')=="Si"){
+/* 
+	opzioni eliminate 
+       if (get_option('opt_AP_EffettiTesto')=="Si"){
 			$myStyleUrl = plugins_url('css/styleTE.css', __FILE__); 
 	        $myStyleFile = Albo_DIR.'/css/styleTE.css';
 	        if ( file_exists($myStyleFile) ) {
@@ -985,6 +1014,7 @@ if (!class_exists('AlboPretorio')) {
 	            wp_enqueue_style( 'AlboPretorioCSS3');
 	        }	
 		}
+*/
         $myStyleUrl = plugins_url('css/epoch_styles.css', __FILE__); 
         $myStyleFile = Albo_DIR.'/css/epoch_styles.css';
         if ( file_exists($myStyleFile) ) {

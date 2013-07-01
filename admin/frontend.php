@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.6
+ * @since 2.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -240,7 +240,7 @@ switch ($Parametri['stato']){
 		$A=$N_A_pp;
 	}
 	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',0,0,true);
-	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',$Da,$A); 
+	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'Anno DESC,Numero DESC',$Da,$A); 
 	$titEnte=get_option('opt_AP_LivelloTitoloEnte');
 	if ($titEnte=='')
 		$titEnte="h2";
@@ -336,7 +336,7 @@ echo '	<div class="tabalbo">
 			else
 				$sep="?";
 			echo '<tr >
-			        <td '.$classe.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$NumeroAtto.'/'.$riga->Anno .'</a>
+			        <td '.$classe.'>'.$NumeroAtto.'/'.$riga->Anno .'
 					</td>
 					<td '.$classe.'>
 						'.ap_get_ente($riga->Ente)->Nome .'
@@ -345,7 +345,7 @@ echo '	<div class="tabalbo">
 						'.$riga->Riferimento .'
 					</td>
 					<td '.$classe.'>
-						'.$riga->Oggetto .'  
+						<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$riga->Oggetto .'</a>  
 					</td>
 					<td '.$classe.'>
 						'.VisualizzaData($riga->DataInizio) .'<br />'.VisualizzaData($riga->DataFine) .'  

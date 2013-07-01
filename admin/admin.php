@@ -11,6 +11,10 @@
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
 
 switch ( $_REQUEST['action'] ) {
+		case "ExportBackupData":
+			$location='Location: '.$_REQUEST['elenco_Backup_Expo'];
+			wp_redirect( DaPath_a_URL($location) );
+			break;
 		case 'updatecss':
 			$location = "?page=editorcss";
 			$file=stripslashes( $_REQUEST['file']);
