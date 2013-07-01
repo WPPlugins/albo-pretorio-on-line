@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.7
+ * @since 2.8
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -16,7 +16,7 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 <h2 style="margin-left:40px;">Allegati</h2>
 <br class="clear" />
 <div id="col-container">
-	<h3>Allogato</h3>
+	<h3>Allegato</h3>
 	<form id="allegato" enctype="multipart/form-data" method="post" action="?page=atti" class="validate">
 	<input type="hidden" name="operazione" value="upload" />
 	<input type="hidden" name="action" value="memo-allegato-atto" />

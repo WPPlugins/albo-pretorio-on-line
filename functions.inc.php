@@ -1649,7 +1649,7 @@ function ap_backup_table($table,$fp) {
 	if (false === $create_table) {
 		$err_msg = 'Errore in SHOW CREATE TABLE per la labella '. $table;
 	}else{
-		@fwrite($fp,"Delete $table ;"."\r\n");
+		$create_table[0][1]=str_replace("CREATE TABLE","CREATE TABLE IF NOT EXISTS",$create_table[0][1]);
 		@fwrite($fp,$create_table[0][1] . ' ;'."\r\n");
 	}
 	$defs = array();
@@ -1664,6 +1664,7 @@ function ap_backup_table($table,$fp) {
 				$ints[strtolower($struct->Field)] = "1";
 		}
 	}
+	@fwrite($fp,"Delete From $table ;"."\r\n");
 	$table_data = $wpdb->get_results("SELECT * FROM $table ", ARRAY_A);
 	$entries = 'INSERT INTO ' . ap_backquote($table) . ' VALUES (';	
 	//    \x08\\x09, not required

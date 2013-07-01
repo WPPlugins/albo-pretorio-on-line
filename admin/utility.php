@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.7
+ * @since 2.8
  */
 
 
@@ -119,11 +119,11 @@ Nella radice del sito viene inserito il file robots.txt con l\'esclusione della 
 			$elencoExpo="";
 			$Dir=str_replace("\\","/",Albo_DIR.'/BackupDatiAlbo');
 			if (is_dir($Dir)){
-				$iterator = new DirectoryIterator($Dir);
-    			foreach ($iterator as $fileinfo) {
-	        		if ($fileinfo->isFile()) {
-						$elenco.="<option value='".$fileinfo->getPath()."/".$fileinfo->getFilename()."'>".basename($fileinfo->getFilename())."</option>"; 
-						$elencoExpo.="<option value='".$fileinfo->getPath()."/".$fileinfo->getFilename()."'>".basename($fileinfo->getFilename())."</option>"; 
+				$files_bck = scandir($Dir, 1);
+				foreach($files_bck as $fileinfo) {
+	        		if (is_file($Dir."/".$fileinfo)) {
+						$elenco.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
+						$elencoExpo.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
 					}
 				}
 			}
