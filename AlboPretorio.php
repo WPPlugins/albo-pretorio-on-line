@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://www.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.8
+Version:2.9
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -60,6 +60,8 @@ if (!class_exists('AlboPretorio')) {
 		add_action('init', array('AlboPretorio', 'update_AlboPretorio_settings'));
 		add_action('init', array('AlboPretorio', 'init') );
 		add_action('init', array('AlboPretorio', 'ilc_farbtastic_script'));
+		add_action('init', array('AlboPretorio', 'add_albo_button'));
+
 		if (!is_admin()) 
 			if (!function_exists('albo_styles'))
 				add_action('wp_print_styles', array('AlboPretorio','albo_styles'));
@@ -70,6 +72,26 @@ if (!class_exists('AlboPretorio')) {
 		add_action( 'wp_ajax_logdati', array('AlboPretorio','get_crealog'));
 		$role =& get_role( 'amministratore_albo' );
 	}
+
+/**Quote Shortcode **/
+/**USAGE: **/
+
+/*TINY MCE Quote Button*/
+function add_albo_button() {  
+  if ( current_user_can('edit_posts') &&  current_user_can('edit_pages') )  
+ {  
+   add_filter('mce_external_plugins',array('AlboPretorio', 'add_albo_plugin'));  
+   add_filter('mce_buttons', array('AlboPretorio','register_albo_button'));  
+  }  
+}  
+function register_albo_button($buttons) {  
+    array_push($buttons, "separator", "albo");  
+    return $buttons;  
+ }  
+function add_albo_plugin($plugin_array) {  
+  $plugin_array['albo'] =Albo_URL.'/js/ButtonEditor.js';  
+   return $plugin_array;  
+}
 
 	function get_crealog(){
 		global $AP_OnLine;
@@ -486,7 +508,8 @@ if (!class_exists('AlboPretorio')) {
 	function VisualizzaAtti($Parametri){
 	extract(shortcode_atts(array(
 		'Stato' => '1',
-		'Per_Page' => '20'
+		'Per_Page' => '20',
+		'Cat' => 'All'
 	), $Parametri));
 	require_once ( dirname (__FILE__) . '/admin/frontend.php' );
 //		return "Albo Pretorio".$Correnti." ".$Paginazione." ".$per_page." ".$default_order;

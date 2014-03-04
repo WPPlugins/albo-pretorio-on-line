@@ -5,11 +5,10 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.8
+ * @since 2.9
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
-
 switch ($_REQUEST['action']){
 	case 'visatto':
 		VisualizzaAtto($_REQUEST['id']);
@@ -27,8 +26,9 @@ switch ($_REQUEST['action']){
 				 unset($_REQUEST['DataInizio']);
 				 unset($_REQUEST['DataFine']);
 				 Lista_Atti($Parametri);
-			}else
-				 Lista_Atti($Parametri);
+			}else{
+				Lista_Atti($Parametri);
+			}
 }
 
 function VisualizzaAtto($id){
@@ -161,7 +161,7 @@ echo '
 </div>
 ';	
 }
-function VisualizzaRicerca($Stato=1){
+function VisualizzaRicerca($Stato=1,$cat=FALSE){
 $anni=ap_get_dropdown_anni_atti('anno','anno','postform','',$_REQUEST['anno'],$Stato); 
 $categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',$_REQUEST['categoria'],$Stato); 
 Bonifica_Url();
@@ -180,11 +180,15 @@ $HTML='<div class="ricerca">
 			$HTML.= '<input type="hidden" name="page_id" value="'.Estrai_PageID_Url().'" />';
 		}	
 $HTML.= '
-			<table id="tabella-filtro-atti" class="tabella-dati-albo" >
+			<table id="tabella-filtro-atti" class="tabella-dati-albo" >';
+if(!$cat){
+	$HTML.= '	
 				<tr>
 					<th scope="row">Categorie</th>
 					<td>'.$categorie.'</td>
-				</tr>
+				</tr>';
+}
+$HTML.= '	
 				<tr>
 					<th scope="row">Anno</th>
 					<td>'.$anni.'</td>
@@ -232,6 +236,12 @@ switch ($Parametri['stato']){
 	}else{
 		$N_A_pp=100;
 	}
+	if (isset($Parametri['cat'])){
+		$Categoria=$Parametri['cat'];
+		$DesCategoria=ap_get_categoria($Categoria);
+		$TitoloAtti.=" Categoria ".$DesCategoria[0]->Nome;
+		$cat=TRUE;
+	}
 	if (!isset($_REQUEST['Pag'])){
 		$Da=0;
 		$A=$N_A_pp;
@@ -255,7 +265,7 @@ echo' <div class="Visalbo">';
 if (get_option('opt_AP_VisualizzaEnte')=='Si')
 		echo '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
 echo'<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>
-		'.VisualizzaRicerca($Parametri['stato']).'
+		'.VisualizzaRicerca($Parametri['stato'],$cat).'
 		<br class="clear" />';
 	if ($TotAtti>$N_A_pp){
 	    $Para='';
@@ -301,7 +311,7 @@ echo'<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titP
 	}		
 echo '	<div class="tabalbo">                                 
 		<table id="elenco-atti" class="tabella-dati-albo" summary="atti validi per riferimento, oggetto e categoria"> 
-	    <caption>Atti in corso di validit&agrave;</caption>
+	    <caption>Atti</caption>
 		<thead>
 	    	<tr>
 	        	<th scope="col">Prog.</th>
