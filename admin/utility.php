@@ -5,17 +5,17 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.9
+ * @since 3.0.1
  */
 
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 switch($_REQUEST['action']){
-
-	case "Crearobots":
-		ap_crearobots();
-		menu();
-		break;
+//			case "ExportBackupData":
+//			in admin.php
+//			case "ImportBackupData":
+//			in admin.php
+	
 	case "rip":
 		ap_ripubblica_atti_correnti($_GET['Data']);
 		menu();
@@ -27,12 +27,6 @@ switch($_REQUEST['action']){
 	case "creafsic":
 		menu(ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload')));
 		unset($_POST['action']);
-		break;
-	case "posttrasf":
-		$Msg=ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload'))."<br />";
-		$Msg.=ap_allinea_allegati();
-		unset($_POST['action']);
-		menu($Msg);
 		break;
 	case "BackupData":
 		$Data=date('Ymd_H_i_s');
@@ -57,9 +51,6 @@ switch($_REQUEST['action']){
 	case "oblio":
 		MSGOblio();  
 		break;		
-	case "creaninf":
-		ImplementaNINF();
-		break;
 	case "imploblio":
 		ImplementaOblio();
 		break;
@@ -104,19 +95,9 @@ echo '<div class="wrap">
 					<li>Tabelle del Data Base relative all\'Albo</li>
 					<li>Files allegati agli atti</li>
 				</ul>  
-			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utilityAlboP&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utility&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
 			</p>
 		</div>';	
-}
-function ImplementaNINF(){
-	$newPathAllegati=AP_BASE_DIR."AllegatiAttiAlboPretorio";
-	ap_NoIndexNoDirectLink($newPathAllegati);
-	echo'<div id="message" class="updated"> 
-				<p><strong>File .htaccess e index.php necessari per il diritto all\'oblio sono stati ricreati.</strong></p>
-				<p>Operazione terminata&nbsp;&nbsp;
-				<a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
-				</p>
-				</div>';
 }
 function ImplementaOblio(){
 	$uploads = wp_upload_dir(); 
@@ -161,14 +142,12 @@ function ImplementaOblio(){
 }
 
 function menu($Stato="",$passo="",$Data=""){
-$upload_dir = wp_upload_dir();
-$basedir=substr( $upload_dir['basedir'],0,strlen($upload_dir['basedir'])-19);
 echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Utility Albo</h2>';
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
-      <meta http-equiv="refresh" content="5;url=admin.php?page=utilityAlboP"/>';
+      <meta http-equiv="refresh" content="5;url=admin.php?page=utility"/>';
 echo '
 		<div class="postbox-container" style="margin-top:20px;">
 			<div class="widefat" style="padding:10px;">
@@ -178,7 +157,7 @@ echo '
 				<p style="font-size:1.1em;font-weight: bold;font-style: italic;color:red;">Questa &egrave; una operazione che pu&ograve; modificare una grosa quantit&agrave; di dati, si consiglia di eseguire un backup prima di procedere, per poter recuperare i dati originali in caso di errori.</p>';
 switch ($passo){
 	case "":
-		echo '<form action="?page=utilityAlboP" id="ripub" method="post"  class="validate">
+		echo '<form action="?page=utility" id="ripub" method="post"  class="validate">
 				<input type="hidden" name="action" value="setData" />
 				Data Interruzione: <input name="Data" id="Calendario1" type="text" size="8" />
 				<input type="submit" name="submit" id="submit" class="button" value="Avvia Procedura"  />
@@ -187,7 +166,7 @@ switch ($passo){
 		break;
 	case "1":
 		$TotAtti=ap_get_all_atti(1,0,0,'',0,$Data,'',0,0,true,false);
-		echo'<p><span style="font-size:1.1em;font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utilityAlboP&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
+		echo'<p><span style="font-size:1.1em;font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utility&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
 			</p>';
 }
 echo '		</div> 
@@ -203,26 +182,7 @@ Questa procedura esegue un test generale della procedura e riporta eventuali ano
 	<br />Verifica dati del Data Base e viene riportata una breve statistica sui dati
 </p>
 				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utilityAlboP&action=verificaproc">Verifica</a>
-				</p>
-		</div>
-				<div class="widefat" style="padding:10px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-				Procedura post trasferimento sito
-				</p>
-				<p style="text-align:left;font-size:1em;font-style: italic;">
-Questa procedura esegue le seguenti operazioni:
-					<ul style="list-style: circle inside;">
-						<li>Aggiornamento dei file 
-							<ul style="list-style: disc inside;padding-left:10px;">
-								<li><span style="font-weight: bold;">.htaccess</span> e <span style="font-weight: bold;">index.php</span> nella cartella <span style="font-style: italic;font-weight: bold;"> '.AP_BASE_DIR.'AllegatiAttiAlboPretorio</span></li>
-								<li> <span style="font-weight: bold;">robots.txt</span> nella cartella <span style="font-style: italic;font-weight: bold;">'.$basedir.'</span></li>
-							</ul>
-							 per il diritto all\'oblio</li>
-						<li>Aggiornamento del percorso nella tabella degli allegati nel Data Base</li>
-					</ul>
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utilityAlboP&action=posttrasf">Avvia operazione</a>
+ 					<a href="?page=utility&action=verificaproc">Verifica</a>
 				</p>
 		</div>';
 $elenco="<option value='' selected='selected'>Nessuno</option>";
@@ -244,13 +204,13 @@ echo '
 					Procedura di Backup dei dati dell\'Albo Pretorio
 				</p>
 				<p>
-				<form action="?page=utilityAlboP" id="backup" method="post"  class="validate">
+				<form action="?page=utility" id="backup" method="post"  class="validate">
 					<input type="hidden" name="action" value="BackupData" />
 					Backup dei Dati:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" name="submit" id="submit" class="button" value="Avvia Backup"  />
 				</form>
 				</p>
 				<p>
-					<form action="?page=utilityAlboP" id="exportBackup" method="post"  class="validate">
+					<form action="?page=utility" id="exportBackup" method="post"  class="validate">
 					Esporta file di Backup: 
 						<input type="hidden" name="action" value="ExportBackupData" />
 						<select name="elenco_Backup_Expo" id="elenco_Backup_Expo" >\n'
@@ -661,15 +621,11 @@ if(is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/index.php"))
 	$ob2=TRUE;
 else	
 	$ob2=FALSE;
-if(is_file(APHomePath."/robots.txt"))
-	$ob3=TRUE;
-else	
-	$ob3=FALSE;
 echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Analisi Procedura</h2>
 		<div class="postbox-container" style=";margin-top:20px;">
-			<a class="add-new-h2 tornaindietro" href="'.$_SERVER[PHP_SELF].'?page=utilityAlboP" >
+			<a class="add-new-h2 tornaindietro" href="'.$_SERVER[PHP_SELF].'?page=utility" >
 			Torna indietro
 			</a>
 		<h3>Librerie</h3>
@@ -701,11 +657,12 @@ echo '
 				<table style="width:99%;">
 					<thead>
 						<tr>
-							<th style="text-align:left;width:440px;">Cartella</th>
-							<th style="text-align:left;width:80px;">.htaccess</th>
-							<th style="text-align:left;width:80px;">index.php</th>
-							<th style="text-align:left;width:80px;">robots.txt</th>
-							<th style="text-align:left;width:100px;">Operazione</th>';
+							<th style="text-align:left;width:380px;">Cartella</th>
+							<th style="text-align:left;width:100px;">.htaccess</th>
+							<th style="text-align:left;width:100px;">index.php</th>';
+if (!$ob1 or !$ob2)
+echo '
+							<th style="text-align:left;width:100px;">Attivazione</th>';
 echo'
 						</tr>
 					</thead>
@@ -723,26 +680,10 @@ if($ob2)
  		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
 	else
 		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
-echo '							</td>
-			<td></td>';
-//if (!$ob1 or !$ob2)
-echo '							<td><a href="?page=utilityAlboP&amp;action=creaninf">Rigenera</a></td>';
-echo '
-						</tr>
-						<tr>
-							<td>'.APHomePath.'</td>
-							<td></td>
-							<td></td>
-							<td>';
-if($ob3)
- 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
-	else
-		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
 echo '							</td>';
-//if (!$ob3)
-echo '							<td><a href="?page=utilityAlboP&amp;action=Crearobots">Crea</a></td>';
+if (!$ob1 or !$ob2)
+echo '							<td><a href="?page=utility&amp;action=oblio">Attiva</a></td>';
 echo '
-						</tr>
 					</tbody>
 				</table>
 		</div>			
@@ -791,7 +732,7 @@ foreach($Tabelle as $Tabella){
 	if (ap_existTable($Tabella)) 
  		$EsisteTabella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;margin-top:5px;"/>';
 	else
-		$EsisteTabella='<a href="admin.php?page=utilityAlboP&action=creaTabella&Tabella='.$Tabella.'">Crea Tabella</a>';
+		$EsisteTabella='<a href="admin.php?page=utility&action=creaTabella&Tabella='.$Tabella.'">Crea Tabella</a>';
 
 $TestCampi=TestCampiTabella($Tabella);
 $DatiTabella=TestCongruitaDati($Tabella);

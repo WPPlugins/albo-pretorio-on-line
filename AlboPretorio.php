@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.9
+Version:3.0.1
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -33,7 +33,6 @@ include_once(dirname (__FILE__) .'/functions.inc.php');				/* Various functions 
 include_once(dirname (__FILE__) .'/AlboPretorio.widget.inc');
 define("Albo_URL",plugin_dir_url(dirname (__FILE__).'/AlboPretorio.php'));
 define("Albo_DIR",dirname (__FILE__));
-define("APHomePath",substr(plugin_dir_path(__FILE__),0,strpos(plugin_dir_path(__FILE__),"wp-content")-1));
 $uploads = wp_upload_dir(); 
 define("AP_BASE_DIR",$uploads['basedir']."/");
 
@@ -88,7 +87,7 @@ if (!class_exists('AlboPretorio')) {
 		wp_enqueue_script( 'my-admin-dtpicker-it', plugins_url('js/jquery.ui.datepicker-it.js', __FILE__ ));
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );
-			}
+	}
 
 /*TINY MCE Quote Button*/
 function add_albo_button() {  
@@ -229,9 +228,9 @@ function add_albo_plugin($plugin_array) {
 		$categorie_page=add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array( 'AlboPretorio', 'show_menu'));
 		$enti=add_submenu_page( 'Albo_Pretorio', 'Enti', 'Enti', 'admin_albo', 'enti', array('AlboPretorio', 'show_menu'));
 		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
-		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'configAlboP', array( 'AlboPretorio','show_menu'));
-		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessiAlboP', array('AlboPretorio', 'show_menu'));
-		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utilityAlboP', array('AlboPretorio', 'show_menu'));		
+		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array( 'AlboPretorio','show_menu'));
+		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessi', array('AlboPretorio', 'show_menu'));
+		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utility', array('AlboPretorio', 'show_menu'));		
 		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
 }
 	
@@ -242,7 +241,7 @@ function add_albo_plugin($plugin_array) {
 			case "Albo_Pretorio" :
 				$AP_OnLine->AP_menu();
 				break;
-			case "configAlboP" :
+			case "config" :
 				$AP_OnLine->AP_config();
 				break;
 			case "categorie" :
@@ -265,11 +264,11 @@ function add_albo_plugin($plugin_array) {
 			// interfaccia per la gestione degli allegati
 				include_once ( dirname (__FILE__) . '/admin/allegati.php' );
 				break;
-			case "permessiAlboP":
+			case "permessi":
 			// interfaccia per la gestione dei permessi
 				include_once ( dirname (__FILE__) . '/admin/permessi.php' );
 				break;
-			case "utilityAlboP":
+			case "utility":
 			// interfaccia per la gestione dei permessi
 				include_once ( dirname (__FILE__) . '/admin/utility.php' );
 				break;
@@ -297,9 +296,7 @@ function add_albo_plugin($plugin_array) {
 <script type="text/javascript">
 		jQuery.noConflict();
 		(function($) {
-			$(function() {	
-			var l = window.location;
-			var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf"; 
+			$(function() {		 
 		  	$('input.infolog').click(function() { //start function when Random button is clicked
 				var tipo;
 				switch ($(this).attr('value')){
@@ -350,31 +347,9 @@ function add_albo_plugin($plugin_array) {
 			<!--HEAD Albo Preotrio On line -->
 			";
 		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
-		//wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );
+		wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );
 	    wp_enqueue_script( 'my-admin-dtpicker-it', plugins_url('js/jquery.ui.datepicker-it.js', __FILE__ ));
-
-//		wp_enqueue_script( 'Albo-Public', plugins_url('js/Albo.public.js', __FILE__ ));
-
-		wp_enqueue_script( 'AlboP-DataTable', plugins_url('js/jquery.dataTables.js', __FILE__ ), array('jquery' ));
-		wp_enqueue_script( 'AlboP-DataTable-Tools', plugins_url('js/dataTables.tableTools.js', __FILE__ ), array('jquery' ));
-		wp_enqueue_script( 'AlboP-DataTable-Tools-colvis', plugins_url('js/dataTables.colVis.js', __FILE__ ), array('jquery' ));
-
-	    wp_register_style('AlboP_datatable_style' ,plugins_url( 'css/jquery.dataTables.css', __FILE__ ));
-	    wp_enqueue_style('AlboP_datatable_style');   
-	    wp_register_style('AlboP_datatable_style_colvis' ,plugins_url( 'css/dataTables.colVis.css', __FILE__ ));
-	    wp_enqueue_style('AlboP_datatable_style_colvis');   
-
-	    wp_register_style('AlboP_datatable_theme_Tools' ,plugins_url( 'css/dataTables.tableTools.css', __FILE__ ));
-	    wp_enqueue_style('AlboP_datatable_theme_Tools');   
-
-/*	<script type='text/javascript' src='<?php echo plugins_url('js/jquery.dataTables.js', __FILE__ );?>'></script>
-	<script type='text/javascript' src='<?php echo plugins_url('js/dataTables.tableTools.js', __FILE__ );?>'></script>
-	<link rel="stylesheet" href="<?php echo Albo_URL.'css/jquery.dataTables.css';?>" type="text/css" media="screen" />
-	<link rel="stylesheet" href="<?php echo Albo_URL.'css/dataTables.tableTools.css';?>" type="text/css" media="screen" />
-*/
-
-
-?>	
+?>
 	<script type='text/javascript'>
 		jQuery.noConflict();
 		(function($) {
@@ -388,62 +363,17 @@ function add_albo_plugin($plugin_array) {
 						jQuery.ajax({type: 'get',url: $(this).attr('rel')}); //close jQuery.ajax
 					return true;		 
 					});
-			    var l = window.location;
-				var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf";
-				$('#elenco-atti').dataTable(         
-			   	{
-			   	"ordering": false,
-			   	"dom": 'lT<f>Crtip',
-			   	"colVis": {"label": function ( index, title, th ) {return (index+1) +'. '+ title;}
-            			},
-				"responsive": true,
-			   	"tableTools": {
-		         	"sSwfPath": url,
-		          	"aButtons": [ 
-						{
-		                    "sExtends":    "collection",
-		                    "sButtonText": "Salva",
-		                    "aButtons":    [ "csv", "xls",                 
-		                    {
-		                    	"sExtends": "pdf",
-		                    	"sPdfOrientation": "landscape",
-		                    	"sPdfMessage": "Tabella generata con il plugin Albo Pretorio OnLine."
-		                	},]
-		                }
-					]
-		         },
-			   	"language":{
-				    "sEmptyTable":     "Nessun dato presente nella tabella",
-				    "sInfo":           " _START_-_END_ di _TOTAL_ atti",
-				    "sInfoEmpty":      "Vista da 0 a 0 di 0 atti",
-				    "sInfoFiltered":   "(filtrati da _MAX_ atti totali)",
-				    "sInfoPostFix":    "",
-				    "sInfoThousands":  ",",
-				    "sLengthMenu":     "Visualizza _MENU_ atti",
-				    "sLoadingRecords": "Caricamento...",
-				    "sProcessing":     "Elaborazione...",
-				    "sSearch":         "Cerca:",
-				    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
-				    "oPaginate": {
-				        "sFirst":      "<<",
-				        "sPrevious":   "<",
-				        "sNext":       ">",
-				        "sLast":       ">>"
-				    },
-				    "oAria": {
-				        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
-				        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
-				    }
-				}
-			   });
-		});
-	})(jQuery);
-</script>     
+			});
+		})(jQuery);
+
+	</script>
+	
+
 <!--FINE HEAD Albo Preotrio On line -->
 <?php		
 		}
 	}
-	
+
 	function load_dependencies() {
 			// Load backend libraries
 			if ( is_admin() ) {	
@@ -454,13 +384,13 @@ function add_albo_plugin($plugin_array) {
 	function VisualizzaAtti($Parametri){
 	extract(shortcode_atts(array(
 		'Stato' => '1',
+		'Per_Page' => '20',
 		'Cat' => 'All',
-		'Filtri' => 'si',
-		'MinFiltri' =>'si'
+		'Filtri' => 'si'
 	), $Parametri));
 	require_once ( dirname (__FILE__) . '/admin/frontend.php' );
 //		return "Albo Pretorio".$Correnti." ".$Paginazione." ".$per_page." ".$default_order;
-	return $ret;
+return $ret;
 	}
 
 	function AP_menu(){
@@ -518,14 +448,14 @@ function add_albo_plugin($plugin_array) {
 	if ($this->version==3.0 and !is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/.htaccess")){
 	echo'<p> </p>
 		<div class="widefat" >
-			<p style="text-align:center;font-size:1.2em;font-weight: bold;color: red;">Questa versione dell plugin implementa il diritto all\'oblio, questo meccanismo permette agli utenti di accedere agli allegati degli atti pubblicati all\'albo pretorio solo dal sito che ospita l\'albo e non con link diretti al file<br />Non risulta ancora attivato il diritto all\'oblio,<br /><a href="?page=utilityAlboP&amp;action=oblio">Attivalo</a></p>
+			<p style="text-align:center;font-size:1.2em;font-weight: bold;color: red;">Questa versione dell plugin implementa il diritto all\'oblio, questo meccanismo permette agli utenti di accedere agli allegati degli atti pubblicati all\'albo pretorio solo dal sito che ospita l\'albo e non con link diretti al file<br />Non risulta ancora attivato il diritto all\'oblio,<br /><a href="?page=utility&amp;action=oblio">Attivalo</a></p>
 			</div>';
 	}
 if (ap_get_num_categorie()==0){
 echo'<p> </p>
 		<div class="widefat" >
 				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
-				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utilityAlboP&amp;action=creacategorie">Crea Categorie di Default</a></p>
+				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utility&amp;action=creacategorie">Crea Categorie di Default</a></p>
 			</div>';
 }
 if (ap_num_responsabili()==0){
@@ -538,7 +468,7 @@ echo'<p> </p>
 if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 	echo '<div style="border: medium groove Blue;margin-top:10px;">
 			<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
-				<form id="agg_anno_progressivo" method="post" action="?page=configAlboP">
+				<form id="agg_anno_progressivo" method="post" action="?page=config">
 					<input type="hidden" name="action" value="setta-anno" />
 				<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 				</form>
@@ -557,12 +487,10 @@ echo '<div  style="margin-left: 10px;">
 			<h3 style="margin-bottom: 5px;">Ti piace il Plugin?</h3>
 			<ul  style="margin-left: 25px;list-style-type: circle;">
 				<li>Facci sapere che utilizzi il plugin <strong>Albo Pretorio On Line</strong>, compila il form a questo indirizzo <a href="http://www.sisviluppo.info/?page_id=315">Io utilizzo il plugin</a></li>
-				<li><img src="'.Albo_URL.'/img/star.png" alt="Stella dorata" /><a href="http://wordpress.org/extend/plugins/albo-pretorio-on-line/">Vota questo plugin sul sito WordPress.org</a> richiede la registrazione sul sito http://www.wordpress.org</li>
+				<li><img src="'.Albo_URL.'/img/star.png" alt="Stella dorata" style="display:inline;float:left;margin-top:-5px;margin-right:5px;"/><a href="http://wordpress.org/extend/plugins/albo-pretorio-on-line/">Vota questo plugin sul sito WordPress.org</a> richiede la registrazione sul sito http://www.wordpress.org</li>
 			</ul>
-			<iframe src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FAlbo-Pretorio%2F1487571581520684%3Fref%3Dhl&amp;width&amp;height=290&amp;colorscheme=light&amp;show_faces=true&amp;header=true&amp;stream=false&amp;show_border=true" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:290px;" allowTransparency="true"></iframe> 
-			</div> 
-			<div>
-		</div>';
+			</div>  
+		';
 	}	
 
 	function AP_config(){
@@ -681,7 +609,7 @@ echo '<div  style="margin-left: 10px;">
 		if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 			echo '<div style="border: medium groove Blue;margin-top:10px;margin-right:250px;">
 					<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
-						<form id="agg_anno_progressivo" method="post" action="?page=configAlboP">
+						<form id="agg_anno_progressivo" method="post" action="?page=config">
 						<input type="hidden" name="action" value="setta-anno" />
 						<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 						</form>
@@ -825,10 +753,6 @@ echo '<div  style="margin-left: 10px;">
 		if (strtolower(ap_typeFieldInTable($wpdb->table_name_Atti,"MotivoAnnullamento"))=="varchar(100)"){
 			ap_ModificaTipoCampo($wpdb->table_name_Atti, "MotivoAnnullamento", "varchar(200)");
 		}
-		if (strtolower(ap_typeFieldInTable($wpdb->table_name_Atti,"Informazioni"))!="text"){
-			ap_ModificaTipoCampo($wpdb->table_name_Atti, "Informazioni", "TEXT");
-		}
-
 //		ap_ModificaParametriCampo($Tabella, $Campo, $Tipo $Parametro)
 		$par=ap_EstraiParametriCampo($wpdb->table_name_Atti,"Riferimento");
 		if(strtolower($par["Null"])=="yes")
@@ -911,7 +835,7 @@ echo '<div  style="margin-left: 10px;">
 			update_option('opt_AP_ColoreAnnullati',$_POST['color'] );
 			update_option('opt_AP_ColorePari',$_POST['colorp'] );
 			update_option('opt_AP_ColoreDispari',$_POST['colord'] );
-			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=true'); 
+			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=config&update=true'); 
   		}
 	}
 

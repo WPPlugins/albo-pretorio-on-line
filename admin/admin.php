@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.9
+ * @since 3.0.1
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 

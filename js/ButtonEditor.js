@@ -21,7 +21,7 @@
 
 					width : 300, 
 
-					height : 180,
+					height : 170,
 
 					inline : 1
 
