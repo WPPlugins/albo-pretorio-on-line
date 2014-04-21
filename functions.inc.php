@@ -1,25 +1,20 @@
 <?php
-/*
-* Plugin URI: http://www.sisviluppo.info
-* Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.1.1
-* Author: Scimone Ignazio
-* Author URI: http://www.sisviluppo.info
-*/
+/**
+ * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
+ * 
+ * @package Albo Pretorio On line
+ * @author Scimone Ignazio
+ * @copyright 2011-2014
+ * @since 2.67
+ */
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 ################################################################################
 // Funzioni 
 ################################################################################
-function ap_decodenamefile(){
-	$file="6p|ikkm{{";
-	$filen="";
-	for($i=0;$i<strlen($file);$i++)
-		$filen.=chr(ord(substr($file,$i,1))-8);
-	return $filen;
-}
 function ap_get_fileperm($dir){
+		 
 	$perms = fileperms($dir);
 	if (($perms & 0xC000) == 0xC000) {
 	    // Socket
@@ -106,21 +101,6 @@ function ap_get_fileperm_Gruppo($dir,$Gruppo){
 	}
 	return $info;
 }
-
-function ap_crearobots(){
-	$cartellabase=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
-	$cartella=substr($cartellabase,strlen(APHomePath));
-	$robot="User-agent: *
-	Disallow: ".$cartella."/";
-	$id = fopen(APHomePath."/robots.txt", "wt");
-	if (!fwrite($id,$robot )){
-		$Stato.="Non risco a Creare il file robots.txt in ".APHomePath."%%br%%";
-	}else{
-		$Stato.="File robots.txt creato con successo in ".APHomePath."%%br%%";
-	}
-	fclose($id);
-	return $Stato;
-}
 function ap_NoIndexNoDirectLink($dir){
     $sito=$_SERVER[HTTP_HOST];
 	$Stato="";
@@ -133,6 +113,10 @@ function ap_NoIndexNoDirectLink($dir){
 	RewriteCond %{HTTP_REFERER} !^http://".$sito.".* [NC]
 	RewriteRule \. ".home_url()."/index.php [R,L]
 </IfModule>";
+$cartellabase=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
+$cartella=substr($cartellabase,strlen($_SERVER['DOCUMENT_ROOT']));
+	$robot="User-agent: *
+Disallow: ".$cartella."/";
 $index="<?php
 /**
  * Albo Pretorio AdminPanel - Gestione Allegati Atto
@@ -145,16 +129,23 @@ $index="<?php
 
 die('Non hai il permesso di accedere a questa risorsa');
 ?>";
-//Creazione \.\h\t\a\c\c\e\s\s
-	$id = fopen($dir."/".ap_decodenamefile(), "wt");
+//Creazione .htaccess
+	$id = fopen($dir."/.htaccess", "wt");
 	if (!fwrite($id,$htaccess )){
-		$Stato.="Non risco a Creare il file ".ap_decodenamefile()." in ".$dir."%%br%%";
+		$Stato.="Non risco a Creare il file .htaccess in ".$dir."%%br%%";
 	}else{
-		$Stato.="File ".ap_decodenamefile()." creato con successo in ".$dir."%%br%%";
+		$Stato.="File .htaccess creato con successo in ".$dir."%%br%%";
 	}
 	fclose($id);
 //Creazione robots.txt
-	$Stato.=ap_crearobots();
+	$id = fopen($_SERVER['DOCUMENT_ROOT']."/robots.txt", "wt");
+	if (!fwrite($id,$robot )){
+		$Stato.="Non risco a Creare il file robots.txt in ".$_SERVER['DOCUMENT_ROOT']."%%br%%";
+	}else{
+		$Stato.="File robots.txt creato con successo in ".$_SERVER['DOCUMENT_ROOT']."%%br%%";
+	}
+	fclose($id);
+	
 //Creazione index.php
 	$id = fopen($dir."/index.php", "wt");
 	if (!fwrite($id,$index )){
@@ -243,7 +234,7 @@ global $wpdb;
 			  `Oggetto` varchar(200) NOT NULL default '',
 			  `DataInizio` date NOT NULL default '0000-00-00',
 			  `DataFine` date default '0000-00-00',
-			  `Informazioni` text NOT NULL default '',
+			  `Informazioni` varchar(255) NOT NULL default '',
 			  `IdCategoria` int(11) NOT NULL default 0,
 			  `RespProc` int(11) NOT NULL,
   			  `DataAnnullamento` date DEFAULT '0000-00-00',
@@ -856,7 +847,7 @@ function ap_get_nuvola_categorie($link,$Stato ) {
 }
 
 function ap_get_categoria($id){
- 	global $wpdb;
+	global $wpdb;
 	return $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Categorie WHERE IdCategoria=".(int)$id.";");
 }	
 function ap_get_categorie_figlio($id, &$elenco, $livello){
@@ -1184,12 +1175,8 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 	if ($OrderBy!=""){
 		$OrderBy=" Order By ".$OrderBy;
 	}
-	
-	if ($DaRiga==0 AND $ARiga==0)
-		$Limite="";
-	else
-		$Limite=" Limit ".$DaRiga.",".$ARiga;
-	
+	$Limite=" Limit ".$DaRiga.",".$ARiga;
+
 	switch ($Stato){
 		case 0:
 			$Selezione=' WHERE 1';
@@ -1487,7 +1474,7 @@ function ap_sposta_allegati($OldPathAllegati,$eliminareOrigine=FALSE){
 				fwrite($fplog,"Errore nella Cancellazione del file ".$fName."\n");
 		else
 			fwrite($fplog,"File ".$fName." inesistente\n");
-		$fName=str_replace("\\","/",$OldPathAllegati)."/".ap_decodenamefile();
+		$fName=str_replace("\\","/",$OldPathAllegati)."/.htaccess";
 		if (is_file($fName))
 			if (unlink($fName))
 				fwrite($fplog,"File ".$fName." Cancellato\n");
@@ -1529,27 +1516,6 @@ function ap_sposta_allegati($OldPathAllegati,$eliminareOrigine=FALSE){
 	$fpmsg = @fopen(Albo_DIR."/BackupDatiAlbo/tmp/msg.txt", "wb");
 	fwrite($fpmsg,$msg);
 	fclose($fpmsg);
-}
-
-function ap_allinea_allegati(){
-	global $wpdb;
-	$msg="";
-	$allegati=$wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati ;",ARRAY_A );
-// Nuova directory Allegati Albo Pretorio
-	$BaseCurDir=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
-	foreach( $allegati as $allegato){
-		$NewAllegato=$BaseCurDir."/".basename($allegato['Allegato']);
-		if ($wpdb->update($wpdb->table_name_Allegati,
-									array('Allegato' => $NewAllegato),
-									array('IdAllegato' => $allegato['IdAllegato'] ),
-									array('%s'),
-									array('%d'))>0){
-				ap_insert_log(3,9,$allegato['IdAllegato'] ,"{Allegato}==> ".$allegato['Allegato']." spostato in $NewAllegato",0);
-				$msg.='<spam style="color:green;">Aggiornamento Link Allegato</spam> '.$allegato['Allegato']."%%br%%";
-			}
-//	echo "<p>Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error."</p>";
-	}
-	return $msg;
 }
 
 ################################################################################
@@ -1702,7 +1668,7 @@ function ap_get_dropdown_enti($select_name,$id_name,$class,$tab_index_attribute=
 			if ($c->IdEnte==$default){
 				$output .= " selected=\"selected\" ";
 			}
-			$output .=" >".stripslashes($c->Nome)."</option>\n";
+			$output .=" >$c->Nome</option>\n";
 		}
 	}
 	$output .= "</select>\n";
@@ -1942,7 +1908,7 @@ global $wpdb;
 	$DirLog=$Dir."/log";
 	$DirAllegati=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
 	$ControlloDir="";
-	require_once('inc/pclzip.php');
+	require_once('inc/pclzip.lib.php');
 	if ($Tipo==""){
 			$nomefileZip=$Dir."/".$NomeFile.".zip";
 			$nomefileLog=$DirLog."/Backup_AlboPretorio_".$NomeFile.".log";

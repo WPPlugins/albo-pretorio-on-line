@@ -3,8 +3,8 @@ Contributors: Scimone Ignazio
 Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
-Tested up to: 4.1
-Stable tag: 3.1.1
+Tested up to: 3.8
+Stable tag: 3.0.2
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -34,30 +34,7 @@ Di seguito sono riportati i passi necessari per l'installazione del plugin. la p
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
-= 3.1.1 =
-- <strong>Modificata</strong> la libreria di funzioni per la gestione del diritto all'oblio, nello specifico il file .htaccess, che veniva riconosciuto come virus da alcuni ISP
-= 3.1 =
-- <strong>Modificata</strong> la visualizzazione dell'elenco degli atti, adesso gli atti vengono visualizzati solo con numero atto ed oggetto con la possibilità di visualizzare il resto delle informazioni cliccando su un'iconcinaposta alla sinistra della lista
-- <strong>Riorganizzati</strong> i nomi dei files
-= 3.0.9 =
-- <strong>Corretti</strong> bug sui permessi di accesso alle pagine di configurazione
-= 3.0.8 =
-- <strong>Corretto</strong> problema sulla visualizzazione delle statistiche
-- <strong>Implementata</strong> nuova funzionalità in utility <strong>Procedura post trasferimento sito</strong> che permette la rigenerazione dei file .htaccess, index.php e robots.txt ed il riallineamento degli allegati agli atti sul nuovo percorso. 
-= 3.0.7 =
-- <strong>Corretto</strong> problema quando si memorizzavano i permessi
-= 3.0.6 =
-- <strong>Corretto</strong> errata dimensione tabella forntend
-- <strong>Corretta</strong> doppia visualizzazione nell'elenco plugin della riga Albo Pretorio Online Widget
-= 3.0.5 =
-- <strong>Corretti</strong> vari Bugs creati dall'introduzione nel FrontEnd delle DataTables che permettono una migliore gestione dell'elenco degli atti
-- <strong>Ripristinato</strong> il pulsante per l'inserimento dello shortcode, è stato riorganizzato, sono stati eliminati gli elementi obsoleti
-= 3.0.4 =
-- <strong>Corretto</strong> problema di compatibilità con Pasw2015
-= 3.0.3 =
-- <strong>Corretti</strong> vari bugs: Errori di validazione Front End
-- <strong>Corretto</strong> errore di visualizzazione allegati con il browser Internet Explorer.
-= 3.0.2 =
+= 3.0.1 =
 - <strong>Corretti</strong> vari bugs: Errori di validazione Front End, Errore di paginazione
 - <strong>Implementata</strong> opzione nello shortcode che permette di visualizzare la finestra dei filtri fissa come avveniva fino alla versione 2.9
 = 3.0.1 =

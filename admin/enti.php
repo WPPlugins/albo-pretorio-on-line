@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.1.1
+ * @since 3.0.1
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -60,13 +60,13 @@ if ($lista){
 	foreach($lista as $riga){
 		echo'<li style="text-align:left;padding-left:1px;">';
 		if($riga->IdEnte>0)
-			echo '<a href="?page=enti&amp;action=delete-ente&amp;id='.$riga->IdEnte.'" rel="'.stripslashes($riga->Nome).'" class="dr">
+			echo '<a href="?page=enti&amp;action=delete-ente&amp;id='.$riga->IdEnte.'" rel="'.$riga->Nome.'" class="dr">
 					<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>';
-		echo '					<a href="?page=enti&amp;action=edit-ente&amp;id='.$riga->IdEnte.'" rel="'.stripslashes($riga->Nome).'">
+		echo '					<a href="?page=enti&amp;action=edit-ente&amp;id='.$riga->IdEnte.'" rel="'.$riga->Nome.'">
 					<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>';
-		echo '<strong>'.stripslashes($riga->Nome).'</strong>';
+		echo '<strong>'.$riga->Nome .'</strong>';
 		echo '</li>';
 	}
 } else {
@@ -126,31 +126,31 @@ echo '    </tbody>
 
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-nome">Nome Ente</label>
-	<input name="ente-nome" id="ente-nome" type="text" value='<?php if($edit) echo stripslashes($risultato->Nome); else echo $_REQUEST['ente-nome']; ?>' size="30" aria-required="true" />
+	<input name="ente-nome" id="ente-nome" type="text" value="<?php if($edit) echo stripslashes($risultato->Nome); else echo $_REQUEST['ente-nome']; ?>" size="30" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-indirizzo">Indirizzo</label>
-	<input name="ente-indirizzo" id="ente-indirizzo" type="text" value='<?php if($edit) echo stripslashes($risultato->Indirizzo); else echo $_REQUEST['ente-indirizzo']; ?>' size="150" aria-required="true" />
+	<input name="ente-indirizzo" id="ente-indirizzo" type="text" value="<?php if($edit) echo stripslashes($risultato->Indirizzo); else echo $_REQUEST['ente-indirizzo']; ?>" size="150" aria-required="true" />
 </div>
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-url">Url</label>
-	<input name="ente-url" id="ente-url" type="text" value='<?php if($edit) echo stripslashes($risultato->Url); else echo $_REQUEST['ente-url'];?>' size="100" aria-required="true" />
+	<input name="ente-url" id="ente-url" type="text" value="<?php if($edit) echo stripslashes($risultato->Url); else echo $_REQUEST['ente-url'];?>" size="100" aria-required="true" />
 </div>
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-email">Email</label>
-	<input name="ente-email" id="ente-email" type="text" value='<?php if($edit) echo stripslashes($risultato->Email); else echo $_REQUEST['ente-email'];?>' size="100" aria-required="true" />
+	<input name="ente-email" id="ente-email" type="text" value="<?php if($edit) echo stripslashes($risultato->Email); else echo $_REQUEST['ente-email'];?>" size="100" aria-required="true" />
 </div>
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-pec">Pec</label>
-	<input name="ente-pec" id="ente-pec" type="text" value='<?php if($edit) echo stripslashes($risultato->Pec); else echo $_REQUEST['ente-pec'];?>' size="100" aria-required="true" />
+	<input name="ente-pec" id="ente-pec" type="text" value="<?php if($edit) echo stripslashes($risultato->Pec); else echo $_REQUEST['ente-pec'];?>" size="100" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-telefono">Telefono</label>
-	<input name="ente-telefono" id="ente-telefono" type="text" value='<?php if($edit) echo stripslashes($risultato->Telefono); else echo $_REQUEST['ente-telefono']; ?>' size="30" aria-required="true" />
+	<input name="ente-telefono" id="ente-telefono" type="text" value="<?php if($edit) echo stripslashes($risultato->Telefono); else echo $_REQUEST['ente-telefono']; ?>" size="30" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-fax">Fax</label>
-	<input name="ente-fax" id="ente-fax" type="text" value='<?php if($edit) echo stripslashes($risultato->Fax); else echo $_REQUEST['ente-fax']; ?>' size="30" aria-required="true" />
+	<input name="ente-fax" id="ente-fax" type="text" value="<?php if($edit) echo stripslashes($risultato->Fax); else echo $_REQUEST['ente-fax']; ?>" size="30" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="tag-description">Note</label>
@@ -160,10 +160,10 @@ echo '    </tbody>
 
 <?php
 if($edit) {
-	echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche" rel="'.stripslashes($risultato->Nome).'" />';
+	echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche '.$risultato->Nome.'" rel="'.stripslashes($risultato->Nome).'" />';
 }else{
  	if ($_REQUEST['action']=="edit_err")
-		echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche" rel="'.stripslashes($_REQUEST['ente-nome']).'" />';
+		echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche '.$_REQUEST['ente-nome'].'" rel="'.stripslashes($_REQUEST['ente-nome']).'" />';
 	else
 		echo '<input type="submit" name="submit" id="submit" class="button" value="Aggiungi nuovo Ente"  />';	
 }
