@@ -5,15 +5,12 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.9
+ * @since 3.0.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 switch ($_REQUEST['action']){
-	case "annulla-atto":
-		Lista_Atti(($_REQUEST['motivo']=="null") ? "Operazione di Annullamento Atto <strong>Annullata</strong>" :ap_annulla_atto($_REQUEST['id'],$_REQUEST['motivo']));
-		break;
 	case "logatto" :
 		echo json_encode(CreaLog(1,$IdAtto,0));
 		die();
@@ -77,7 +74,7 @@ if ($ret!=""){
 	$NumeroDaDb=ap_get_last_num_anno(date("Y"));
 	$atto=ap_get_atto($id);
 	$atto=$atto[0];
-	$dif=datediff("d",cvdate($atto->DataInizio),cvdate($atto->DataFine));
+	$dif=ap_datediff("d",ap_cvdate($atto->DataInizio),ap_cvdate($atto->DataFine));
 	$NumeroOpzione=get_option('opt_AP_NumeroProgressivo');
 echo'
 <div class="wrap">
@@ -140,29 +137,29 @@ echo'<br />
 			echo '<tr>
 					<td>Data Inizio Pubblicazione</td>
 					<td>'.$atto->DataInizio.'</td>';
-			if($atto->DataInizio==oggi()){
+			if($atto->DataInizio==ap_oggi()){
 				$Passato=true;
 				echo '<td colspan="2">Ok</td>';
 			}else{
 	 			$Passato=false;
 	   			echo '<td>Aggiornare la data di Inizio Pubblicazione</td>
-			      <td><a href="?page=atti&amp;action=approva-atto&amp;id='.$id.'&amp;udi='.oggi().'" class="add-new-h2">Aggiorna a '.oggi().'</td>';
+			      <td><a href="?page=atti&amp;action=approva-atto&amp;id='.$id.'&amp;udi='.ap_oggi().'" class="add-new-h2">Aggiorna a '.ap_oggi().'</td>';
 			}
 			echo "</tr>";
 		}
 		if($Passato){
  			$categoria=ap_get_categoria($atto->IdCategoria);
  			$incrementoStandard=$categoria[0]->Giorni;
- 			$newDataFine=DateAdd($atto->DataInizio,$incrementoStandard);
- 			$differenza=datediff("d", $atto->DataInizio, $atto->DataFine);
+ 			$newDataFine=ap_DateAdd($atto->DataInizio,$incrementoStandard);
+ 			$differenza=ap_datediff("d", $atto->DataInizio, $atto->DataFine);
 			$differenza=($differenza==-1) ? 0 : $differenza;
 			echo '<tr>
 					<td>Data Fine Pubblicazione</td>
 					<td>'.$atto->DataFine.' Giorni Pubblicazione Atto '.$differenza .' Giorni Pubblicazione standard Categoria '.$categoria[0]->Giorni.'</td>';
 				//	echo $atto->DataFine.' '.$atto->DataInizio. ' '.SeDate("<=",$atto->DataFine,$atto->DataInizio);
-			if(SeDate(">=",$atto->DataFine,$atto->DataInizio)){
+			if(ap_SeDate(">=",$atto->DataFine,$atto->DataInizio)){
 				$Passato=true;
-				if (datediff("d", $atto->DataInizio, $atto->DataFine)== $categoria[0]->Giorni){
+				if (ap_datediff("d", $atto->DataInizio, $atto->DataFine)== $categoria[0]->Giorni){
 					echo '<td colspan="2">Ok</td>';
 				}else{
 					echo '<td>Ok</td>';
@@ -220,7 +217,7 @@ echo'
 foreach ($righe as $riga) {
 	echo '<tr>
 			<td>	
-					<a href="'.DaPath_a_URL($riga->Allegato).'" target="_parent">
+					<a href="'.ap_DaPath_a_URL($riga->Allegato).'" target="_parent">
 							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>
 			</td>
@@ -307,6 +304,7 @@ echo'<div id="col-container">
 '.wp_nonce_field('add-tag', '_wpnonce_add-tag').'
 <br />
 	<table class="widefat">
+		
 	    <thead>
 		<tr>
 			<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
@@ -314,54 +312,56 @@ echo'<div id="col-container">
 	    </thead>
 	    <tbody id="dati-atto">
 		<tr>
-			<th>Ente Emittente</th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$_REQUEST['Ente']).'</td>
-			<td>Ente che pubblica l\'atto;<br />potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</td>
+			<th valign="top" style="text-align:right;">Ente Emittente</th>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$_REQUEST['Ente']).'<br />
+			<span style="font-style: italic;">Ente che pubblica l\'atto; potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span></td>
 		</tr>
 		<tr>
-			<th>Numero Albo</th>
-			<td>&nbsp;&nbsp;/'.date("Y").'</td>
-			<td>Numero progressivo generato dal programma</td>
 		</tr>
 		<tr>
-			<th>Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.$dataCorrente.'" maxlength="10" size="10" aria-required="true" /></td>
-			<td>Data di codifica dell\'atto</td>
+			<th valign="top" style="text-align:right;">Numero Albo</th>
+			<td>&nbsp;&nbsp;/'.date("Y").'<br />
+			<span style="font-style: italic;">Numero progressivo generato dal programma</span></td>
 		</tr>
 		<tr>
-			<th>Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" maxlength="100" size="100" aria-required="true" value="'.$_REQUEST['Riferimento'].'" /></td>
-			<td>Numero di riferimento dell\'atto, es. N. Protocollo</td>
+			<th valign="top" style="text-align:right;">Data</th>
+			<td><input name="Data" id="Calendario1" type="text" value="'.$dataCorrente.'" maxlength="10" size="10" aria-required="true" /><br />
+			<span style="font-style: italic;">Data di codifica dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Oggetto</th>
-			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="97" maxlength="150" aria-required="true">'.$_REQUEST['Oggetto'].'</textarea></td>
-			<td colspan="2">Oggetto, descrizione sintetica dell\'atto</td>
+			<th valign="top" style="text-align:right;">Codice di Riferimento</th>
+			<td><input name="Riferimento" id="riferimento-atto" type="text" maxlength="100" size="70" aria-required="true" value="'.$_REQUEST['Riferimento'].'" /><br />
+			<span style="font-style: italic;">Numero di riferimento dell\'atto, es. N. Protocollo</span></td>
 		</tr>
 		<tr>
-			<th>Data inizio Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /></td>
-			<td>Data Inizio Pubblicazione dell\'atto</td>
+			<th valign="top" style="text-align:right;">Oggetto</th>
+			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="70" maxlength="200" aria-required="true">'.$_REQUEST['Oggetto'].'</textarea><br />
+			<span style="font-style: italic;">Oggetto, descrizione sintetica dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Data fine Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataFine'].'" /></td>
-			<td>Data Fine Pubblicazione dell\'atto</td>
+			<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
+			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /><br />
+			<span style="font-style: italic;">Data Inizio Pubblicazione dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Note</th>
-			<td><textarea  name="Note" id="Note-atto" rows="5" cols="97" wrap="ON" maxlength="255">'.$_REQUEST['Note'].'</textarea></td>
-			<td>Descrizione dell\'atto</td>
+			<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
+			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataFine'].'" /><br />
+			<span style="font-style: italic;">Data Fine Pubblicazione dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Categoria</th>
-			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$_REQUEST['Categoria']).'</td>
-			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</td>
+			<th valign="top" style="text-align:right;">Note</th>
+			<td><textarea  name="Note" id="Note-atto" rows="5" cols="70" wrap="ON" maxlength="255">'.$_REQUEST['Note'].'</textarea><br />
+			<span style="font-style: italic;">Descrizione dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Responsabile Procedimento</th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$_REQUEST['Responsabile']).'</td>
-			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
+			<th valign="top" style="text-align:right;">Categoria</th>
+			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$_REQUEST['Categoria']).'<br />
+			<span style="font-style: italic;">Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</span></td>
+		</tr>
+		<tr>
+			<th valign="top" style="text-align:right;">Responsabile Procedimento</th>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$_REQUEST['Responsabile']).'<br />
+			<span style="font-style: italic;">Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</span></td>
 		</tr>
 		<tr>
 			<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Atto"  /></td>
@@ -395,54 +395,54 @@ $atto=$atto[0];
 	    </thead>
 	    <tbody id="dati-atto">
 		<tr>
-			<th>Ente</th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente).'</td>
-			<td>Ente che pubblica l\'atto;<br />potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</td>
+			<th valign="top" style="text-align:right;">Ente</th>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente).'<br />
+			<span style="font-style: italic;">Ente che pubblica l\'atto; potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span></td>
 		</tr>
 		<tr>
-			<th>Numero Albo</th>
-			<td>'.$atto->Numero.'/'.$atto->Anno.'</td>
-			<td>Numero progressivo generato dal programma</td>
+			<th valign="top" style="text-align:right;">Numero Albo</th>
+			<td><span style="font-weight: bold;">'.$atto->Numero.'/'.$atto->Anno.'</span><br />
+			<span style="font-style: italic;">Numero progressivo generato dal programma</span></td>
 		</tr>
 		<tr>
-			<th>Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.$atto->Data.'" maxlength="10" size="10" aria-required="true" /></td>
-			<td>Data di codifica dell\'atto</td>
+			<th valign="top" style="text-align:right;">Data</th>
+			<td><input name="Data" id="Calendario1" type="text" value="'.ap_VisualizzaData($atto->Data).'" maxlength="10" size="10" aria-required="true" /><br />
+			<span style="font-style: italic;">Data di codifica dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" value="'.stripslashes($atto->Riferimento).'" maxlength="20" size="22" aria-required="true" /></td>
-			<td>Numero di riferimento dell\'atto, es. N. Protocollo</td>
+			<th valign="top" style="text-align:right;">Codice di Riferimento</th>
+			<td><input name="Riferimento" id="riferimento-atto" type="text" value="'.stripslashes($atto->Riferimento).'" maxlength="20" size="22" aria-required="true" /><br />
+			<span style="font-style: italic;">Numero di riferimento dell\'atto, es. N. Protocollo</span></td>
 		</tr>
 		<tr>
-			<th>Oggetto</th>
-			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="150" aria-required="true">'.stripslashes($atto->Oggetto).'</textarea></td>
-			<td colspan="2">Oggetto, descrizione sintetica dell\'atto</td>
+			<th valign="top" style="text-align:right;">Oggetto</th>
+			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="200" aria-required="true">'.stripslashes($atto->Oggetto).'</textarea><br />
+			<span style="font-style: italic;">Oggetto, descrizione sintetica dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Data inizio Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" value="'.$atto->DataInizio.'" maxlength="10" size="10" aria-required="true" /></td>
-			<td>Data Inizio Pubblicazione dell\'atto</td>
+			<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
+			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" value="'.ap_VisualizzaData($atto->DataInizio).'" maxlength="10" size="10" aria-required="true" /><br />
+			<span style="font-style: italic;">Data Inizio Pubblicazione dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Data fine Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" value="'.$atto->DataFine.'" maxlength="10" size="10" aria-required="true" /></td>
-			<td>Data Fine Pubblicazione dell\'atto</td>
+			<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
+			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" value="'.ap_VisualizzaData($atto->DataFine).'" maxlength="10" size="10" aria-required="true" /><br />
+			<span style="font-style: italic;">Data Fine Pubblicazione dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Note</th>
-			<td><textarea  name="Note" rows="5" cols="60" wrap="ON" maxlength="255">'.stripslashes($atto->Informazioni).'</textarea></td>
-			<td>Descrizione dell\'atto</td>
+			<th valign="top" style="text-align:right;">Note</th>
+			<td><textarea  name="Note" rows="5" cols="60" wrap="ON" maxlength="255">'.stripslashes($atto->Informazioni).'</textarea><br />
+			<span style="font-style: italic;">Descrizione dell\'atto</span></td>
 		</tr>
 		<tr>
-			<th>Categoria</th>
-			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria).'</td>
-			<td>Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</td>
+			<th valign="top" style="text-align:right;">Categoria</th>
+			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria).'<br />
+			<span style="font-style: italic;">Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</span></td>
 		</tr>
 		<tr>
-			<th>Responsabile Procedimento </th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc).'</td>
-			<td>Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</td>
+			<th valign="top" style="text-align:right;">Responsabile Procedimento </th>
+			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc).'<br />
+			<span style="font-style: italic;">Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</span></td>
 		</tr>
 		<tr>
 			<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Memorizza Modifiche Atto" /></td>
@@ -531,7 +531,7 @@ if ($IdAllegato!=0){
 					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'" rel="'.$riga->TitoloAllegato.'">
 						<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>
-					<a href="'.DaPath_a_URL($riga->Allegato).'" target="_parent">
+					<a href="'.ap_DaPath_a_URL($riga->Allegato).'" target="_parent">
 							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>
 				</td>
@@ -560,7 +560,7 @@ echo'</div>
 		</tr>
 		<tr>
 			<th>Data</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->Data).'</td>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->Data).'</td>
 		</tr>
 		<tr>
 			<th>Codice di Riferimento</th>
@@ -572,11 +572,11 @@ echo'</div>
 		</tr>
 		<tr>
 			<th>Data inizio Pubblicazione</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataInizio).'</td>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataInizio).'</td>
 		</tr>
 		<tr>
 			<th>Data fine Pubblicazione</th>
-			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataFine).'</td>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataFine).'</td>
 		</tr>
 		<tr>
 			<th>Note</th>
@@ -643,7 +643,7 @@ function View_atto($IdAtto){
 		if($risultato->DataAnnullamento!='0000-00-00')		
 			echo '		<tr>
 				<th style="width:20%;">Data Annullamento</th>
-				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:middle;">'.VisualizzaData($risultato->DataAnnullamento).'</td>
+				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataAnnullamento).'</td>
 			</tr>
 	    	<tr>
 				<th style="width:20%;">Motivo Annullamento</th>
@@ -655,7 +655,7 @@ function View_atto($IdAtto){
 			</tr>
 			<tr>
 				<th>Data</th>
-				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->Data).'</td>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->Data).'</td>
 			</tr>
 			<tr>
 				<th>Codice di Riferimento</th>
@@ -667,11 +667,11 @@ function View_atto($IdAtto){
 			</tr>
 			<tr>
 				<th>Data inizio Pubblicazione</th>
-				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataInizio).'</td>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataInizio).'</td>
 			</tr>
 			<tr>
 				<th>Data fine Pubblicazione</th>
-				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.VisualizzaData($risultato->DataFine).'</td>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataFine).'</td>
 			</tr>
 			<tr>
 				<th>Note</th>
@@ -691,7 +691,7 @@ echo '<h3>Allegati</h3>
 	<div class="Visalbo">';
 $allegati=ap_get_all_allegati_atto($IdAtto);
 foreach ($allegati as $allegato) {
- 	switch (ExtensionType($allegato->Allegato)){
+ 	switch (ap_ExtensionType($allegato->Allegato)){
 		case 'pdf':
 			$Estensione="Pdf.png";
 			$Verifica="";
@@ -708,9 +708,9 @@ foreach ($allegati as $allegato) {
 			<div style="margin-top:0;">
 				<p style="margin-top:0;">'.$allegato->TitoloAllegato.' <br />';
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
 			else
-				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
+				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
 echo'				</p>
 			</div>
 			<div style="clear:both;"></div>
@@ -723,13 +723,18 @@ echo '	</div>
 }
 
 function Lista_Atti($Msg_op=""){
-$messages[1] = __('Item added.');
-$messages[2] = __('Item deleted.');
-$messages[3] = __('Item updated.');
-$messages[4] = __('Item not added.');
-$messages[5] = __('Item not updated.');
-$messages[6] = __('Item not deleted.');
-$messages[7] = __('Impossibile cancellare un Atto che contiene Allegati<br />Cancellare prima gli Allegati e poi riprovare');
+$messages[1] = "Atto Aggiunto";
+$messages[2] = "Atto Cancellato";
+$messages[3] = "Atto Aggiornato";
+$messages[4] = "Atto non Aggiunto";
+$messages[5] = "Atto non Aggiornato";
+$messages[6] = "Atto non Cancellato";
+$messages[7] = 'Impossibile cancellare un Atto che contiene Allegati<br />Cancellare prima gli Allegati e poi riprovare';
+$messages[8] = 'Impossibile ANULLARE l\'Atto';
+$messages[9] = 'Atto ANNULLATO';
+$messages[10] = 'Allegati all\'Atto Cancellati';
+$messages[11] = 'Allegati all\'Atto NON Cancellati';
+$messages[99] = 'Non puoi eseguire questa OPERAZIONE DIRETTAMENTE';
 $N_A_pp=10;
 //Paginazione Inizializzazione
 	if (!isset($_REQUEST['Pag'])){
@@ -739,10 +744,13 @@ $N_A_pp=10;
 		$Da=($_REQUEST['Pag']-1)*$N_A_pp;
 		$A=$N_A_pp;
 	}
-	$TotAtti=ap_get_all_atti(0,0,0,'',0,0,'',0,0,true);
+	$TotAtti=ap_get_all_atti(9,0,0,'',0,0,'',0,0,true);
 //Gestione Messaggi di stato
 if (isset($_REQUEST['message'])) 
 	$msg = (int) $_REQUEST['message'];
+if (isset($_REQUEST['message2'])) 
+	$msg2 = (int) $_REQUEST['message2'];
+
 if ($Msg_op!=""){
 	$msg =9;
 	$messages[9]=str_replace("%%br%%","<br />",$Msg_op);
@@ -750,10 +758,39 @@ if ($Msg_op!=""){
 // Inizio interfaccia
 	echo' <div class="wrap">
 	      <img src="'.Albo_URL.'/img/atti32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atti <a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a></h2>';
-	if ( $msg ) {
-		echo '<div id="message" class="updated"><p>'.$messages[$msg].'</p></div>';
+<h2 style="margin-left:40px;">Atti ';
+$HtmlNP="";
+if (ap_get_num_categorie()==0){
+	$HtmlNP.='<p> </p>
+			<div class="widefat" >
+				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
+				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utility&amp;action=creacategorie">Crea Categorie di Default</a>
+				</p>
+			</div>';
+}
+if (ap_num_responsabili()==0){
+	$HtmlNP.='<p> </p>
+			<div class="widefat" >
+				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
+				Non risultano <strong>Responsabili</strong> codificati, devi crearne almeno uno prima di iniziare a codificare gli Atti &ensp;&ensp;<a href="?page=responsabili">Crea Responsabile</a>
+				</p>
+			</div>';
+}
+if ($HtmlNP!=""){
+	echo '</h2>
+	<div class="clear"></div>
+	<div class="postbox-container" style="width:80%;margin-top:20px;">'.
+	$HtmlNP.'
+	</div>
+</div><!-- /wrap -->	';
+	return;	
+}
+echo'
+	<a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a></h2>';
+	if ( $msg or $msg2 ) {
+		echo '<div id="message" class="updated"><p>'.$messages[$msg].'<br />'.$messages[$msg2].'</p></div>';
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message2'), $_SERVER['REQUEST_URI']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	}
 	if ($_REQUEST['action']=="edit"){
@@ -771,15 +808,83 @@ if ($Msg_op!=""){
 	else
 		$order='desc';
 	if($orderby=='')
-		$ordina="Data DESC";
+		$ordina="Anno DESC, Numero DESC , Data DESC";
 	else
 		$ordina=$orderby." ".$order;
-
 	echo '
 		<br class="clear" />
 		<div id="col-container">
+		<div class="col-wrap" style="margin-bottom: 40px;">
+		<h3>Elenco Atti <em>Da Pubblicare</em></h3>
+		<table class="widefat" id="elenco-atti-daapp"> 
+	    <thead>
+	    	<tr>
+	        	<th scope="col" style="width:120px;">Operazioni</th>
+	        	<th scope="col" style="width:100px;">Ente</th>
+				<th scope="col" >Del</th>
+	        	<th scope="col">Riferimento</th>
+	        	<th scope="col">Oggetto</th>
+	        	<th scope="col">Categoria</th>
+			</tr>
+	    </thead>
+	    <tbody id="the-list-daapp">';
+	$lista=ap_get_all_atti(3); 
+	if ($lista){
+		foreach($lista as $riga){
+		$categoria=ap_get_categoria($riga->IdCategoria);
+		$cat=$categoria[0]->Nome;
+		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
+		$Ente=ap_get_ente($riga->Ente);
+		$Ente=$Ente->Nome; 
+		echo '<tr>
+	        	<td>
+				    <a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'" rel="'.$riga->Oggetto.'" tag="" class="ac">
+						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
+					</a>
+					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'">
+						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+					</a>
+					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'">
+						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
+					</a>
+					<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
+						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+					</a>';
+			if  (current_user_can('admin_albo')){
+				echo '<a href="?page=atti&amp;action=approva-atto&amp;id='.$riga->IdAtto.'"  >
+<img style="vertical-align: middle;" src="'.Albo_URL.'/img/approva32.png" alt="Approva" title="Approva" style="margin-top:-4px;"/>
+					</a>';
+			}else
+				echo "Bozza";
+		echo '  </td> 
+		        <td>
+					'.$Ente.'
+				</td>
+				<td>
+					'.ap_VisualizzaData($riga->Data) .'
+				</td>
+				<td>
+					'.$riga->Riferimento .'
+				</td>
+				<td>
+					'.$riga->Oggetto .'  
+				</td>
+				<td>
+					'.$cat .'  
+				</td>
+			</tr>'; 
+		}
+	} else {
+			echo '<td colspan="6">Nessun Atto in attesa di pubblicazione</li>';
+	}
+	echo '</td>
+		</tr>
+	 </tbody>
+    </table>
+</div>		
+		
 		<div class="col-wrap">
-		<h3>Elenco Atti gi&agrave; codificati</h3>';
+		<h3>Elenco Atti <em>Pubblicati</em></h3>';
 //Paginazione
 	if ($TotAtti>$N_A_pp){
 	    $Para='';
@@ -865,7 +970,7 @@ if ($Msg_op!=""){
 	    </thead>
 	    <tbody id="the-list">';
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
-	$lista=ap_get_all_atti(0,0,0,'', 0,0,$ordina,$Da,$A); 
+	$lista=ap_get_all_atti(9,0,0,'', 0,0,$ordina,$Da,$A); 
 	if ($lista){
 		foreach($lista as $riga){
 		$categoria=ap_get_categoria($riga->IdCategoria);
@@ -883,26 +988,34 @@ if ($Msg_op!=""){
 			echo'	<a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'" rel="'.$riga->Oggetto.'" tag="" class="ac">
 						<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
-					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'" ">
+					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'">
 						<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>
-					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'" ">
+					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'">
 						<img src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
 					</a>
 					<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
 						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>';
 		else{
+			if ((ap_cvdate($riga->DataInizio) <= ap_cvdate(date("Y-m-d"))) and (ap_cvdate($riga->DataFine) >= ap_cvdate(date("Y-m-d"))))
+				$Scaduto=False;
+			else	
+				$Scaduto=True;
 			echo '	<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
-						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+						<img src="'.Albo_URL.'/img/view24.png" alt="View" title="View" />
 					</a>';
-			if ($Annullato!='')
-				echo ' <strong><span style="color:red;">Annullato</span></strong>';
-			else{
-			if ((cvdate($riga->DataInizio) <= cvdate(date("Y-m-d"))) and (cvdate($riga->DataFine) >= cvdate(date("Y-m-d"))) and current_user_can('admin_albo'))
-				echo ' <a class="annullaatto" href="?page=atti&amp;action=annulla-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
-						<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
-					</a>';
+			if (current_user_can('admin_albo')){
+				 if( !$Scaduto and $Annullato==''){
+					echo ' <a class="annullaatto" href="?page=atti&amp;action=annulla-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+							<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
+						</a>';
+				}
+				if ($Scaduto){
+					echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+							<img src="'.Albo_URL.'/img/cestino.png" alt="Elimina atto" title="Elimina atto" />
+						</a>';
+				}
 			}
 		}
 		echo '				</td>
@@ -915,10 +1028,14 @@ if ($Msg_op!=""){
 			}else
 				echo "Bozza";
 		else{
-		 	$Stato="Pub.";
-			if (cvdate($riga->DataFine) < cvdate(date("Y-m-d")))
-				$Stato="Scaduto";
-			echo $Stato;		
+			if ($Annullato!='')
+				$Stato= '<strong><span style="color:red;">Annullato</span></strong>';
+			else{
+			 	$Stato="Pub.";
+				if (ap_cvdate($riga->DataFine) < ap_cvdate(date("Y-m-d")))
+					$Stato="Scaduto";
+			}
+			echo $Stato;
 		}
 		echo '  </td> 
 		        <td>
@@ -928,7 +1045,7 @@ if ($Msg_op!=""){
 					'.$NumeroAtto.'/'.$riga->Anno .'
 				</td>
 				<td>
-					'.VisualizzaData($riga->Data) .'
+					'.ap_VisualizzaData($riga->Data) .'
 				</td>
 				<td>
 					'.$riga->Riferimento .'
@@ -937,8 +1054,8 @@ if ($Msg_op!=""){
 					'.$riga->Oggetto .'  
 				</td>
 				<td>
-					'.VisualizzaData($riga->DataInizio) .'  
-					'.VisualizzaData($riga->DataFine) .'  
+					'.ap_VisualizzaData($riga->DataInizio) .'  
+					'.ap_VisualizzaData($riga->DataFine) .'  
 				</td>
 				<td>
 					'.$cat .'  

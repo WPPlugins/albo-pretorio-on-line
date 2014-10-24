@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.9
+ * @since 3.0.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -120,6 +120,7 @@ echo '    </tbody>
 <h3><?php echo $tax->labels->add_new_item; ?></h3>
 <form id="addtag" method="post" action="?page=enti" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
 <input type="hidden" name="action" value="<?php if($edit || $_REQUEST['action']=="edit_err") echo "memo-ente"; else echo "add-ente"; ?>"/>
+<input type="hidden" name="action2" value="<?php echo $_REQUEST['action']; ?>"/>
 <input type="hidden" name="id" value="<?php echo $_REQUEST['id']; ?>" />
 <?php wp_nonce_field('add-tag', '_wpnonce_add-tag'); ?>
 

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.9
+ * @since 3.0.3
  */
 
 
@@ -29,7 +29,8 @@ switch($_REQUEST['action']){
 		unset($_POST['action']);
 		break;
 	case "BackupData":
-		ap_BackupDatiFiles(date('Ymd_H_i_s'));
+		$Data=date('Ymd_H_i_s');
+		$nf=ap_BackupDatiFiles($Data);
 		$filename=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
 		$fpmsg = @fopen($filename, "rb");
 			$Stato=fread($fpmsg,filesize($filename));
@@ -47,12 +48,97 @@ switch($_REQUEST['action']){
 	case "verificaproc":
 		TestProcedura();
 		break;
+	case "oblio":
+		MSGOblio();  
+		break;		
+	case "imploblio":
+		ImplementaOblio();
+		break;
 	case "creaTabella":
 		creaTabella($_REQUEST['Tabella']);
 		TestProcedura();
 		break;
+	case "creacategorie":
+		CreaCategorie();
+		break;
 	default:
 		menu();
+}
+function CreaCategorie(){
+echo '<div class="wrap">
+	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
+		<h2 style="margin-left:40px;">Creazione Categorie</h2>
+		<div class="widefat">
+			<table style="width:99%;">
+				<thead>
+					<tr>
+						<th style="text-align:left;width:380px;">Categoria</th>
+						<th style="text-align:left;width:100px;">Stato</th>
+					</tr>
+					</thead>
+					<tbody>';
+echo AP_CreaCategorieBase().'
+					</tbody>
+				</thead>
+			</table>
+		</div>';
+}
+
+function MSGOblio(){
+echo '<div class="wrap">
+	<img src="'.Albo_URL.'/img/utility.png" style="display:inline;float:left;margin-top:5px;"/>
+		<h2 style="margin-left:40px;">Implementazione Oblio</h2>
+		<div class="widefat">
+			<p>
+				Prima di implementare il diritto all\'oblio &egrave; importante fare un BACKUP dei seguenti elementi:
+				<ul>
+					<li>Tabelle del Data Base relative all\'Albo</li>
+					<li>Files allegati agli atti</li>
+				</ul>  
+			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utility&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+			</p>
+		</div>';	
+}
+function ImplementaOblio(){
+	$uploads = wp_upload_dir(); 
+	$oldPathAllegati=substr($uploads['basedir'],0,strpos($uploads['basedir'],"wp-content", 0)).get_option('opt_AP_FolderUpload');
+	$newPathAllegati=AP_BASE_DIR."AllegatiAttiAlboPretorio";
+	$tmpdir=str_replace("\\","/",$oldPathAllegati);
+	$posizione=stripos($tmpdir,$uploads['basedir']);	
+	if (($posizione==0) and (strlen($tmpdir)>strlen($uploads['basedir'])))
+		$elimina=TRUE;
+	else
+		$elimina=FALSE;
+	if(!is_dir($newPathAllegati)){   
+		mkdir($newPathAllegati, 0755);
+	}
+	update_option('opt_AP_FolderUpload',"AllegatiAttiAlboPretorio");
+//	echo $uploads['basedir']."<br />".$oldPathAllegati."! <br />".$newPathAllegati."!<br />";
+	if($oldPathAllegati!=$newPathAllegati)
+		ap_sposta_allegati($oldPathAllegati,$elimina);	
+	else
+		ap_NoIndexNoDirectLink($newPathAllegati);
+	$nomeFile=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
+	$fpmsg = @fopen($nomeFile, "r");
+	if ($fpmsg) {
+		$contenuto=fread($fpmsg,filesize($nomeFile));
+		$contenuto=nl2br($contenuto);
+		fclose($fpmsg);
+		echo'<div id="message" class="updated"> 
+				<p><strong>Impostazioni salvate.</strong></p>
+				<p><strong>'.str_replace("%%br%%", "<br />", $contenuto).'</strong></p>
+				<p>Operazione terminata&nbsp;&nbsp;
+				<a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+				</p>
+				</div>';
+	}else{
+		echo'<div id="message" class="updated"> 
+				<p><strong>Impostazioni salvate.</strong></p>
+				<p>Operazione terminata&nbsp;&nbsp;
+				<a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+				</p>
+				</div>';
+	}
 }
 
 function menu($Stato="",$passo="",$Data=""){
@@ -83,8 +169,8 @@ switch ($passo){
 		echo'<p><span style="font-size:1.1em;font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utility&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
 			</p>';
 }
-echo '		</div>';
-echo '	<p></p>
+echo '		</div> 
+		<p></p>
 		<div class="widefat" style="padding:10px;">
 				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
 				Verifica procedura
@@ -99,34 +185,18 @@ Questa procedura esegue un test generale della procedura e riporta eventuali ano
  					<a href="?page=utility&action=verificaproc">Verifica</a>
 				</p>
 		</div>';
-/*echo '	<p></p>
-		<div class="widefat" style="padding:10px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-				Diritto all\'Oblio
-				</p>
-				<p style="text-align:left;font-size:1em;font-weight: bold;">
-L\'albo pretorio implementa un sistema che permette di garantire la riservatezza degli allegati agli atti in modo cehe gli stessi possano essere visionati e scaricati solo dal sito che lo ospita ospita.</p>
-<p style="text-align:left;font-size:1em;font-style: italic;">In particolare:<br/>
-le pagine dell\'albo non vengono indicizzate ed archivate dai motori di ricerca attraverso l\'inserimento del meta tag &lt;meta name=\'robots\' content=\'noindex, nofollow, noarchive\' /&gt;<br />
-Nella cartella di Upload degli allegati viene creato il file .htaccess per evitare accessi diretti ai file della cartella<br />
-Nella radice del sito viene inserito il file robots.txt con l\'esclusione della cartella di Upload degli allegati da parte dei crawler dei motori di ricerca</p>
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-					<a href="?page=utility&action=creafsic">Crea/Aggiorna</a>
-				</p>
-		</div>';
-*/
-			$elenco="<option value='' selected='selected'>Nessuno</option>";
-			$elencoExpo="";
-			$Dir=str_replace("\\","/",Albo_DIR.'/BackupDatiAlbo');
-			if (is_dir($Dir)){
-				$files_bck = scandir($Dir, 1);
-				foreach($files_bck as $fileinfo) {
-	        		if (is_file($Dir."/".$fileinfo)) {
-						$elenco.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
-						$elencoExpo.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
-					}
-				}
-			}
+$elenco="<option value='' selected='selected'>Nessuno</option>";
+$elencoExpo="";
+$Dir=str_replace("\\","/",Albo_DIR.'/BackupDatiAlbo');
+if (is_dir($Dir)){
+	$files_bck = scandir($Dir, 1);
+	foreach($files_bck as $fileinfo) {
+		if (is_file($Dir."/".$fileinfo)) {
+				$elenco.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
+				$elencoExpo.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
+		}
+	}
+}
 echo '
 		<p></p>
 		<div class="widefat" style="margin-top:20px;padding:10px;">
@@ -150,9 +220,9 @@ echo '
 					</form>
 				</p>
 			</div>
-';	
-echo '</div>';
-}	
+	</div>';
+}
+	
 function TestCampiTabella($Tabella,$Ripara=false){
 	global $wpdb;
 switch ($Tabella){
@@ -178,12 +248,12 @@ switch ($Tabella){
 									"Default" => "0000-00-00", 
 									"Extra" =>""),
 					"Riferimento" => array("Tipo" => "varchar(100)", 
-										   "Null" =>"NO", 
+										   "Null" =>"No", 
 										   "Key" => "", 
 										   "Default" => "", 
 										   "Extra" =>""),
 					"Oggetto" => array("Tipo" => "varchar(200)", 
-									   "Null" =>"NO", 
+									   "Null" =>"No", 
 									   "Key" => "", 
 									   "Default" => "", 
 									   "Extra" =>""),
@@ -526,7 +596,7 @@ global $wpdb;
 			$UsoEnti="";
 			foreach ($Enti as $Ente){
 				$NAtti=ap_num_enti_atto($Ente->IdEnte);
-				$NAtti=$Natti ? $Natti : 0;
+				$NAtti=$NAtti ? $NAtti : 0;
 				$UsoEnti.="<em>".$Ente->Nome." Presente in </em><strong>".$NAtti ."</strong> <em>Atti</em><br />";	
 			}
 			return "<em>Enti codificati </em><strong>".$NumEnti."</strong> <em>di cui inutilizzati</em><strong> ".$NumEntiInutilizzati."</strong> <br />".$UsoEnti; 
@@ -543,6 +613,14 @@ $Tabelle=array($wpdb->table_name_Atti,
 			   $wpdb->table_name_Log,
 			   $wpdb->table_name_RespProc,
 			   $wpdb->table_name_Enti);
+if(is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/.htaccess"))
+	$ob1=TRUE;
+else	
+	$ob1=FALSE;
+if(is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/index.php"))
+	$ob2=TRUE;
+else	
+	$ob2=FALSE;
 echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Analisi Procedura</h2>
@@ -550,6 +628,65 @@ echo '<div class="wrap">
 			<a class="add-new-h2 tornaindietro" href="'.$_SERVER[PHP_SELF].'?page=utility" >
 			Torna indietro
 			</a>
+		<h3>Librerie</h3>
+			<div class="widefat">
+				<table style="width:99%;">
+					<thead>
+						<tr>
+							<th style="text-align:left;width:200px;">Libreria</th>
+							<th style="text-align:left;width:50px;">Stato</th>
+							<th style="text-align:left;width:230px;">Note</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>PclZip</td>
+							<td>';
+if (is_file(Albo_DIR.'/inc/pclzip.lib.php')) 
+ 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/></td><td>--</td>';
+	else
+		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/></td>
+		<td>Senza questa libreria non puoi eseguire i Backup</td>';							
+echo '							
+						</tr>
+					</tbody>
+				</table>
+		</div>						
+		<h3>Diritto all\'OBLIO</h3>
+			<div class="widefat">
+				<table style="width:99%;">
+					<thead>
+						<tr>
+							<th style="text-align:left;width:380px;">Cartella</th>
+							<th style="text-align:left;width:100px;">.htaccess</th>
+							<th style="text-align:left;width:100px;">index.php</th>';
+if (!$ob1 or !$ob2)
+echo '
+							<th style="text-align:left;width:100px;">Attivazione</th>';
+echo'
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>'.AP_BASE_DIR.get_option('opt_AP_FolderUpload').'</td>
+							<td>';
+if($ob1)
+ 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+	else
+		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
+echo '							</td>
+							<td>';
+if($ob2)
+ 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+	else
+		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
+echo '							</td>';
+if (!$ob1 or !$ob2)
+echo '							<td><a href="?page=utility&amp;action=oblio">Attiva</a></td>';
+echo '
+					</tbody>
+				</table>
+		</div>			
 		<h3>Permessi Cartella Upload</h3>
 			<div class="widefat">
 				<table style="width:99%;">
@@ -561,7 +698,7 @@ echo '<div class="wrap">
 						</tr>
 					</thead>
 					<tbody>';
-$CartellaUp=str_replace("\\","/",AP_BASE_DIR."/".get_option('opt_AP_FolderUpload'));
+$CartellaUp=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
 $permessi=ap_get_fileperm($CartellaUp);		
 if(substr(ap_get_fileperm_Gruppo($CartellaUp,"Proprietario"),1,1)=="w")
  		$StatoCartella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
@@ -572,11 +709,10 @@ echo '				<tr>
 						<td>'.$CartellaUp.'</td>
 						<td>'.$permessi.'</td>
 						<td>'.$StatoCartella.'</td>
+					</tr>
 					</tbody>
 				</table>
-			';
-
-echo'		</div>
+		</div>
 		<div class="postbox-container" style="margin-top:20px;">
 		<h3>Analisi Data Base</h2>
 	<div class="widefat" style="width:850px;">
@@ -593,29 +729,13 @@ echo'		</div>
 ';
 foreach($Tabelle as $Tabella){
 	$TestCampi="";
-	if (existTable($Tabella)) 
+	if (ap_existTable($Tabella)) 
  		$EsisteTabella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;margin-top:5px;"/>';
 	else
 		$EsisteTabella='<a href="admin.php?page=utility&action=creaTabella&Tabella='.$Tabella.'">Crea Tabella</a>';
-/*switch ($Tabella){
-	case 'wp_albopretorio_atti':
-	    $n_atti = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti;" ) );	 
-	  	$n_atti_dapub = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where Numero=0;"));	
-	  	$n_atti_attivi = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0;"));	
-	  	$n_atti_storico=$n_atti-$n_atti_attivi-$n_atti_dapub; 
-		$Analisi.='Atti In corso di Validit&agrave;:'.$n_atti_attivi.'<br />';
-		$Analisi.='Atti Scaduti:'.$n_atti_storico.'<br />';
-		$Analisi.='Atti da Pubblicare:'.$n_atti_dapub.'<br />';
-		$TestCampi=TestCampiTabella($Tabella);
-		break;
-	default;
-		$Analisi='Niente';
-}*/
+
 $TestCampi=TestCampiTabella($Tabella);
 $DatiTabella=TestCongruitaDati($Tabella);
-/*
-					<td>'.NFieldInTable($Tabella).'</td>
-*/
 	echo'
 					<tr class="first">
 					<td>'.$Tabella.'</td>

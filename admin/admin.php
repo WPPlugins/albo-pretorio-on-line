@@ -5,42 +5,62 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.9
+ * @since 3.0.3
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
 
 switch ( $_REQUEST['action'] ) {
-		case "ExportBackupData":
-			$location='Location: '.$_REQUEST['elenco_Backup_Expo'];
-			wp_redirect( DaPath_a_URL($location) );
-			break;
-		case 'updatecss':
-			$location = "?page=editorcss";
-			$file=stripslashes( $_REQUEST['file']);
-			$newcontent = stripslashes($_REQUEST['newcontent']);
-			if (is_writeable($file)) {
-				//is_writable() not always reliable, check return value. see comments @ http://uk.php.net/is_writable
-				$f = fopen($file, 'w+');
-				if ($f !== FALSE) {
-					fwrite($f, $newcontent);
-					fclose($f);
-					$location.="&a=1";
-				} 
+	case "elimina-atto":
+		$id=$_GET['id'];
+ 		$location = "?page=atti" ;
+		$riga=ap_get_atto($id);
+		$riga=$riga[0];
+		if (ap_cvdate($riga->DataFine) < ap_cvdate(date("Y-m-d")) and $_GET['sgs']=="ok"){
+			if(ap_del_allegati_atto($_GET['id']))
+				$location = add_query_arg( 'message2',10, $location );
+			else
+				$location = add_query_arg( 'message2',11, $location );
+			$res=ap_del_atto($_GET['id']);
+			if (!is_array($res))
+				$location = add_query_arg( 'message', 2, $location );
+			else{
+				if ($res['allegati']>0) {
+					$location = add_query_arg( 'message', 7, $location );
+				}else
+					$location = add_query_arg( 'message', 6, $location );
 			}
-			wp_redirect( $location );
-		break;	
-		case "delete-allegato-atto" :
-		$location = "?page=atti" ;
-		ap_del_allegato_atto($_REQUEST['idAllegato'],$_REQUEST['idAtto'],$_REQUEST['Allegato']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('idAllegato'), $_SERVER['REQUEST_URI']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('Allegato'), $_SERVER['REQUEST_URI']);
-		$location= add_query_arg( array ( 'action' => 'allegati-atto', 'id' => $_REQUEST['idAtto'] ));
+		}else{
+			$location = add_query_arg( 'message2', 99, $location );
+		}
 		wp_redirect( $location );
 		break;
-	case 'add-responsabile':
+	case "annulla-atto":
+		if ($_REQUEST['motivo']=="null") {
+			$NumMsg=8;
+		}else{
+			ap_annulla_atto($_REQUEST['id'],$_REQUEST['motivo']);
+			$NumMsg=9;
+		}
+ 		$location = "?page=atti" ;
+		$location = add_query_arg( 'message', $NumMsg, $location );
+		wp_redirect( $location );
+		break;
+	case "ExportBackupData":
+			$location='Location: '.$_REQUEST['elenco_Backup_Expo'];
+			wp_redirect( ap_DaPath_a_URL($location) );
+			break;
+		case "delete-allegato-atto" :
+			$location = "?page=atti" ;
+			ap_del_allegato_atto($_REQUEST['idAllegato'],$_REQUEST['idAtto'],$_REQUEST['Allegato']);
+			$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+			$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
+			$_SERVER['REQUEST_URI'] = remove_query_arg(array('idAllegato'), $_SERVER['REQUEST_URI']);
+			$_SERVER['REQUEST_URI'] = remove_query_arg(array('Allegato'), $_SERVER['REQUEST_URI']);
+			$location= add_query_arg( array ( 'action' => 'allegati-atto', 'id' => $_REQUEST['idAtto'] ));
+			wp_redirect( $location );
+			break;
+		case 'add-responsabile':
 		$location = "?page=responsabili" ;
 		if (!is_email( $_REQUEST['resp-email']) or $_POST['resp-cognome']==''){
 			$location = add_query_arg( 'errore', !is_email( $_REQUEST['resp-email']) ? 'Email non valida': "Bisogna valorizzare il Cognome del Responsabile", $location );
@@ -161,7 +181,7 @@ switch ( $_REQUEST['action'] ) {
 			$location = add_query_arg( 'ente-telefono', $_REQUEST['ente-telefono'], $location );
 			$location = add_query_arg( 'ente-fax', $_REQUEST['ente-fax'], $location );
 			$location = add_query_arg( 'ente-note', $_REQUEST['ente-note'], $location );
-			$location = add_query_arg( 'action', 'add', $location );
+			$location = add_query_arg( 'action', $_REQUEST['action2'], $location );
 		}
 		else
 			if (!is_wp_error(ap_memo_ente($_REQUEST['id'],
@@ -232,13 +252,18 @@ switch ( $_REQUEST['action'] ) {
 		break;
  	case "delete-atto":
  		$location = "?page=atti" ;
+		if(ap_del_allegati_atto($_GET['id']))
+			$location = add_query_arg( 'message2',10, $location );
+		else
+			$location = add_query_arg( 'message2',11, $location );
 		$res=ap_del_atto($_GET['id']);
 		if (!is_array($res))
 			$location = add_query_arg( 'message', 2, $location );
 		else{
 			if ($res['allegati']>0) {
 				$location = add_query_arg( 'message', 7, $location );
-			}
+			}else
+				$location = add_query_arg( 'message', 6, $location );
 		}
 		wp_redirect( $location );
 		break;
@@ -334,8 +359,6 @@ switch ( $_REQUEST['action'] ) {
 
 
 
-
-
 function Memo_allegato_atto(){
 	if ($_REQUEST["operazione"]=="upload"){
 	 	if ((($_FILES["file"]["size"] / 1024)/1024)<1){
@@ -351,18 +374,18 @@ function Memo_allegato_atto(){
 		}else{
 //			if ($_FILES["file"]["type"] != "application/pdf"){
 //				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
-			if (!isAllowedExtension(strtolower($_FILES["file"]["name"]))){
+			if (!ap_isAllowedExtension(strtolower($_FILES["file"]["name"]))){
 				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
 			}else{
 				if (($DimFile>20) and ($UnitM==" MB")){
-					$messages= "Il file caricato 蠤i ".$DimFile." Mb, il limite massimo &egrave; di 20 Mb";
+					$messages= "Il file caricato &egrave; di ".$DimFile." Mb, il limite massimo &egrave; di 20 Mb";
 				}else{
 				  if ($_FILES["file"]["error"] > 0){
 					$messages= "Errore: " . $_FILES["file"]["error"];
 		    	}else{
 					$destination_path = AP_BASE_DIR.get_option('opt_AP_FolderUpload').'/';
 			   		$result = 0;
-				   	$target_path = UniqueFileName($destination_path . basename( $_FILES['file']['name']));
+				   	$target_path = ap_UniqueFileName($destination_path . basename( $_FILES['file']['name']));
 					if(@move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
 	    				$messages= "File caricato%%br%%Nome: " . basename( $target_path)." %%br%%Percorso completo : ".str_replace("\\","/",$target_path);
 	    				ap_insert_allegato($_REQUEST['Descrizione'],str_replace("\\","/",$target_path),$_REQUEST['id']);

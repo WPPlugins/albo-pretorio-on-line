@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.9
+ * @since 3.0.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -69,14 +69,17 @@ foreach($lista as $riga){
 	if ($users->has_cap('gestore_albo') or $users->has_cap('amministratore_albo'))
 		$Utente=true;
  	if (!(user_can( $riga->ID, 'create_users') or user_can( $riga->ID, 'manage_network'))) {
-		$Stato='';
+		$Stato='nessuno';
 		$StatoGestore='';
 		echo '<tr>
 		<td>'.$riga->user_login.'</td>';
-	 	if (user_can( $riga->ID, 'admin_albo'))
-	 		$Stato='checked="checked"';
 	 	if (user_can( $riga->ID, 'gest_atti_albo'))
 	 		$StatoGestore='checked="checked"';
+	 	if (user_can( $riga->ID, 'admin_albo')){
+	 		$Stato='checked="checked"';
+			$StatoGestore='';
+		}
+
 		if (!$Utente)
 			echo '				  <td><input type="radio" value="Nullo" '.$Stato.' name="U'.$riga->ID.'" /></td>
 				  <td><input type="radio" value="Amministratore" '.$Stato.' name="U'.$riga->ID.'" /></td>

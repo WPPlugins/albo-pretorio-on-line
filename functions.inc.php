@@ -65,7 +65,13 @@ function ap_get_fileperm($dir){
 	
 	return $info;
 }
-
+function ap_is_dir_empty($dir){
+	$files=@scandir($dir);
+	if ( count($files) > 2 )
+		return FALSE;
+	else
+		return TRUE;
+}
 function ap_get_fileperm_Gruppo($dir,$Gruppo){
 		 
 	$perms = fileperms($dir);
@@ -103,7 +109,8 @@ function ap_NoIndexNoDirectLink($dir){
 	$htaccess="#Blocco Accesso diretto Allegati Albo Pretorio
 <IfModule mod_rewrite.c>
 	RewriteEngine On
-	RewriteCond %{HTTP_REFERER} !^http://(www.)?".$sito.".* [NC]
+	RewriteCond %{HTTP_REFERER} !^http://www.".$sito.".* [NC]
+	RewriteCond %{HTTP_REFERER} !^http://".$sito.".* [NC]
 	RewriteRule \. ".home_url()."/index.php [R,L]
 </IfModule>";
 $cartellabase=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
@@ -152,7 +159,7 @@ die('Non hai il permesso di accedere a questa risorsa');
 
 
 
-function Formato_Dimensione_File($a_bytes)
+function ap_Formato_Dimensione_File($a_bytes)
 {
     if ($a_bytes < 1024) {
         return $a_bytes .' Byte';
@@ -176,10 +183,44 @@ function Formato_Dimensione_File($a_bytes)
 }
 
 ################################################################################
-// Funzioni DataBAse
+// Funzioni DataBase
 ################################################################################
 
-function CreaTabella($Tabella){
+function AP_CreaCategoriaBase($CatNome,$Des,$Durata){
+	$ret=ap_insert_categoria($CatNome,0,$Des,$Durata);
+	$Risultato ='
+	<tr>
+		<td>'.$CatNome.'</td>
+		<td>';
+	if ( !$ret && !is_wp_error( $ret ) )
+		$Risultato .='<img src="'.Albo_URL.'/img/verificato.png" style="display:inline;float:left;"/>';
+	else
+		echo'<img src="'.Albo_URL.'/img/cross.png" style="display:inline;float:left;"/>';
+	$Risultato .='		</td>
+	</tr>';
+	return $Risultato;
+}
+
+function AP_CreaCategorieBase(){
+	$Risultato=AP_CreaCategoriaBase("Bandi e gare","Bandi e gare",30);
+	$Risultato.=AP_CreaCategoriaBase("Contratti - Personale ATA","Contratti - Personale ATA",30);
+	$Risultato.=AP_CreaCategoriaBase("Contratti - Personale Docente","Contratti - Personale Docente",30);
+	$Risultato.=AP_CreaCategoriaBase("Contratti e convenzioni","Contratti e convenzioni",30);
+	$Risultato.=AP_CreaCategoriaBase("Convocazioni","Convocazioni",30);
+	$Risultato.=AP_CreaCategoriaBase("Delibere Consiglio di Istituto","Delibere Consiglio di Istituto",30);
+	$Risultato.=AP_CreaCategoriaBase("Documenti altre P.A.","Documenti altre P.A.",30);
+	$Risultato.=AP_CreaCategoriaBase("Esiti esami","Esiti esami",30);
+	$Risultato.=AP_CreaCategoriaBase("Graduatorie","Graduatorie",365);
+	$Risultato.=AP_CreaCategoriaBase("Organi collegiali","Organi collegiali",30);
+	$Risultato.=AP_CreaCategoriaBase("Organi collegiali - Elezioni","Organi collegiali - Elezioni",30);
+	$Risultato.=AP_CreaCategoriaBase("Privacy","Privacy",365);
+	$Risultato.=AP_CreaCategoriaBase("Programmi annuali e Consuntivi","Programmi annuali e Consuntivi",365);
+	$Risultato.=AP_CreaCategoriaBase("Regolamenti","Regolamenti",365);
+	$Risultato.=AP_CreaCategoriaBase("Sicurezza","Sicurezza",365);
+	return $Risultato;
+}
+
+function ap_CreaTabella($Tabella){
 global $wpdb;
 
 	switch ($Tabella){
@@ -189,15 +230,15 @@ global $wpdb;
 			  `Numero` int(4) NOT NULL default 0,
 			  `Anno` int(4) NOT NULL default 0,
 			  `Data` date NOT NULL default '0000-00-00',
-			  `Riferimento` varchar(20) NOT NULL,
-			  `Oggetto` varchar(150) NOT NULL default '',
+			  `Riferimento` varchar(100) NOT NULL,
+			  `Oggetto` varchar(200) NOT NULL default '',
 			  `DataInizio` date NOT NULL default '0000-00-00',
 			  `DataFine` date default '0000-00-00',
 			  `Informazioni` varchar(255) NOT NULL default '',
 			  `IdCategoria` int(11) NOT NULL default 0,
 			  `RespProc` int(11) NOT NULL,
   			  `DataAnnullamento` date DEFAULT '0000-00-00',
-  			  `MotivoAnnullamento` varchar(100) DEFAULT '',
+  			  `MotivoAnnullamento` varchar(200) DEFAULT '',
   			  `Ente` int(11) NOT NULL DEFAULT '0',
 			  PRIMARY KEY  (`IdAtto`));";
 			break;
@@ -258,6 +299,7 @@ global $wpdb;
 	dbDelta($sql);
 }
 
+/*
 function isTable($NomeTabella){
 	global $wpdb;
 	$Tabella=$wpdb->get_row("SHOW TABLES LIKE '$NomeTabella'", ARRAY_A);
@@ -266,7 +308,9 @@ function isTable($NomeTabella){
 	else
 		return false;
 }
-function existFieldInTable($Tabella, $Campo){
+*/
+
+function ap_existFieldInTable($Tabella, $Campo){
 	global $wpdb;
 //	echo "SHOW COLUMNS FROM $Tabella LIKE '$Campo'";exit;
 	$ris=$wpdb->get_row("SHOW COLUMNS FROM $Tabella LIKE '$Campo'", ARRAY_A);
@@ -275,7 +319,7 @@ function existFieldInTable($Tabella, $Campo){
 	else
 		return false;	
 }
-function existTable($Tabella){
+function ap_existTable($Tabella){
 	global $wpdb;
 	$ris=$wpdb->get_row("show tables like '$Tabella' ", ARRAY_A);
 	if(count($ris)>0 ) 
@@ -284,12 +328,12 @@ function existTable($Tabella){
 		return false;	
 }
 
-function NFieldInTable($Tabella){
+/*function NFieldInTable($Tabella){
 	global $wpdb;
 	return$wpdb->get_var("Select count(*) FROM $Tabella");
 }
-
-function AddFiledTable($Tabella, $Campo, $Parametri){
+*/
+function ap_AggiungiCampoTabella($Tabella, $Campo, $Parametri){
 	global $wpdb;
 	if ( false === $wpdb->query("ALTER TABLE $Tabella ADD $Campo $Parametri")){
 		return new WP_Error('db_insert_error', 'Non sono riuscito a creare il campo '.$Campo.' Nella Tabella '.$Tabella.' Errore '.$wpdb->last_error, $wpdb->last_error);
@@ -298,7 +342,7 @@ function AddFiledTable($Tabella, $Campo, $Parametri){
 	}
 }
 
-function typeFieldInTable($Tabella, $Campo){
+function ap_typeFieldInTable($Tabella, $Campo){
 	global $wpdb;
 //	echo "SHOW COLUMNS FROM $Tabella LIKE '$Campo'";exit;
 	$ris=$wpdb->get_row("SHOW COLUMNS FROM $Tabella LIKE '$Campo'", ARRAY_A);
@@ -307,15 +351,38 @@ function typeFieldInTable($Tabella, $Campo){
 	else
 		return false;	
 }
-function ModFiledTable($Tabella, $Campo, $NuovoTipo){
+
+function ap_EstraiParametriCampo($Tabella,$Campo){
 	global $wpdb;
+//	echo "SHOW COLUMNS FROM $Tabella LIKE $Campo <br />";
+	$ris=$wpdb->get_row("SHOW COLUMNS FROM $Tabella LIKE '$Campo'", ARRAY_A);
+	if(count($ris)>0 )
+		return($ris);
+	else
+		return FALSE;
+}
+
+function ap_ModificaTipoCampo($Tabella, $Campo, $NuovoTipo){
+	global $wpdb;
+//	echo "ALTER TABLE $Tabella MODIFY $Campo $NuovoTipo <br />";
 	if ( false === $wpdb->query("ALTER TABLE $Tabella MODIFY $Campo $NuovoTipo")){
 		return new WP_Error('db_insert_error', 'Non sono riuscito a modificare il campo '.$Campo.' Nella Tabella '.$Tabella.' Errore '.$wpdb->last_error, $wpdb->last_error);
 	} else{
 		return true;
 	}
 }
-function SvuotaTabelle(){
+
+function ap_ModificaParametriCampo($Tabella, $Campo, $Tipo, $Parametro){
+	global $wpdb;
+//	echo "ALTER TABLE $Tabella CHANGE $Campo $Campo $Tipo $Parametro";exit;
+	if ( false === $wpdb->query("ALTER TABLE $Tabella CHANGE $Campo $Campo $Tipo $Parametro")){
+		return new WP_Error('db_insert_error', 'Non sono riuscito a modificare il campo '.$Campo.' Nella Tabella '.$Tabella.' Errore '.$wpdb->last_error, $wpdb->last_error);
+	} else{
+		return true;
+	}
+}
+
+/*function SvuotaTabelle(){
 	global $wpdb;
 	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati"));
 	ap_insert_log(3,7,$id,"Svuotamento Tabella Allegati");
@@ -328,30 +395,16 @@ function SvuotaTabelle(){
 	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_RespProc"));
 	ap_insert_log(4,7,$id,"Svuotamento Tabella Responsabili Procedura");
 }
-
-function DaPath_a_URL($File){
+*/
+function ap_DaPath_a_URL($File){
 	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
 	$allegato=$base.strstr($File, "wp-content");
 	//$Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
 	return str_replace("\\","/",$allegato);
 	
 }
-function UniqueFileNameOLD($filename,$inc=0){
-	$baseName=$filename;
-	while (file_exists($filename)){
-		$arrfile=explode(".", $baseName);
-		$ext=end($arrfile);
-		$fname='';
-		for ($i=0;$i<count($arrfile)-1;$i++){
-			$fname.=$arrfile[$i];
-		}
-		$inc++;
-		$filename=$fname.$inc.'.'.$ext;
-	}
-	return $filename;	
-}
 
-function UniqueFileName($filename,$inc=0){
+function ap_UniqueFileName($filename,$inc=0){
 	$baseName=$filename;
 	while (file_exists($filename)){
 		$inc++;
@@ -360,20 +413,15 @@ function UniqueFileName($filename,$inc=0){
 	return $filename;	
 }
 
-function isAllowedExtension($fileName) {
+function ap_isAllowedExtension($fileName) {
 	$EstensioniValide = array("pdf", "p7m");
   return in_array(end(explode(".", $fileName)), $EstensioniValide);
 }
-function ExtensionType($fileName) {
-  return end(explode(".", $fileName));
+function ap_ExtensionType($fileName) {
+  return strtolower(end(explode(".", $fileName)));
 }
 
-
-function ap_get_num_allegati($id){
-	global $wpdb;
-	return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdAllegato) FROM $wpdb->table_name_Allegati WHERE IdAtto=%d",(int)$id)));
-}
-function Bonifica_Url(){
+function ap_Bonifica_Url(){
 	foreach( $_REQUEST as $key => $value){
 		if ($key!="page_id")	
 			$_SERVER['REQUEST_URI'] = remove_query_arg($key, $_SERVER['REQUEST_URI']);		
@@ -383,38 +431,38 @@ function Bonifica_Url(){
 		$url.=$key."=".$value;
 	return $url;
 }
-function Estrai_PageID_Url(){
+function ap_Estrai_PageID_Url(){
 	foreach( $_REQUEST as $key => $value){
 		if (strpos( $key,"page_id")!== false)		
 			return $value;
 	}
 	return 0;
 }
-function ListaElementiArray($var) {
+function ap_ListaElementiArray($var) {
      foreach($var as $key => $value) {
             $output .= $key . "==>".$value . "\n";
      }
      return $output;
 }
 
-function cvdate($data){
+function ap_cvdate($data){
 	$rsl = explode ('-',$data);
 //print("mm=".$rsl[1]." gg=". $rsl[2]."  aaaa=".$rsl[0]);
 	return mktime(0,0,0,$rsl[1], $rsl[2],$rsl[0]);
 }
 
-function oggi(){
+function ap_oggi(){
 	return date('Y-m-d');
 }
 
-function DateAdd($data,$incremento){
-	$secondi=cvdate($data)+($incremento*86400);
+function ap_DateAdd($data,$incremento){
+	$secondi=ap_cvdate($data)+($incremento*86400);
 	return date("Y-m-d",$secondi);
 }
 
-function SeDate($test,$data1,$data2){
-	$data1=cvdate($data1);
-	$data2=cvdate($data2);
+function ap_SeDate($test,$data1,$data2){
+	$data1=ap_cvdate($data1);
+	$data2=ap_cvdate($data2);
 	switch ($test){
 		case "=": 
 			if ($data1==$data2)
@@ -440,10 +488,10 @@ function SeDate($test,$data1,$data2){
 	}
 	return false;
 }
-function datediff($interval, $date1, $date2) {
+function ap_datediff($interval, $date1, $date2) {
     if(($date2==0) Or ($date2<$date1))
     	return -1;
-	$seconds = cvdate($date2) - cvdate($date1);
+	$seconds = ap_cvdate($date2) - ap_cvdate($date1);
     switch ($interval) {
         case "y":    // years
             list($year1, $month1, $day1) = split('-', date('Y-m-d', $date1));
@@ -497,18 +545,18 @@ function datediff($interval, $date1, $date2) {
     return $diff;
 }
 
-function convertiData($dataEur){
+function ap_convertiData($dataEur){
 $rsl = explode ('/',$dataEur);
 $rsl = array_reverse($rsl);
 return implode($rsl,'-');
 }
-function VisualizzaData($dataDB){
-$dataDB=substr($dataDB,0,10);
-$rsl = explode ('-',$dataDB);
-$rsl = array_reverse($rsl);
-return implode($rsl,'/');
+function ap_VisualizzaData($dataDB){
+	$dataDB=substr($dataDB,0,10);
+	$rsl = explode ('-',$dataDB);
+	$rsl = array_reverse($rsl);
+	return implode($rsl,'/');
 }
-function VisualizzaOra($dataDB){
+function ap_VisualizzaOra($dataDB){
 return substr($dataDB,10);
 }
 ################################################################################
@@ -635,7 +683,10 @@ switch ($TipoInformazione){
 ################################################################################
 // Funzioni Categorie
 ################################################################################
-
+function ap_get_num_categorie(){
+	global $wpdb;
+	return (int)($wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->table_name_Categorie"));
+}
 
 function ap_insert_categoria($cat_name,$cat_parente,$cat_descrizione,$cat_durata){
 	global $wpdb;
@@ -731,10 +782,10 @@ function ap_num_atti_categoria($IdCategoria,$Stato=0){
 	$Sql=$Sql="SELECT COUNT(*) FROM $wpdb->table_name_Atti WHERE IdCategoria=$IdCategoria";
 	switch ($Stato){
 		case 1:
-			$Sql.=" And Numero >0 AND DataFine >= '".oggi()."' AND DataInizio <= '".oggi()."'";
+			$Sql.=" And Numero >0 AND DataFine >= '".ap_oggi()."' AND DataInizio <= '".ap_oggi()."'";
 			break;
 		case 2:
-			$Sql.=" And Numero >0 AND DataFine <= '".oggi()."'";
+			$Sql.=" And Numero >0 AND DataFine <= '".ap_oggi()."'";
 			break;
 	}
 	$Sql.=";";
@@ -884,9 +935,9 @@ function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,
 	global $wpdb;
 	$Anno=date("Y");
 	$Numero=0;
-	$Data=convertiData($Data);
-	$DataInizio=convertiData($DataInizio);
-	$DataFine=convertiData($DataFine);
+	$Data=ap_convertiData($Data);
+	$DataInizio=ap_convertiData($DataInizio);
+	$DataFine=ap_convertiData($DataFine);
 	if ( false === $wpdb->insert(
 		$wpdb->table_name_Atti,array(
 				'Ente' => $Ente,
@@ -975,9 +1026,9 @@ function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFin
 		$Log.='{IdRespProc}==> '.$Responsabile.' ';
 		$Log.='{RespProc}==> '.$NomeResponsabile->Cognome .' '. $NomeResponsabile->Nome.' ';
 	}
-	$Data=convertiData($Data);
-	$DataInizio=convertiData($DataInizio);
-	$DataFine=convertiData($DataFine);
+	$Data=ap_convertiData($Data);
+	$DataInizio=ap_convertiData($DataInizio);
+	$DataFine=ap_convertiData($DataFine);
 	if ( false === $wpdb->update($wpdb->table_name_Atti,
 					array('Ente' => $Ente,
 						  'Data' => $Data,
@@ -1010,8 +1061,8 @@ function ap_update_selettivo_atto($id,$ArrayCampiValori,$ArrayTipi,$TestaMsg){
 	if ( false === $wpdb->update($wpdb->table_name_Atti,$ArrayCampiValori,array( 'IdAtto' => $id ),$ArrayTipi))
     	return new WP_Error('db_update_error', 'Non sono riuscito a modifire l\' Atto'.$wpdb->last_error, $wpdb->last_error);
     else{
-		ap_insert_log(1,2,$id,$TestaMsg.ListaElementiArray($ArrayCampiValori));
-		return 'Atto Aggiornato: %%br%%'.ListaElementiArray($ArrayCampiValori);	
+		ap_insert_log(1,2,$id,$TestaMsg.ap_ListaElementiArray($ArrayCampiValori));
+		return 'Atto Aggiornato: %%br%%'.ap_ListaElementiArray($ArrayCampiValori);	
 	}
     	
 }
@@ -1070,10 +1121,10 @@ function ap_get_dropdown_anni_atti($select_name,$id_name,$class,$tab_index_attri
 	global $wpdb;
 	switch ($Stato){
 		case 1:
-			$Sql="SELECT Anno FROM $wpdb->table_name_Atti WHERE Numero >0 AND DataFine >= '".oggi()."' AND DataInizio <= '".oggi()."' GROUP BY Anno;";
+			$Sql="SELECT Anno FROM $wpdb->table_name_Atti WHERE Numero >0 AND DataFine >= '".ap_oggi()."' AND DataInizio <= '".ap_oggi()."' GROUP BY Anno;";
 			break;
 		case 2:
-			$Sql="SELECT Anno FROM $wpdb->table_name_Atti WHERE Numero >0 AND DataFine < '".oggi()."' GROUP BY Anno;";
+			$Sql="SELECT Anno FROM $wpdb->table_name_Atti WHERE Numero >0 AND DataFine < '".ap_oggi()."' GROUP BY Anno;";
 			break;
 		default:
 			$Sql="SELECT Anno FROM $wpdb->table_name_Atti GROUP BY Anno;";
@@ -1115,6 +1166,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		 1 - in corso di validità
 		 2 - scaduti
 		 3 - da pubblicare
+		 9 - tutti tranne quelli da pubblicare
 	$Conteggio:
 		 false - Estrazione Dati	
 		 true - Conteggio
@@ -1129,26 +1181,29 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		case 0:
 			$Selezione=' WHERE 1';
 			break;
+		case 9:
+			$Selezione=' WHERE Numero<>0';
+			break;
 		case 1:
-			if ($Dadata!=0 and SeDate("<",convertiData($Dadata),oggi()))
-				$Selezione.=' WHERE DataInizio>="'.convertiData($Dadata).'" ';
+			if ($Dadata!=0 and ap_SeDate("<",ap_convertiData($Dadata),ap_oggi()))
+				$Selezione.=' WHERE DataInizio>="'.ap_convertiData($Dadata).'" ';
 			else
-				$Selezione.=' WHERE DataInizio<="'.oggi().'" ';
-			if ($Adata!=0  and SeDate(">",convertiData($Adata),oggi()))
-				$Selezione.=' AND DataFine<="'.convertiData($Adata).'" And DataFine>="'.oggi();
+				$Selezione.=' WHERE DataInizio<="'.ap_oggi().'" ';
+			if ($Adata!=0  and ap_SeDate(">",ap_convertiData($Adata),ap_oggi()))
+				$Selezione.=' AND DataFine<="'.ap_convertiData($Adata).'" And DataFine>="'.ap_oggi();
 			else
-				$Selezione.=' AND DataFine>="'.oggi();
+				$Selezione.=' AND DataFine>="'.ap_oggi();
 			$Selezione.='" AND Numero>0'; 
 			break;
 		case 2:
-			if ($Dadata!=0  and SeDate("<",convertiData($Dadata),oggi()))
-				$Selezione.=' WHERE DataInizio>="'.convertiData($Dadata).'" ';
+			if ($Dadata!=0  and ap_SeDate("<",ap_convertiData($Dadata),ap_oggi()))
+				$Selezione.=' WHERE DataInizio>="'.ap_convertiData($Dadata).'" ';
 			else
-				$Selezione.=' WHERE DataInizio<="'.oggi().'" ';
-			if ($Adata!=0   and SeDate("<",convertiData($Adata),oggi()))
-				$Selezione.=' AND DataFine<="'.convertiData($Adata);
+				$Selezione.=' WHERE DataInizio<="'.ap_oggi().'" ';
+			if ($Adata!=0   and ap_SeDate("<",ap_convertiData($Adata),ap_oggi()))
+				$Selezione.=' AND DataFine<="'.ap_convertiData($Adata);
 			else
-				$Selezione.=' AND DataFine<="'.oggi();
+				$Selezione.=' AND DataFine<="'.ap_oggi();
 			$Selezione.='" AND Numero>0'; 
 			break;
 		case 3:
@@ -1261,6 +1316,12 @@ function ap_ripubblica_atti_correnti(){
 ################################################################################
 // Funzioni Allegati
 ################################################################################
+
+function ap_get_num_allegati($id){
+	global $wpdb;
+	return (int)($wpdb->get_var( $wpdb->prepare( "SELECT COUNT(IdAllegato) FROM $wpdb->table_name_Allegati WHERE IdAtto=%d",(int)$id)));
+}
+
 function ap_allegati_orfani(){
 	global $wpdb;
 	$Sql="SELECT $wpdb->table_name_Allegati.IdAllegato, $wpdb->table_name_Allegati.TitoloAllegato, $wpdb->table_name_Allegati.IdAtto
@@ -1325,13 +1386,138 @@ function ap_del_allegato_atto($idAllegato,$idAtto=0,$nomeAllegato=''){
 global $wpdb;
 	$allegato=ap_get_allegato_atto($idAllegato);
 	if (file_exists($allegato[0]->Allegato) && is_file($allegato[0]->Allegato))
-		unlink($allegato[0]->Allegato);
-	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati WHERE	IdAllegato=%d",$idAllegato));
-	ap_insert_log(3,3,$id,"{Nome Allegato}==> $nomeAllegato ",$idAtto);
-
-	return True;
-
+		if (unlink($allegato[0]->Allegato)){
+			$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati WHERE IdAllegato=%d",$idAllegato));
+			ap_insert_log(3,3,$allegato[0]->IdAllegato,"{Nome Allegato}==> $nomeAllegato ",$idAtto);
+			return True;
+		}else{
+			return FALSE;
+		}
 }
+function ap_del_allegati_atto($idAtto){
+global $wpdb;
+	$Del=FALSE;
+	$Allegati=ap_get_all_allegati_atto($idAtto);
+	foreach($Allegati as $allegato){
+		if (file_exists($allegato->Allegato) && is_file($allegato->Allegato))
+			if (unlink($allegato->Allegato)){
+				$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati WHERE IdAllegato=%d",$allegato->IdAllegato));
+				ap_insert_log(3,3,$allegato->IdAllegato,"{Nome Allegato}==> ".$allegato->Allegato,$idAtto);
+				$Del=TRUE;
+			}else{
+				$Del=FALSE;
+			}
+	}
+	return $Del;
+}
+
+function ap_get_all_allegati(){
+	global $wpdb;
+	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati;");
+}
+
+function ap_sposta_allegati($OldPathAllegati,$eliminareOrigine=FALSE){
+	global $wpdb;
+//	echo $OldPathAllegati;exit;
+//Backup Automatico dati e allegati
+	$msg="";
+	ap_BackupDatiFiles("Sposta_Allegati","Automatico");
+	$DirLog=str_replace("\\","/",Albo_DIR.'/BackupDatiAlbo/log');
+	$nomefileLog=$DirLog."/Backup_Automatico_AlboPretorio_Sposta_Allegati.log";
+	$fplog = @fopen($nomefileLog, "ab");
+	fwrite($fplog,"____________________________________________________________________________\n");
+	fwrite($fplog,"Inizio spostamento file\n");
+	$allegati=$wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati ;",ARRAY_A );
+// Nuova directory Allegati Albo Pretorio
+	$BaseCurDir=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
+// Inizo Blocco che sposta gli allegati e sincronizza la tabella degli Allegati
+	foreach( $allegati as $allegato){
+		$NewAllegato=$BaseCurDir."/".basename($allegato['Allegato']);
+		if (is_file($allegato['Allegato'])){
+			if (!copy($allegato['Allegato'], $NewAllegato)) {
+				ap_insert_log(3,10,$allegato['IdAllegato'] ,"{Errore nello spostamento Allegato}==> ".$allegato['Allegato']." => $NewAllegato",0);	
+				$msg.='<spam style="color:red;">Errore</spam> nello spostamento dell\'Allegato '.$allegato['Allegato'].' in '. $NewAllegato."%%br%%";
+				fwrite($fplog,"Non sono riuscito a copiare il file ".$allegato['Allegato']." in ". $NewAllegato."\n");
+			}
+			else{
+				if (!unlink($allegato['Allegato'])){
+					ap_insert_log(3,10,$allegato['IdAllegato'] ,"{Errore nella cancellazione Allegato}==> ".$allegato['Allegato'],0);
+					$msg.='<spam style="color:red;">Errore</spam> errata cancellazione dell\'Allegato </spam>'.$allegato['Allegato']."%%br%%";
+					fwrite($fplog,"Non sono riuscito a cancelalre il file ".$allegato['Allegato']."\n");
+			}
+			$msg.='<spam style="color:green;">File</spam> '.$allegato['Allegato'].' <spam style="color:green;">spostato in</spam> '.$NewAllegato.'%%br%%';
+			fwrite($fplog,"File ".$allegato['Allegato']." spostato in ".$NewAllegato."\n");
+			if ($wpdb->update($wpdb->table_name_Allegati,
+									array('Allegato' => $NewAllegato),
+									array('IdAllegato' => $allegato['IdAllegato'] ),
+									array('%s'),
+									array('%d'))>0){
+				ap_insert_log(3,9,$allegato['IdAllegato'] ,"{Allegato}==> ".$allegato['Allegato']." spostato in $NewAllegato",0);
+				$msg.='<spam style="color:green;">Aggiornamento Link Allegato</spam> '.$allegato['Allegato']."%%br%%";
+				fwrite($fplog,"Aggiornato il link nel Data Base per ".$allegato['Allegato']." in ".$NewAllegato."\n");
+			}
+		}
+	}					
+}
+// Fine Blocco che sposta gli allegati e sincronizza la tabella degli Allegati
+	$msg.="%%br%%";
+	$tmpdir=str_replace("\\","/",$OldPathAllegati);
+	$PathAllegati=AP_BASE_DIR;
+	fwrite($fplog,"__________________________________________________________________\n");
+	fwrite($fplog,"Svuotamento e cancellazione Vecchia Directory ".$OldPathAllegati." \n");
+	if ($tmpdir!=$PathAllegati and $eliminareOrigine){
+		$fName=str_replace("\\","/",$OldPathAllegati)."/index.php";
+		if (is_file($fName))
+			if (unlink($fName))
+				fwrite($fplog,"File ".$fName." Cancellato\n");
+			else
+				fwrite($fplog,"Errore nella Cancellazione del file ".$fName."\n");
+		else
+			fwrite($fplog,"File ".$fName." inesistente\n");
+		$fName=str_replace("\\","/",$OldPathAllegati)."/.htaccess";
+		if (is_file($fName))
+			if (unlink($fName))
+				fwrite($fplog,"File ".$fName." Cancellato\n");
+			else
+				fwrite($fplog,"Errore nella Cancellazione del file ".$fName."\n");
+		else
+			fwrite($fplog,"File ".$fName." inesistente\n");
+		if($tmpdir==AP_BASE_DIR){
+			$msg.="Directory ".$tmpdir." non cancellata%%br%%";
+			fwrite($fplog,"Directory ".$tmpdir." non cancellata \n");	
+		}else{
+			if (is_dir($tmpdir)){
+				if (!ap_is_dir_empty($tmpdir)){
+					$msg.="La directory ".$tmpdir." non vuota%%br%%";
+					fwrite($fplog,"La directory ".$tmpdir." non vuota \n");					
+				}else{
+					if (rmdir($tmpdir)){
+						$msg.="Directory ".$tmpdir." cancellata%%br%%";
+						fwrite($fplog,"Directory ".$tmpdir." cancellata \n");	
+					}else{
+						$msg.="La directory ".$tmpdir." non e' stata cancellata%%br%%";
+						fwrite($fplog,"La directory ".$tmpdir." non e' stata cancellata \n");
+					}
+				}
+			}else{
+					$msg.="La directory ".$tmpdir." non esiste%%br%%";
+					fwrite($fplog,"La directory ".$tmpdir." non esiste \n");		
+			}			
+		}
+	}
+	if (!$eliminareOrigine){
+		$msg.="La directory ".$tmpdir." non essendo una sottocartella della cartella Uploads di sistema, non deve essere cancellata%%br%%";
+		fwrite($fplog,"La directory ".$tmpdir." non essendo una sottocartella della cartella Uploads di sistema, non deve essere cancellata \n");	
+	}
+	fclose($fplog);
+	if (stripslashes(get_option('opt_AP_FolderUpload'))!="wp-content/uploads"){
+		ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
+	}
+	$fpmsg = @fopen(Albo_DIR."/BackupDatiAlbo/tmp/msg.txt", "wb");
+	fwrite($fpmsg,$msg);
+	fclose($fpmsg);
+}
+
 ################################################################################
 // Funzioni Responsabili
 ################################################################################
@@ -1441,12 +1627,14 @@ function ap_memo_responsabile($Id,$resp_cognome,$resp_nome,$resp_email,$resp_tel
 
 function ap_del_responsabile($id) {
 	global $wpdb;
+	$resp=ap_get_responsabile($id);
+	$responsabile= "Cancellazione Responsabile {IdResponsabile}==> $id {Cognome}==> ".$resp[0]->Cognome." {Nome}==> ".$resp[0]->Nome; 
 	$N_atti=ap_num_responsabili_atto($id);
 	if ($N_atti>0){
 		return array("atti" => $N_atti);
 	}else{
 	 	$result=$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_RespProc WHERE IdResponsabile=%d",$id));
-		ap_insert_log(4,3,$id,"Cancellazione Responsabile {IdResponsabile}==> $id",$id);
+		ap_insert_log(4,3,$id,$responsabile,$id);
 		return $result;
 	}
 }
@@ -1472,7 +1660,7 @@ function ap_get_users(){
 ################################################################################
 function ap_get_dropdown_enti($select_name,$id_name,$class,$tab_index_attribute="", $default=0) {
 	global $wpdb;
-	$enti = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Enti ORDER BY nome;");	
+	$enti = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Enti ORDER BY IdEnte;");	
 	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute>\n";
 	if ( ! empty( $enti ) ) {	
 		foreach ($enti as $c) {
@@ -1500,7 +1688,7 @@ function ap_num_enti_Inutilizzati(){
 }
 function ap_num_enti_atto($id){
 	global $wpdb;
-	return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti WHERE IdEnte=%d",$id));
+	return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->table_name_Atti WHERE Ente=%d",$id));
 }
 
 function ap_get_enti(){
@@ -1521,22 +1709,26 @@ function ap_get_ente_me(){
 }
 function ap_set_ente_me($ente_nome){
 	global $wpdb;
-	if (true==$wpdb->update($wpdb->table_name_Enti,
-					array('Nome' => $ente_nome),
-					array('IdEnte' => 0),
-					array( '%s')))
-		ap_insert_log(7,2,0,"Aggiornamento Ente Sito");	
+	if (!ap_create_ente_me($ente_nome))
+		if (true==$wpdb->update($wpdb->table_name_Enti,
+						array('Nome' => $ente_nome),
+						array('IdEnte' => 0),
+						array( '%s')))
+			ap_insert_log(7,2,0,"Aggiornamento Ente Sito");	
+//echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
 }
-function ap_create_ente_me(){
+function ap_create_ente_me($nome="Ente non definito"){
 	global $wpdb;
-		if ($wpdb->get_var("SELECT COUNT(IdEnte) FROM $wpdb->table_name_Enti")==0){
-			$wpdb->insert($wpdb->table_name_Enti,array('Nome' =>"Ente non definito"));
+		if ($wpdb->get_var("SELECT COUNT(IdEnte) FROM $wpdb->table_name_Enti  WHERE IdEnte=0;")==0){
+			$wpdb->insert($wpdb->table_name_Enti,array('Nome' =>$nome));
 			$wpdb->update($wpdb->table_name_Enti,
 									 array('IdEnte' => 0),
 									 array( 'IdEnte' => $wpdb->insert_id),
 									 array('%d'),
 									 array('%d'));	
+			return TRUE;
 		}
+		return FALSE;
 }
 
 function ap_insert_ente($ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente_pec,$ente_telefono,$ente_fax,$ente_note){
@@ -1638,6 +1830,9 @@ function ap_sql_addslashes($a_string = '', $is_like = false) {
 
 function ap_backup_table($table,$fp) {
 	global $wpdb;
+	if($table==$wpdb->table_name_Enti){
+		@fwrite($fp,"SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';"."\r\n");
+	}
 	$table_structure = $wpdb->get_results("DESCRIBE $table");
 	if (! $table_structure) {
 		echo 'Errore nell\'estrazione della struttura della tabella : '.$table;
@@ -1693,10 +1888,11 @@ function ap_SvuotaDirectory($Dir,$fplog){
 	$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($Dir));
 	fwrite($fplog,"Svuotamento Directory ".$Dir."\n");
 	foreach ($iterator as $key=>$value) {
-		if (unlink(realpath($key)))
-			fwrite($fplog,"       File ".$key." cancellato\n");
-		else
-			fwrite($fplog,"       File ".$key." non pu&ograve; essere cancellato\n");
+		if (is_file(realpath($key)))
+			if (unlink(realpath($key)))
+				fwrite($fplog,"       File ".$key." cancellato\n");
+			else
+				fwrite($fplog,"       File ".$key." non pu&ograve; essere cancellato\n");
 	}
 }
 
@@ -1707,15 +1903,22 @@ global $wpdb;
 					$wpdb->table_name_Categorie,
 					$wpdb->table_name_Enti,
 					$wpdb->table_name_RespProc);
+	$Dir=str_replace("\\","/",$Destinazione.'/BackupDatiAlbo');
+	$DirTmp=$Dir."/tmp";
+	$DirLog=$Dir."/log";
+	$DirAllegati=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
+	$ControlloDir="";
+	require_once('inc/pclzip.lib.php');
+	if ($Tipo==""){
+			$nomefileZip=$Dir."/".$NomeFile.".zip";
+			$nomefileLog=$DirLog."/Backup_AlboPretorio_".$NomeFile.".log";
+		}else{
+			$nomefileZip=$Dir."/".$Tipo."_".$NomeFile.".zip";
+			$nomefileLog=$DirLog."/Backup_".$Tipo."_AlboPretorio_".$NomeFile.".log";
+	}	
 	$Risultato="Risultato del Backup:<br />";
-	if (class_exists('ZipArchive')) {
-		// crea l'oggetto Zip
-		$Dir=str_replace("\\","/",$Destinazione.'/BackupDatiAlbo');
-		$DirTmp=$Dir."/tmp";
-		$DirLog=$Dir."/log";
-		$DirAllegati=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
+	if (class_exists('PclZip')) {
 //		echo $Dir." <br />".$DirTmp." <br />".$DirAllegati." <br />".$DirLog."";exit;
-		$ControlloDir="";
 		if (!is_dir ( $Dir)){
 			if (!mkdir($Dir, 0755)) 
 				$ControlloDir.="Non sono riuscito a creare la directory ".$Dir."\n Fine Operazione";
@@ -1726,21 +1929,131 @@ global $wpdb;
 					$ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
 		}
 		if (!is_dir ($DirTmp) and $ControlloDir=="")
-			if (!mkdir($DirTmp, 0711))
+			if (!mkdir($DirTmp, 0755))
 				  $ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
 		if (!is_dir ($DirLog) and $ControlloDir=="")
-			if (!mkdir($DirLog, 0711))
+			if (!mkdir($DirLog, 0755))
 				  $ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
 		if ($ControlloDir!=""){
 			return $ControlloDir;
 		}
-		if ($Tipo==""){
+/*		if ($Tipo==""){
+			$nomefileZip=$Dir."/".$NomeFile.".zip";
+			$nomefileLog=$DirLog."/Backup_AlboPretorio_".$NomeFile.".log";
+		}else{
+			$nomefileZip=$Dir."/".$Tipo."_".$NomeFile.".zip";
+			$nomefileLog=$DirLog."/Backup_".$Tipo."_AlboPretorio_".$NomeFile.".log";
+		}*/	
+		$fplog = @fopen($nomefileLog, "wb");
+		fwrite($fplog,"Avvio Backup Dati ed Allegati Albo Pretrorio \n effettuato in data ".date("Ymd_Hi")."\n");
+		ap_SvuotaDirectory($DirTmp,$fplog);
+		fwrite($fplog,"Svuotamento tabella ".$DirTmp."\n");
+		$fp = @fopen($DirTmp."/AlboPretorio".date("Ymd_Hi").".sql", "wb");
+		$Risultato="";
+		foreach ($tables as $table) {
+			ap_backup_table($table,$fp);
+			$Risultato.='<span style="color:green;">Tabella '.ap_backquote($table).' Aggiunta</span> <br />';
+			fwrite($fplog,"Sql Tabella ".ap_backquote($table)." Aggiunta\n");
+		}
+		$UpdateProgressivo="UPDATE `".$wpdb->options."` SET `option_value` = '".get_option('opt_AP_AnnoProgressivo')."'	WHERE `option_name` ='opt_AP_AnnoProgressivo';\n";
+		$UpdateProgressivo.="UPDATE `".$wpdb->options."` SET `option_value` = '".get_option('opt_AP_NumeroProgressivo')."' WHERE `option_name` ='opt_AP_NumeroProgressivo';";
+		fwrite($fplog,"Sql Aggiornamento Tabella ".$wpdb->options." per Progressivo ed Anno Progressivo Aggiunti\n");
+		fwrite($fp,$UpdateProgressivo);
+		fclose($fp);
+		if (is_dir($Dir) And is_dir($DirTmp)){
+			// Crea l'archivio
+		 	$zip = new PclZip($nomefileZip);
+			// Inizializzazione dell'iterator a cui viene passato 
+			// l'iteratore ricorsivo delle directory a cui viene passata la directory da zippare
+			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($DirTmp));
+			// Ciclo tutti gli elementi dell'iteratore, i files estratti dall'iteratore
+			foreach ($iterator as $key=>$value) {
+				if (substr($key,-1)!="."){
+					$zip->add(realpath($key),PCLZIP_OPT_REMOVE_PATH,dirname($key));
+					$Risultato.='<span style="color:green;">Aggiunto all\'archivio:</span> '.$key.'<br />';
+					fwrite($fplog,"File ".$key." Aggiunto\n");
+				}
+			}
+			$allegati=ap_get_all_allegati();
+			foreach ($allegati as $allegato) {
+			//echo $allegato->Allegato;
+				if (substr(basename( $allegato->Allegato ),-4)==".pdf" or 
+					substr(basename( $allegato->Allegato ),-4)==".p7m") 
+					$zip->add(realpath($allegato->Allegato),PCLZIP_OPT_REMOVE_PATH,dirname($allegato->Allegato));
+				$Risultato.='<span style="color:green;">Aggiunto all\'allegato:</span> '.$allegato->Allegato.'<br />';
+				fwrite($fplog,"File ".$allegato->Allegato." Aggiunto\n");					
+			}
+			// Chiusura e momorizzazione del del file
+			$Risultato.= "Archivio creato con successo: ".$Dir."/".$NomeFile.".zip";
+			fwrite($fplog,"Archivio creato con successo: ".$Dir."/".$NomeFile.".zip\n");
+		}
+	}else{
+		$DirLog=str_replace("\\","/",$Destinazione);
+		$nomefileLog=$DirLog."/msg.txt";
+		$fplog = @fopen($nomefileLog, "wb");
+		$Risultato.="Non risulta Installata la libreria per Zippare i files indispensabile per la procedura<br />";
+		fwrite($fplog,"Non risulta Installata la libreria per Zippare i files indispensabile per la procedura\n");
+		return;	
+	}
+	//Svuoto cartella tmp che contiene i files dati
+	ap_SvuotaDirectory($DirTmp,$fplog);
+	fclose($fplog);
+	$fpmsg = @fopen(Albo_DIR."/BackupDatiAlbo/tmp/msg.txt", "wb");
+	fwrite($fpmsg,$Risultato);
+	fclose($fpmsg);
+	return $nomefileZip;
+}
+
+
+//***********************************************************************
+function ap_BackupDatiFilesOLD($NomeFile,$Tipo="",$Destinazione=Albo_DIR){
+global $wpdb;
+	$tables=array(	$wpdb->table_name_Allegati,
+					$wpdb->table_name_Atti,
+					$wpdb->table_name_Categorie,
+					$wpdb->table_name_Enti,
+					$wpdb->table_name_RespProc);
+	$Dir=str_replace("\\","/",$Destinazione.'/BackupDatiAlbo');
+	$DirTmp=$Dir."/tmp";
+	$DirLog=$Dir."/log";
+	$DirAllegati=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
+	$ControlloDir="";
+	
+	if ($Tipo==""){
 			$nomefileZip=$Dir."/".$NomeFile.".zip";
 			$nomefileLog=$DirLog."/Backup_AlboPretorio_".$NomeFile.".log";
 		}else{
 			$nomefileZip=$Dir."/".$Tipo."_".$NomeFile.".zip";
 			$nomefileLog=$DirLog."/Backup_".$Tipo."_AlboPretorio_".$NomeFile.".log";
 		}	
+	$Risultato="Risultato del Backup:<br />";
+	if (class_exists('ZipArchive')) {
+//		echo $Dir." <br />".$DirTmp." <br />".$DirAllegati." <br />".$DirLog."";exit;
+		if (!is_dir ( $Dir)){
+			if (!mkdir($Dir, 0755)) 
+				$ControlloDir.="Non sono riuscito a creare la directory ".$Dir."\n Fine Operazione";
+			else
+				if (!mkdir($DirTmp, 0755))
+					$ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
+				if (!mkdir($DirLog, 0755)) 
+					$ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
+		}
+		if (!is_dir ($DirTmp) and $ControlloDir=="")
+			if (!mkdir($DirTmp, 0755))
+				  $ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
+		if (!is_dir ($DirLog) and $ControlloDir=="")
+			if (!mkdir($DirLog, 0755))
+				  $ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
+		if ($ControlloDir!=""){
+			return $ControlloDir;
+		}
+/*		if ($Tipo==""){
+			$nomefileZip=$Dir."/".$NomeFile.".zip";
+			$nomefileLog=$DirLog."/Backup_AlboPretorio_".$NomeFile.".log";
+		}else{
+			$nomefileZip=$Dir."/".$Tipo."_".$NomeFile.".zip";
+			$nomefileLog=$DirLog."/Backup_".$Tipo."_AlboPretorio_".$NomeFile.".log";
+		}*/	
 		$fplog = @fopen($nomefileLog, "wb");
 		fwrite($fplog,"Avvio Backup Dati ed Allegati Albo Pretrorio \n effettuato in data ".date("Ymd_Hi")."\n");
 		ap_SvuotaDirectory($DirTmp,$fplog);
@@ -1796,8 +2109,12 @@ global $wpdb;
 			}
 		}
 	}else{
+		$DirLog=str_replace("\\","/",$Destinazione);
+		$nomefileLog=$DirLog."/msg.txt";
+		$fplog = @fopen($nomefileLog, "wb");
 		$Risultato.="Non risulta Installata la libreria per Zippare i files indispensabile per la procedura<br />";
-		fwrite($fplog,"Non risulta Installata la libreria per Zippare i files indispensabile per la procedura\n");	
+		fwrite($fplog,"Non risulta Installata la libreria per Zippare i files indispensabile per la procedura\n");
+		return;	
 	}
 	//Svuoto cartella tmp che contiene i files dati
 	ap_SvuotaDirectory($DirTmp,$fplog);
@@ -1805,6 +2122,7 @@ global $wpdb;
 	$fpmsg = @fopen(Albo_DIR."/BackupDatiAlbo/tmp/msg.txt", "wb");
 	fwrite($fpmsg,$Risultato);
 	fclose($fpmsg);
+	return $nomefileZip;
 }
 
 function ap_backquote($a_name) {
@@ -1823,8 +2141,4 @@ function ap_backquote($a_name) {
 	}
 } 
 
-function ap_get_all_allegati(){
-	global $wpdb;
-	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Allegati;");
-}
 ?>

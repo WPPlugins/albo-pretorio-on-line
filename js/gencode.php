@@ -37,6 +37,9 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 			var stato   		 = document.getElementById('StatoAtti').value;
 			var attipp  		 = document.getElementById('AttiPerPagina').value;
 			var categoria 		 = document.getElementById('Categoria').value;
+			var filtri  		 = document.getElementById('Filtri');
+			var minfiltri  		 = document.getElementById('MinFiltri');
+			
 			var tagtext = "[Albo ";
 			tagtext = tagtext + " stato=\"" + stato+ "\"";
 			if ((!isNaN(attipp) && !isNaN(parseFloat(attipp))) && attipp>0 )
@@ -45,7 +48,15 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 				tagtext = tagtext + " per_page=\"10\"";
 			if ((!isNaN(categoria) && !isNaN(parseFloat(categoria))) && categoria>0 )
 				tagtext = tagtext + " cat=\"" + categoria+"\"";
-			
+			//if (!isNaN(filtri) && filtri!="si" )
+			if (filtri.checked)
+				tagtext = tagtext + " filtri=\"si\"";
+			else
+				tagtext = tagtext + " filtri=\"no\"";
+			if (minfiltri.checked)
+				tagtext = tagtext + " minfiltri=\"no\"";
+			else
+				tagtext = tagtext + " minfiltri=\"si\"";
 			tagtext = tagtext + "]";
 			if(window.tinyMCE) {
 				window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tagtext);
@@ -56,8 +67,11 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 		}
 	</script>
 </head>
-<body onload="tinyMCEPopup.executeOnLoad('init();');document.body.style.display='';" style="display: none">
-	<div class="mceActionPanel">
+<body onload="tinyMCEPopup.executeOnLoad('init();');document.body.style.display='';" style="display: none;">
+<?php 
+$Ele_Cate=ap_get_dropdown_categorie("Categoria","Categoria","","")
+?>
+	<div class="mceActionPanel" >
 		<form action="#" method="get" accept-charset="utf-8">
 			<p>
 				<label for="StatoAtti"><strong>Sato Atti</strong></label>
@@ -69,23 +83,27 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 				</p>
 				<p>
 					<label for="AttiPerPagina"><strong>Numero Atti per Pagina</strong></label>
-					<input name="AttiPerPagina" id="AttiPerPagina" size="5" value="10"/>
+					<input type="text" name="AttiPerPagina" id="AttiPerPagina" size="5" value="10"/>
 				</p>
 				<p>
 					<label for="Categoria"><strong>Categoria</strong></label>
-					<input name="Categoria" id="Categoria" size="5"/ value="0"><br />
-					inserire 0 per visualizzare tutte le categorie
+					<?php echo $Ele_Cate; ?>
+				</p>
+				<p>
+					<label for="Filtri"><strong>Visualizza Filtri</strong></label>
+					<input type="checkbox" name="Filtri" id="Filtri" value="si"/>
+				</p>
+				<p>
+					<label for="MinFiltri"><strong>Finestra Filtri sempre visibile</strong></label>
+					<input type="checkbox" name="MinFiltri" id="MinFiltri" value="si"/>
 				</p>
 		</form>
 	</div>
-	<br style="clear: both;" />
-	<div class="mceActionPanel">
 		<div style="float: left">
 			<input type="submit" id="insert" name="insert" value="Inserisci" onclick="insertAlboShortCode();" />
 		</div>
 		<div style="float: right">
 			<input type="button" id="cancel" name="cancel" value="Annulla" onclick="tinyMCEPopup.close();" />
 		</div>
-	</div>
 </body>
 </html>

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line Widget
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:2.9
+Version:3.0.3
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -38,7 +38,7 @@ class AlboPretorioWidget extends WP_Widget
 	 $defaults = array(
  		'titolo_statistiche' => 'Dati Atti',
         'titolo_elenco' => 'Atti Correnti',
-        'numero_atti' => 10,
+        'numero_atti' => 5,
         'pagina_albo' => NULL,
         'ordine_campo' => NULL,
 		'ordinamento' => 'C'
@@ -126,7 +126,7 @@ public function widget( $args, $instance )
  		if ($titolo=='')
 			$titolo="Albo Pretorio";
 		$n_atti_attivi = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= CURDATE() And DataFine>= CURDATE() And Numero>0;");
-		$n_atti_attivi_annullati = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0 And DataAnnullamento<>'0000-00-00';");		
+		$n_atti_attivi_annullati = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0 And DataAnnullamento<>'0000-00-00';");
         echo $before_widget;
         echo $before_title .$titolo. $after_title;
         echo "<div>";
@@ -143,7 +143,7 @@ public function widget( $args, $instance )
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	$lista=ap_get_all_atti(1,0,0,'',0,0,$Ordinamento,0,$instance['numero_atti']); 
 
-	$HtmlW.= "<ul>";
+	$HtmlW='<ul>';
 	if ($lista){
 		foreach($lista as $riga){
 			if($riga->DataAnnullamento!='0000-00-00'){
@@ -208,8 +208,9 @@ function AlboWidget_register()
 }
 function AlboWidget_required_scripts()
 {
+
     wp_enqueue_script('AlboPretorio-tabs', Albo_URL . 'js/Albo.jquery.tabs.js', array('jquery-ui-tabs'));
-    wp_enqueue_style('AlboPretorio-ui-style', Albo_URL . 'css/jquery_ui_custom.css');
+   wp_enqueue_style('AlboPretorio-ui-style', Albo_URL . 'css/jquery-ui-custom.css');
 }
 
 

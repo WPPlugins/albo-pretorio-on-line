@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 2.9
+ * @since 3.0.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -22,9 +22,16 @@ $messages[7] = __('Impossibile cancellare Responsabili che sono collegati ad Att
 <img src="<?php echo Albo_URL; ?>/img/resp.png" alt="Icona Responsabili Procedimento" style="display:inline;float:left;margin-top:10px;"/>
 <h2 style="margin-left:40px;">Responsabili Procedimento <a href="?page=responsabili" class="add-new-h2">Aggiungi nuovo</a></h2>
 
-<?php 
-if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
-	echo '<div id="message" class="updated"><p>'.$messages[$msg];
+<?php
+$NC="";
+if ($_REQUEST['action']=="delete-responsabile"){
+	$risultato=ap_del_responsabile($_REQUEST['id']);
+	if(is_array($risultato)){
+		$NC="Il Responsabile non pu&oacute; essere cancellato perch&egrave; ci sono ".$risultato["atti"]." atti a lui assegnati";
+	}
+	} 
+if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message'])) or $NC!="") {
+	echo '<div id="message" class="updated"><p>'.$messages[$msg]. $NC;
 	if (isset($_REQUEST['errore'])) 
 		echo '<br />'.$_REQUEST['errore'];
 	echo '</p></div>';
@@ -32,11 +39,11 @@ if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
 }
 if ($_REQUEST['action']=="edit"){
 	$risultato=ap_get_responsabile($_REQUEST['id']);
-//	print_r($risultato);
 	$edit=True;
 }else{
 	$edit=False;
 }
+
 ?>
 <br class="clear" />
 <div id="col-container">

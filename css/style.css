@@ -1,19 +1,19 @@
 table.tabella-dati-albo{
-	padding-left: 10;
-	margin-top: 10;
+	padding-left: 10px;
+	margin-top: 10px;
 	width: 100%;
 	text-align:left;
 }
 
 .finestra_ricerca{
 	border: thin outset Black;
-	padding: 3px;
+	padding: 1px;
 	background-color: #F4F4F4;
 }
 
 div.ricerca{
 	border: thin solid Black;
-	padding: 5px;
+	padding: 2px;
 	font-size: 1em;
 }
 div.ricerca_col_SX{
@@ -54,7 +54,7 @@ div.Visalbo{
 .tabVisalbo{
 	width: 100%;
 	clear: both;
-	margin: 0;
+	margin: 0px;
 }
 
 .tabVisalbo td{
@@ -76,7 +76,7 @@ div.Visalbo{
 .tabVisResp{
 	width: 100%;
 	clear: both;
-	margin: 0;
+	margin: 0px;
 }
 .tabVisResp td{
 	font-size: 1em;
@@ -100,10 +100,10 @@ div.Visalbo{
 .tabalbo{
 	border-width: 1px;
 	border-style: solid;
-	border-spacing: 0;
+	border-spacing: 0px;
 	width: 100%;
 	clear: both;
-	margin: 0;
+	margin: 0px;
 }
 .tabalbo a{
 	text-decoration:none;
