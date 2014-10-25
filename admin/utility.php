@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.3
+ * @since 3.0.4
  */
 
 
@@ -16,6 +16,10 @@ switch($_REQUEST['action']){
 //			case "ImportBackupData":
 //			in admin.php
 	
+	case "Crearobots":
+		ap_crearobots();
+		menu();
+		break;
 	case "rip":
 		ap_ripubblica_atti_correnti($_GET['Data']);
 		menu();
@@ -621,6 +625,10 @@ if(is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/index.php"))
 	$ob2=TRUE;
 else	
 	$ob2=FALSE;
+if(is_file(APHomePath."/robots.txt"))
+	$ob3=TRUE;
+else	
+	$ob3=FALSE;
 echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Analisi Procedura</h2>
@@ -657,10 +665,11 @@ echo '
 				<table style="width:99%;">
 					<thead>
 						<tr>
-							<th style="text-align:left;width:380px;">Cartella</th>
-							<th style="text-align:left;width:100px;">.htaccess</th>
-							<th style="text-align:left;width:100px;">index.php</th>';
-if (!$ob1 or !$ob2)
+							<th style="text-align:left;width:440px;">Cartella</th>
+							<th style="text-align:left;width:80px;">.htaccess</th>
+							<th style="text-align:left;width:80px;">index.php</th>
+							<th style="text-align:left;width:80px;">robots.txt</th>';
+if (!$ob1 or !$ob2 or !$ob3)
 echo '
 							<th style="text-align:left;width:100px;">Attivazione</th>';
 echo'
@@ -680,10 +689,26 @@ if($ob2)
  		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
 	else
 		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
-echo '							</td>';
+echo '							</td>
+			<td></td>';
 if (!$ob1 or !$ob2)
 echo '							<td><a href="?page=utility&amp;action=oblio">Attiva</a></td>';
 echo '
+						</tr>
+						<tr>
+							<td>'.APHomePath.'</td>
+							<td></td>
+							<td></td>
+							<td>';
+if($ob3)
+ 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+	else
+		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
+echo '							</td>';
+if (!$ob3)
+echo '							<td><a href="?page=utility&amp;action=Crearobots">Crea</a></td>';
+echo '
+						</tr>
 					</tbody>
 				</table>
 		</div>			

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.3
+Version:3.0.4
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -33,6 +33,7 @@ include_once(dirname (__FILE__) .'/functions.inc.php');				/* Various functions 
 include_once(dirname (__FILE__) .'/AlboPretorio.widget.inc');
 define("Albo_URL",plugin_dir_url(dirname (__FILE__).'/AlboPretorio.php'));
 define("Albo_DIR",dirname (__FILE__));
+define("APHomePath",substr(plugin_dir_path(__FILE__),0,strpos(plugin_dir_path(__FILE__),"wp-content")-1));
 $uploads = wp_upload_dir(); 
 define("AP_BASE_DIR",$uploads['basedir']."/");
 
@@ -349,7 +350,26 @@ function add_albo_plugin($plugin_array) {
 		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
 		//wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );
 	    wp_enqueue_script( 'my-admin-dtpicker-it', plugins_url('js/jquery.ui.datepicker-it.js', __FILE__ ));
-?>
+
+//		wp_enqueue_script( 'Albo-Public', plugins_url('js/Albo.public.js', __FILE__ ));
+
+		wp_enqueue_script( 'AlboP-DataTable', plugins_url('js/jquery.dataTables.js', __FILE__ ), array('jquery' ));
+		wp_enqueue_script( 'AlboP-DataTable-Tools', plugins_url('js/dataTables.tableTools.js', __FILE__ ), array('jquery' ));
+
+	    wp_register_style('AlboP_datatable_style' ,plugins_url( 'css/jquery.dataTables.css', __FILE__ ));
+	    wp_enqueue_style('AlboP_datatable_style');   
+
+	    wp_register_style('AlboP_datatable_theme_Tools' ,plugins_url( 'css/dataTables.tableTools.css', __FILE__ ));
+	    wp_enqueue_style('AlboP_datatable_theme_Tools');   
+
+/*	<script type='text/javascript' src='<?php echo plugins_url('js/jquery.dataTables.js', __FILE__ );?>'></script>
+	<script type='text/javascript' src='<?php echo plugins_url('js/dataTables.tableTools.js', __FILE__ );?>'></script>
+	<link rel="stylesheet" href="<?php echo Albo_URL.'css/jquery.dataTables.css';?>" type="text/css" media="screen" />
+	<link rel="stylesheet" href="<?php echo Albo_URL.'css/dataTables.tableTools.css';?>" type="text/css" media="screen" />
+*/
+
+
+?>	
 	<script type='text/javascript'>
 		jQuery.noConflict();
 		(function($) {
@@ -363,17 +383,67 @@ function add_albo_plugin($plugin_array) {
 						jQuery.ajax({type: 'get',url: $(this).attr('rel')}); //close jQuery.ajax
 					return true;		 
 					});
-			});
-		})(jQuery);
-
-	</script>
-	
-
+			    var l = window.location;
+				var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf";
+				$('#elenco-atti').dataTable(         
+			   	{
+			   	"dom": 'lT<f>rtip',
+			   	"ordering": false,
+			   	"tableTools": {
+		         	"sSwfPath": url,
+		          	"aButtons": [ 
+		          		{
+							"sExtends": "copy",
+							"sButtonText": "Copia negli Appunti"
+						},
+		          		{
+							"sExtends": "print",
+							"sButtonText": "Stampa"
+						},
+						{
+		                    "sExtends":    "collection",
+		                    "sButtonText": "Salva",
+		                    "aButtons":    [ "csv", "xls",                 
+		                    {
+		                    	"sExtends": "pdf",
+		                    	"sPdfOrientation": "landscape",
+		                    	"sPdfMessage": "Tabella generata con il plugin Gestione Circolari."
+		                	},]
+		                }
+					]
+		         },
+			   	"language":{
+				    "sEmptyTable":     "Nessun dato presente nella tabella",
+				    "sInfo":           "Vista da _START_ a _END_<br />di _TOTAL_ elementi",
+				    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+				    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+				    "sInfoPostFix":    "",
+				    "sInfoThousands":  ",",
+				    "sLengthMenu":     "Visualizza _MENU_ elementi",
+				    "sLoadingRecords": "Caricamento...",
+				    "sProcessing":     "Elaborazione...",
+				    "sSearch":         "Cerca:",
+				    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+				    "oPaginate": {
+				        "sFirst":      "Inizio",
+				        "sPrevious":   "Precedente",
+				        "sNext":       "Successivo",
+				        "sLast":       "Fine"
+				    },
+				    "oAria": {
+				        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+				        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+				    }
+				}
+			   });
+		});
+	})(jQuery);
+</script>     
 <!--FINE HEAD Albo Preotrio On line -->
 <?php		
 		}
 	}
-
+	
 	function load_dependencies() {
 			// Load backend libraries
 			if ( is_admin() ) {	
@@ -754,6 +824,10 @@ echo '<div  style="margin-left: 10px;">
 		if (strtolower(ap_typeFieldInTable($wpdb->table_name_Atti,"MotivoAnnullamento"))=="varchar(100)"){
 			ap_ModificaTipoCampo($wpdb->table_name_Atti, "MotivoAnnullamento", "varchar(200)");
 		}
+		if (strtolower(ap_typeFieldInTable($wpdb->table_name_Atti,"Informazioni"))!="text"){
+			ap_ModificaTipoCampo($wpdb->table_name_Atti, "Informazioni", "TEXT");
+		}
+
 //		ap_ModificaParametriCampo($Tabella, $Campo, $Tipo $Parametro)
 		$par=ap_EstraiParametriCampo($wpdb->table_name_Atti,"Riferimento");
 		if(strtolower($par["Null"])=="yes")

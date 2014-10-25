@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line Widget
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.3
+Version:3.0.4
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -29,7 +29,7 @@ class AlboPretorioWidget extends WP_Widget
 {
 	public function __construct()
 	{
-	   parent::WP_Widget( 'AlboPretorio', 'Albo Pretorio On Line', array('description' => 'Grazie a questo widget è possibile visualizzare sulla sidebar le ultime pubblicazioni dell Albo Pretorio',array( 'width' => 300, 'height' => 350)));
+	   parent::__construct( 'AlboPretorio', 'Albo Pretorio On Line', array('description' => 'Grazie a questo widget &eacute; possibile visualizzare sulla sidebar le ultime pubblicazioni dell Albo Pretorio',array( 'width' => 300, 'height' => 350)));
 	 }
     
 	public function form($instance)
