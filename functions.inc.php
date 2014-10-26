@@ -1,12 +1,12 @@
 <?php
-/**
- * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 2.67
- */
+/*
+* Plugin Name:Albo Pretorio On line Widget
+* Plugin URI: http://www.sisviluppo.info
+* Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
+* Version:3.0.5
+* Author: Scimone Ignazio
+* Author URI: http://www.sisviluppo.info
+*/
  
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 

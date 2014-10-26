@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.4
+Version:3.0.5
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -229,9 +229,9 @@ function add_albo_plugin($plugin_array) {
 		$categorie_page=add_submenu_page( 'Albo_Pretorio', 'Categorie', 'Categorie', 'gest_atti_albo', 'categorie', array( 'AlboPretorio', 'show_menu'));
 		$enti=add_submenu_page( 'Albo_Pretorio', 'Enti', 'Enti', 'admin_albo', 'enti', array('AlboPretorio', 'show_menu'));
 		$responsabili_page=add_submenu_page( 'Albo_Pretorio', 'Responsabili', 'Responsabili', 'admin_albo', 'responsabili', array( 'AlboPretorio','show_menu'));
-		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'config', array( 'AlboPretorio','show_menu'));
-		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessi', array('AlboPretorio', 'show_menu'));
-		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utility', array('AlboPretorio', 'show_menu'));		
+		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'configAlboP', array( 'AlboPretorio','show_menu'));
+		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessiAlboP', array('AlboPretorio', 'show_menu'));
+		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utilityAlboP', array('AlboPretorio', 'show_menu'));		
 		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
 }
 	
@@ -242,7 +242,7 @@ function add_albo_plugin($plugin_array) {
 			case "Albo_Pretorio" :
 				$AP_OnLine->AP_menu();
 				break;
-			case "config" :
+			case "configAlboP" :
 				$AP_OnLine->AP_config();
 				break;
 			case "categorie" :
@@ -265,11 +265,11 @@ function add_albo_plugin($plugin_array) {
 			// interfaccia per la gestione degli allegati
 				include_once ( dirname (__FILE__) . '/admin/allegati.php' );
 				break;
-			case "permessi":
+			case "permessiAlboP":
 			// interfaccia per la gestione dei permessi
 				include_once ( dirname (__FILE__) . '/admin/permessi.php' );
 				break;
-			case "utility":
+			case "utilityAlboP":
 			// interfaccia per la gestione dei permessi
 				include_once ( dirname (__FILE__) . '/admin/utility.php' );
 				break;
@@ -387,19 +387,11 @@ function add_albo_plugin($plugin_array) {
 				var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf";
 				$('#elenco-atti').dataTable(         
 			   	{
-			   	"dom": 'lT<f>rtip',
 			   	"ordering": false,
+			   	"dom": 'lT<f>rtip',
 			   	"tableTools": {
 		         	"sSwfPath": url,
 		          	"aButtons": [ 
-		          		{
-							"sExtends": "copy",
-							"sButtonText": "Copia negli Appunti"
-						},
-		          		{
-							"sExtends": "print",
-							"sButtonText": "Stampa"
-						},
 						{
 		                    "sExtends":    "collection",
 		                    "sButtonText": "Salva",
@@ -407,28 +399,28 @@ function add_albo_plugin($plugin_array) {
 		                    {
 		                    	"sExtends": "pdf",
 		                    	"sPdfOrientation": "landscape",
-		                    	"sPdfMessage": "Tabella generata con il plugin Gestione Circolari."
+		                    	"sPdfMessage": "Tabella generata con il plugin Albo Pretorio OnLine."
 		                	},]
 		                }
 					]
 		         },
 			   	"language":{
 				    "sEmptyTable":     "Nessun dato presente nella tabella",
-				    "sInfo":           "Vista da _START_ a _END_<br />di _TOTAL_ elementi",
-				    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
-				    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+				    "sInfo":           " _START_-_END_ di _TOTAL_ atti",
+				    "sInfoEmpty":      "Vista da 0 a 0 di 0 atti",
+				    "sInfoFiltered":   "(filtrati da _MAX_ atti totali)",
 				    "sInfoPostFix":    "",
 				    "sInfoThousands":  ",",
-				    "sLengthMenu":     "Visualizza _MENU_ elementi",
+				    "sLengthMenu":     "Visualizza _MENU_ atti",
 				    "sLoadingRecords": "Caricamento...",
 				    "sProcessing":     "Elaborazione...",
 				    "sSearch":         "Cerca:",
 				    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
 				    "oPaginate": {
-				        "sFirst":      "Inizio",
-				        "sPrevious":   "Precedente",
-				        "sNext":       "Successivo",
-				        "sLast":       "Fine"
+				        "sFirst":      "<<",
+				        "sPrevious":   "<",
+				        "sNext":       ">",
+				        "sLast":       ">>"
 				    },
 				    "oAria": {
 				        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
@@ -454,14 +446,13 @@ function add_albo_plugin($plugin_array) {
 	function VisualizzaAtti($Parametri){
 	extract(shortcode_atts(array(
 		'Stato' => '1',
-		'Per_Page' => '20',
 		'Cat' => 'All',
 		'Filtri' => 'si',
 		'MinFiltri' =>'si'
 	), $Parametri));
 	require_once ( dirname (__FILE__) . '/admin/frontend.php' );
 //		return "Albo Pretorio".$Correnti." ".$Paginazione." ".$per_page." ".$default_order;
-return $ret;
+	return $ret;
 	}
 
 	function AP_menu(){
@@ -558,10 +549,12 @@ echo '<div  style="margin-left: 10px;">
 			<h3 style="margin-bottom: 5px;">Ti piace il Plugin?</h3>
 			<ul  style="margin-left: 25px;list-style-type: circle;">
 				<li>Facci sapere che utilizzi il plugin <strong>Albo Pretorio On Line</strong>, compila il form a questo indirizzo <a href="http://www.sisviluppo.info/?page_id=315">Io utilizzo il plugin</a></li>
-				<li><img src="'.Albo_URL.'/img/star.png" alt="Stella dorata" style="display:inline;float:left;margin-top:-5px;margin-right:5px;"/><a href="http://wordpress.org/extend/plugins/albo-pretorio-on-line/">Vota questo plugin sul sito WordPress.org</a> richiede la registrazione sul sito http://www.wordpress.org</li>
+				<li><img src="'.Albo_URL.'/img/star.png" alt="Stella dorata" /><a href="http://wordpress.org/extend/plugins/albo-pretorio-on-line/">Vota questo plugin sul sito WordPress.org</a> richiede la registrazione sul sito http://www.wordpress.org</li>
 			</ul>
-			</div>  
-		';
+			<iframe src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FAlbo-Pretorio%2F1487571581520684%3Fref%3Dhl&amp;width&amp;height=290&amp;colorscheme=light&amp;show_faces=true&amp;header=true&amp;stream=false&amp;show_border=true" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:290px;" allowTransparency="true"></iframe> 
+			</div> 
+			<div>
+		</div>';
 	}	
 
 	function AP_config(){

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.4
+ * @since 3.0.5
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -273,12 +273,7 @@ function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata
 			$TitoloAtti="Atti da Pubblicare";
 			break;
 }
-/*	if (isset($Parametri['per_page'])){
-		$N_A_pp=$Parametri['per_page'];	
-	}else{
-		$N_A_pp=100;
-	}
-*/	if (isset($Parametri['cat'])){
+	if (isset($Parametri['cat'])){
 		$Categoria=$Parametri['cat'];
 		$DesCategoria=ap_get_categoria($Categoria);
 		$TitoloAtti.=" Categoria ".$DesCategoria[0]->Nome;
@@ -286,16 +281,7 @@ function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata
 	}else{
 		$cat=0;
 	}
-/*	if (!isset($_REQUEST['Pag'])){
-		$Da=0;
-		$A=$N_A_pp;
-	}else{
-		$Da=($_REQUEST['Pag']-1)*$N_A_pp;
-		$A=$N_A_pp;
-	}
-	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',0,0,true);
-	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata, 'Anno DESC,Numero DESC',$Da,$A); 
-*/	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata, 'Anno DESC,Numero DESC',0,0);
+	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata, 'Anno DESC,Numero DESC',0,0);
 	$titEnte=get_option('opt_AP_LivelloTitoloEnte');
 	if ($titEnte=='')
 		$titEnte="h2";
@@ -321,118 +307,91 @@ if (get_option('opt_AP_VisualizzaEnte')=='Si')
 $Contenuto.='<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>';
 if (!isset($Parametri['filtri']) Or $Parametri['filtri']=="si")
 	$Contenuto.='<h4>Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$cat,$Parametri['minfiltri']);
-//$Contenuto.=  $nascondi;
-/*if ($TotAtti>$N_A_pp){
-	    $Para='';
-	    foreach ($_REQUEST as $k => $v){
-			if ($k!="Pag" and $k!="vf")
-				if ($Para=='')
-					$Para.=$k.'='.$v;
-				else
-					$Para.='&amp;'.$k.'='.$v;
-		}
-		if ($Para=='')
-			$Para="?Pag=";
-		else
-			$Para="?".$Para."&amp;Pag=";
-		$Npag=(int)($TotAtti/$N_A_pp);
-		if ($TotAtti%$N_A_pp>0){
-			$Npag++;
-		}
-		$Contenuto.= ' 
-		<div class="tablenav" style="float:right;" id="risultati">
-		<div class="tablenav-pages">
-    		<p><strong>N. Atti '.$TotAtti.'</strong>&nbsp;&nbsp; Pagine';
-    	if (isset($_REQUEST['Pag']) And $_REQUEST['Pag']>1 ){
-			$Pagcur=$_REQUEST['Pag'];
-			$PagPre=$Pagcur-1;
-				$Contenuto.= '&nbsp;<a href="'.$Para.'1" class="page-numbers numero-pagina" title="Vai alla prima pagina">&laquo;</a>
-&nbsp;<a href="'.$Para.$PagPre.'" class="page-numbers numero-pagina" title="Vai alla pagina precedente">&lsaquo;</a> ';
-		}else{
-			$Pagcur=1;
-			$Contenuto.= '&nbsp;<span class="page-numbers current" title="Sei gi&agrave; nella prima pagina">&laquo;</span>
-&nbsp;<span class="page-numbers current" title="Sei gi&agrave; nella prima pagina">&lsaquo;</span> ';
-		}
-		$Contenuto.= '&nbsp;<span class="page-numbers current">'.$Pagcur.'/'.$Npag.'</span>';
-		$PagSuc=$Pagcur+1;
-	   	if ($PagSuc<=$Npag){
-			$Contenuto.= '&nbsp;<a href="'.$Para.$PagSuc.'" class="page-numbers numero-pagina" title="Vai alla pagina successiva">&rsaquo;</a>
-&nbsp;<a href="'.$Para.$Npag.'" class="page-numbers numero-pagina" title="Vai all\'ultima pagina">&raquo;</a>';
-		}else{
-			$Contenuto.= '&nbsp;<span class="page-numbers current" title="Se nell\'ultima pagina non puoi andare oltre">&rsaquo;</span>
-&nbsp;<span class="page-numbers current" title="Se nell\'ultima pagina non puoi andare oltre">&raquo;</span>';			
-		}
-	$Contenuto.='			</p>
-    	</div>
+if (!$lista){
+	if(!$_REQUEST)
+		$Contenuto="";
+	$Contenuto.= '<div>
+		<h3 style="color:red;">Nessun Atto Filtrato</h3>
 	</div>';
-	}	*/	
-$Contenuto.= '	<div class="tabalbo">                               
-		<table id="elenco-atti"> 
-		<thead>
-	    	<tr>
-	        	<th scope="col">Prog.</th>
-	        	<th scope="col">Ente</th>
-	        	<th scope="col">Rif.</th>
-	        	<th scope="col" style="width:200px;">Oggetto</th>
-	        	<th scope="col">Validit&agrave;</th>
-	        	<th scope="col" style="width:100px;">Categoria</th>
-			</tr>
-	    </thead>
-	    <tbody>';
-	    $CeAnnullato=false;
-	if ($lista){
-	 	$pari=true;
-		foreach($lista as $riga){
-			$categoria=ap_get_categoria($riga->IdCategoria);
-			$cat=$categoria[0]->Nome;
-			$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-	//		Bonifica_Url();
-			$classe='';
-			if ($pari And $coloreDispari) 
-				$classe='style="background-color: '.$coloreDispari.';"';
-			if (!$pari And $colorePari)
-				$classe='style="background-color: '.$colorePari.';"';
-			$pari=!$pari;
-			if($riga->DataAnnullamento!='0000-00-00'){
-				$classe='style="background-color: '.$coloreAnnullati.';"';
-				$CeAnnullato=true;
-			}
-			if (strpos(get_permalink(),"?")>0)
-				$sep="&amp;";
-			else
-				$sep="?";
-			$Contenuto.= '<tr >
-			        <td '.$classe.'>'.$NumeroAtto.'/'.$riga->Anno .'
-					</td>
-					<td '.$classe.'>
-						'.ap_get_ente($riga->Ente)->Nome .'
-					</td>
-					<td '.$classe.'>
-						'.$riga->Riferimento .'
-					</td>
-					<td '.$classe.'>
-						<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$riga->Oggetto .'</a>  
-					</td>
-					<td '.$classe.'>
-						'.ap_VisualizzaData($riga->DataInizio) .'<br />'.ap_VisualizzaData($riga->DataFine) .'  
-					</td>
-					<td '.$classe.'>
-						'.$cat .'  
-					</td>
-				</tr>'; 
-			}
-	} else {
-			$Contenuto.= '<tr>
-					<td colspan="6">Nessun Atto Codificato</td>
-				  </tr>';
-	}
+	if($_REQUEST)
+		$Contenuto.='</div>'; 
+}else{
+	$Contenuto.= '<div>
+		<div class="tabalbo">                               
+			<table id="elenco-atti"> 
+			<thead>
+		    	<tr>
+		        	<th scope="col">Prog.</th>
+		        	<th scope="col">Ente</th>
+		        	<th scope="col">Rif.</th>
+		        	<th scope="col">Oggetto</th>
+		        	<th scope="col">Validit&agrave;</th>
+		        	<th scope="col" >Categoria</th>
+				</tr>
+		    </thead>
+		    <tbody>';
+		    $CeAnnullato=false;
+		if ($lista){
+		 	$pari=true;
+			foreach($lista as $riga){
+				$categoria=ap_get_categoria($riga->IdCategoria);
+				$cat=$categoria[0]->Nome;
+				$NumeroAtto=ap_get_num_anno($riga->IdAtto);
+		//		Bonifica_Url();
+				$classe='';
+				if ($pari And $coloreDispari) 
+					$classe='style="background-color: '.$coloreDispari.';"';
+				if (!$pari And $colorePari)
+					$classe='style="background-color: '.$colorePari.';"';
+				$pari=!$pari;
+				if($riga->DataAnnullamento!='0000-00-00'){
+					$classe='style="background-color: '.$coloreAnnullati.';"';
+					$CeAnnullato=true;
+				}
+				if (strpos(get_permalink(),"?")>0)
+					$sep="&amp;";
+				else
+					$sep="?";
+				$Contenuto.= '<tr >
+				        <td '.$classe.'>'.$NumeroAtto.'/'.$riga->Anno .'
+						</td>
+						<td '.$classe.'>
+							'.ap_get_ente($riga->Ente)->Nome .'
+						</td>
+						<td '.$classe.'>
+							'.$riga->Riferimento .'
+						</td>
+						<td '.$classe.'>
+							<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$riga->Oggetto .'</a>  
+						</td>
+						<td '.$classe.'>
+							'.ap_VisualizzaData($riga->DataInizio) .'<br />'.ap_VisualizzaData($riga->DataFine) .'  
+						</td>
+						<td '.$classe.'>
+							'.$cat .'  
+						</td>
+					</tr>'; 
+				}
+		} else {
+				$Contenuto.= '<tr>
+				        <td> </td>
+				        <td> </td>
+				        <td> </td>
+				        <td style="color:red;">Nessun Atto Filtrato</td>
+				        <td> </td>
+						<td> </td>
+					  </tr>';
+		}
 	$Contenuto.= '
      </tbody>
     </table>';
-$Contenuto.= '</div>';
+$Contenuto.= '		</div>
+</div>';
+
 	if ($CeAnnullato) 
-		$Contenuto.= '<p>Le righe evidenziate con questo sfondo <span style="background-color: '.$coloreAnnullati.';">&nbsp;&nbsp;&nbsp;</span> indicano Atti Annullati</p>';
+		$Contenuto.= '<p style="clear:both;">Le righe evidenziate con questo sfondo <span style="background-color: '.$coloreAnnullati.';">&nbsp;&nbsp;&nbsp;</span> indicano Atti Annullati</p>';
 $Contenuto.= '</div><!-- /wrap -->	';
+}
 return $Contenuto;
 }
 ?>
