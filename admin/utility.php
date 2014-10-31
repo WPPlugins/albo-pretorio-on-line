@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.5
+ * @since 3.0.6
  */
 
 
@@ -99,7 +99,7 @@ echo '<div class="wrap">
 					<li>Tabelle del Data Base relative all\'Albo</li>
 					<li>Files allegati agli atti</li>
 				</ul>  
-			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utility&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utilityAlboP&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
 			</p>
 		</div>';	
 }
@@ -151,7 +151,7 @@ echo '<div class="wrap">
 		<h2 style="margin-left:40px;">Utility Albo</h2>';
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
-      <meta http-equiv="refresh" content="5;url=admin.php?page=utility"/>';
+      <meta http-equiv="refresh" content="5;url=admin.php?page=utilityAlboP"/>';
 echo '
 		<div class="postbox-container" style="margin-top:20px;">
 			<div class="widefat" style="padding:10px;">
@@ -161,7 +161,7 @@ echo '
 				<p style="font-size:1.1em;font-weight: bold;font-style: italic;color:red;">Questa &egrave; una operazione che pu&ograve; modificare una grosa quantit&agrave; di dati, si consiglia di eseguire un backup prima di procedere, per poter recuperare i dati originali in caso di errori.</p>';
 switch ($passo){
 	case "":
-		echo '<form action="?page=utility" id="ripub" method="post"  class="validate">
+		echo '<form action="?page=utilityAlboP" id="ripub" method="post"  class="validate">
 				<input type="hidden" name="action" value="setData" />
 				Data Interruzione: <input name="Data" id="Calendario1" type="text" size="8" />
 				<input type="submit" name="submit" id="submit" class="button" value="Avvia Procedura"  />
@@ -170,7 +170,7 @@ switch ($passo){
 		break;
 	case "1":
 		$TotAtti=ap_get_all_atti(1,0,0,'',0,$Data,'',0,0,true,false);
-		echo'<p><span style="font-size:1.1em;font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utility&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
+		echo'<p><span style="font-size:1.1em;font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utilityAlboP&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
 			</p>';
 }
 echo '		</div> 
@@ -186,7 +186,7 @@ Questa procedura esegue un test generale della procedura e riporta eventuali ano
 	<br />Verifica dati del Data Base e viene riportata una breve statistica sui dati
 </p>
 				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utility&action=verificaproc">Verifica</a>
+ 					<a href="?page=utilityAlboP&action=verificaproc">Verifica</a>
 				</p>
 		</div>';
 $elenco="<option value='' selected='selected'>Nessuno</option>";
@@ -208,13 +208,13 @@ echo '
 					Procedura di Backup dei dati dell\'Albo Pretorio
 				</p>
 				<p>
-				<form action="?page=utility" id="backup" method="post"  class="validate">
+				<form action="?page=utilityAlboP" id="backup" method="post"  class="validate">
 					<input type="hidden" name="action" value="BackupData" />
 					Backup dei Dati:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" name="submit" id="submit" class="button" value="Avvia Backup"  />
 				</form>
 				</p>
 				<p>
-					<form action="?page=utility" id="exportBackup" method="post"  class="validate">
+					<form action="?page=utilityAlboP" id="exportBackup" method="post"  class="validate">
 					Esporta file di Backup: 
 						<input type="hidden" name="action" value="ExportBackupData" />
 						<select name="elenco_Backup_Expo" id="elenco_Backup_Expo" >\n'
@@ -633,7 +633,7 @@ echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Analisi Procedura</h2>
 		<div class="postbox-container" style=";margin-top:20px;">
-			<a class="add-new-h2 tornaindietro" href="'.$_SERVER[PHP_SELF].'?page=utility" >
+			<a class="add-new-h2 tornaindietro" href="'.$_SERVER[PHP_SELF].'?page=utilityAlboP" >
 			Torna indietro
 			</a>
 		<h3>Librerie</h3>
@@ -692,7 +692,7 @@ if($ob2)
 echo '							</td>
 			<td></td>';
 if (!$ob1 or !$ob2)
-echo '							<td><a href="?page=utility&amp;action=oblio">Attiva</a></td>';
+echo '							<td><a href="?page=utilityAlboP&amp;action=oblio">Attiva</a></td>';
 echo '
 						</tr>
 						<tr>
@@ -706,7 +706,7 @@ if($ob3)
 		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
 echo '							</td>';
 if (!$ob3)
-echo '							<td><a href="?page=utility&amp;action=Crearobots">Crea</a></td>';
+echo '							<td><a href="?page=utilityAlboP&amp;action=Crearobots">Crea</a></td>';
 echo '
 						</tr>
 					</tbody>
@@ -757,7 +757,7 @@ foreach($Tabelle as $Tabella){
 	if (ap_existTable($Tabella)) 
  		$EsisteTabella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;margin-top:5px;"/>';
 	else
-		$EsisteTabella='<a href="admin.php?page=utility&action=creaTabella&Tabella='.$Tabella.'">Crea Tabella</a>';
+		$EsisteTabella='<a href="admin.php?page=utilityAlboP&action=creaTabella&Tabella='.$Tabella.'">Crea Tabella</a>';
 
 $TestCampi=TestCampiTabella($Tabella);
 $DatiTabella=TestCongruitaDati($Tabella);

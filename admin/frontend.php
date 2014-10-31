@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.5
+ * @since 3.0.6
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -321,12 +321,12 @@ if (!$lista){
 			<table id="elenco-atti"> 
 			<thead>
 		    	<tr>
-		        	<th scope="col">Prog.</th>
-		        	<th scope="col">Ente</th>
-		        	<th scope="col">Rif.</th>
-		        	<th scope="col">Oggetto</th>
-		        	<th scope="col">Validit&agrave;</th>
-		        	<th scope="col" >Categoria</th>
+		        	<th scope="col" style="width:5%;">Prog.</th>
+		        	<th scope="col" style="width:15%;">Ente</th>
+		        	<th scope="col" style="width:15%;">Rif.</th>
+		        	<th scope="col" style="width:35%;">Oggetto</th>
+		        	<th scope="col" style="width:15%;">Validit&agrave;</th>
+		        	<th scope="col" style="width:15%;">Categoria</th>
 				</tr>
 		    </thead>
 		    <tbody>';

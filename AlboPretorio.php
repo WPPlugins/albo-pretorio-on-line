@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.5
+Version:3.0.6
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -88,7 +88,7 @@ if (!class_exists('AlboPretorio')) {
 		wp_enqueue_script( 'my-admin-dtpicker-it', plugins_url('js/jquery.ui.datepicker-it.js', __FILE__ ));
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );
-	}
+			}
 
 /*TINY MCE Quote Button*/
 function add_albo_button() {  
@@ -297,7 +297,9 @@ function add_albo_plugin($plugin_array) {
 <script type="text/javascript">
 		jQuery.noConflict();
 		(function($) {
-			$(function() {		 
+			$(function() {	
+			var l = window.location;
+			var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf"; 
 		  	$('input.infolog').click(function() { //start function when Random button is clicked
 				var tipo;
 				switch ($(this).attr('value')){
@@ -325,7 +327,7 @@ function add_albo_plugin($plugin_array) {
 					}
 				}); //close jQuery.ajax
 				return false;
-			})
+			}),
 		 });
 		})(jQuery);
 </script>	
