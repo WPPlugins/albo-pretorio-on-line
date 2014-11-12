@@ -5,17 +5,13 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.6
+ * @since 3.0.7
  */
 
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 switch($_REQUEST['action']){
-//			case "ExportBackupData":
-//			in admin.php
-//			case "ImportBackupData":
-//			in admin.php
-	
+
 	case "Crearobots":
 		ap_crearobots();
 		menu();

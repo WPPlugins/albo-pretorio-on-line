@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.6
+ * @since 3.0.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -47,7 +47,7 @@ if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
 echo '
 		<div class="postbox-container" style="margin-top:20px;">
 			<div class="widefat">
-			<form id="gestPermessi" method="post" action="?page=permessi"  >
+			<form id="gestPermessi" method="post" action="?page=permessiAlboP"  >
 			<input type="hidden" name="action" value="memoPermessi"/>
 				<table style="width:100%;">
 					<caption>Permessi</caption>
@@ -112,19 +112,3 @@ echo '					</tbody>
 		</div>
 	</div>
 ';
-/*global $wp_roles;
-foreach( $wp_roles->role_names as $role => $name ) {
-  $name = translate_with_context($name);
-  echo '<p>List of users in the role '.$role .' ('. $name . '):</p>';
-  $this_role = "'[[:<:]]".$role."[[:>:]]'";
-  $query = "SELECT * FROM $wpdb->users WHERE ID = ANY (SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'wp_capabilities' AND meta_value RLIKE $this_role) ORDER BY user_nicename ASC LIMIT 10000";
-  $users_of_this_role = $wpdb->get_results($query);
-  if ($users_of_this_role) {
-    foreach($users_of_this_role as $user) {
-      $curuser = get_userdata($user->ID);
-      $author_post_url=get_author_posts_url($curuser->ID, $curuser->nicename);
-      echo '<p>--User nicename: '.$curuser->user_nicename .', display Name: '. $curuser->display_name . ', link to author posts <a href="' . $author_post_url . '" title="' . sprintf( __( "Posts by %s" ), $curuser->user_nicename ) . '" ' . '>' . $curuser->user_nicename .'</a></p>';
-    }
-  }
-}
-*/

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.6
+Version:3.0.7
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -357,9 +357,12 @@ function add_albo_plugin($plugin_array) {
 
 		wp_enqueue_script( 'AlboP-DataTable', plugins_url('js/jquery.dataTables.js', __FILE__ ), array('jquery' ));
 		wp_enqueue_script( 'AlboP-DataTable-Tools', plugins_url('js/dataTables.tableTools.js', __FILE__ ), array('jquery' ));
+		wp_enqueue_script( 'AlboP-DataTable-Tools-colvis', plugins_url('js/dataTables.colVis.js', __FILE__ ), array('jquery' ));
 
 	    wp_register_style('AlboP_datatable_style' ,plugins_url( 'css/jquery.dataTables.css', __FILE__ ));
 	    wp_enqueue_style('AlboP_datatable_style');   
+	    wp_register_style('AlboP_datatable_style_colvis' ,plugins_url( 'css/dataTables.colVis.css', __FILE__ ));
+	    wp_enqueue_style('AlboP_datatable_style_colvis');   
 
 	    wp_register_style('AlboP_datatable_theme_Tools' ,plugins_url( 'css/dataTables.tableTools.css', __FILE__ ));
 	    wp_enqueue_style('AlboP_datatable_theme_Tools');   
@@ -390,7 +393,10 @@ function add_albo_plugin($plugin_array) {
 				$('#elenco-atti').dataTable(         
 			   	{
 			   	"ordering": false,
-			   	"dom": 'lT<f>rtip',
+			   	"dom": 'lT<f>Crtip',
+			   	"colVis": {"label": function ( index, title, th ) {return (index+1) +'. '+ title;}
+            			},
+				"responsive": true,
 			   	"tableTools": {
 		         	"sSwfPath": url,
 		          	"aButtons": [ 
@@ -512,14 +518,14 @@ function add_albo_plugin($plugin_array) {
 	if ($this->version==3.0 and !is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/.htaccess")){
 	echo'<p> </p>
 		<div class="widefat" >
-			<p style="text-align:center;font-size:1.2em;font-weight: bold;color: red;">Questa versione dell plugin implementa il diritto all\'oblio, questo meccanismo permette agli utenti di accedere agli allegati degli atti pubblicati all\'albo pretorio solo dal sito che ospita l\'albo e non con link diretti al file<br />Non risulta ancora attivato il diritto all\'oblio,<br /><a href="?page=utility&amp;action=oblio">Attivalo</a></p>
+			<p style="text-align:center;font-size:1.2em;font-weight: bold;color: red;">Questa versione dell plugin implementa il diritto all\'oblio, questo meccanismo permette agli utenti di accedere agli allegati degli atti pubblicati all\'albo pretorio solo dal sito che ospita l\'albo e non con link diretti al file<br />Non risulta ancora attivato il diritto all\'oblio,<br /><a href="?page=utilityAlboP&amp;action=oblio">Attivalo</a></p>
 			</div>';
 	}
 if (ap_get_num_categorie()==0){
 echo'<p> </p>
 		<div class="widefat" >
 				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
-				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utility&amp;action=creacategorie">Crea Categorie di Default</a></p>
+				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utilityAlboP&amp;action=creacategorie">Crea Categorie di Default</a></p>
 			</div>';
 }
 if (ap_num_responsabili()==0){

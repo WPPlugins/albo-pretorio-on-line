@@ -224,7 +224,7 @@ table.dataTable td {
  * Control feature layout
  */
 .dataTables_wrapper {
-  position: relative;
+/*  position: relative;*/
   clear: both;
   *zoom: 1;
   zoom: 1;
@@ -233,7 +233,7 @@ table.dataTable td {
   float: left;
 }
 .dataTables_wrapper{
-  float: right;
+/*  float: right;*/
   text-align: right;
   border: 1px solid;
   padding: 2px;
