@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.0.8
+Version:3.0.9
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -538,7 +538,7 @@ echo'<p> </p>
 if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 	echo '<div style="border: medium groove Blue;margin-top:10px;">
 			<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
-				<form id="agg_anno_progressivo" method="post" action="?page=config">
+				<form id="agg_anno_progressivo" method="post" action="?page=configAlboP">
 					<input type="hidden" name="action" value="setta-anno" />
 				<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 				</form>
@@ -681,7 +681,7 @@ echo '<div  style="margin-left: 10px;">
 		if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 			echo '<div style="border: medium groove Blue;margin-top:10px;margin-right:250px;">
 					<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
-						<form id="agg_anno_progressivo" method="post" action="?page=config">
+						<form id="agg_anno_progressivo" method="post" action="?page=configAlboP">
 						<input type="hidden" name="action" value="setta-anno" />
 						<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 						</form>
@@ -911,7 +911,7 @@ echo '<div  style="margin-left: 10px;">
 			update_option('opt_AP_ColoreAnnullati',$_POST['color'] );
 			update_option('opt_AP_ColorePari',$_POST['colorp'] );
 			update_option('opt_AP_ColoreDispari',$_POST['colord'] );
-			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=config&update=true'); 
+			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=true'); 
   		}
 	}
 
