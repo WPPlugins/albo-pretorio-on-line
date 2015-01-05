@@ -20,7 +20,7 @@ jQuery(document).ready(function($){
 	});
 });
 jQuery(document).ready(function($) {
-		$('a.page-numbers').click(function(){
+		$('a.numero-pagina').click(function(){
 			location.href=$(this).attr('href')+"&vf="+$('#maxminfiltro').attr('class')+"#dati";
 			return false;	
 		});

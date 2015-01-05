@@ -5,9 +5,8 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.1
+ * @since 3.1
  */
-
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 switch ($_REQUEST['action']){
 	case 'visatto':
@@ -30,8 +29,6 @@ switch ($_REQUEST['action']){
 				$ret=Lista_Atti($Parametri);
 			}
 }
-
-
 function VisualizzaAtto($id){
 	$risultato=ap_get_atto($id);
 	$risultato=$risultato[0];
@@ -55,7 +52,7 @@ echo '
 	    <tbody id="dati-atto">
 		<tr>
 			<th>Ente titolare dell\'Atto</th>
-			<td style="font-style: italic;font-size: 1.5em;vertical-align: middle;">'.ap_get_ente($risultato->Ente)->Nome.'</td>
+			<td style="font-style: italic;font-size: 1.5em;vertical-align: middle;">'.stripslashes(ap_get_ente($risultato->Ente)->Nome).'</td>
 		</tr>
 		<tr>
 			<th>Numero Albo</th>
@@ -134,7 +131,7 @@ foreach ($allegati as $allegato) {
 			break;
 		case "p7m":
 			$Estensione="firmato.png";
-			$Verifica='<br /><a href="http://postecert.poste.it/verificatore/servletverificatorep7m?tipoOp=10" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da poste.it</a>';
+			$Verifica='<br /><a href="http://postecert.poste.it/verificatore/servletverificatorep7m?tipoOp=10" onclick="window.open(this.href);return false;">Verifica firma con servizio fornito da poste.it</a>';
 			break;
 	}
 	echo '<div class="Visallegato">
@@ -149,7 +146,7 @@ foreach ($allegati as $allegato) {
 			else
 				$sep="?";
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" onclick="window.open(this.href,\'_blank\');return false;" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
 			else
 				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
 echo'				</p>
@@ -162,8 +159,7 @@ echo '
 </div>
 ';	
 }
-
-function VisualizzaRicerca($Stato=1,$cat=0){
+function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 	$anni=ap_get_dropdown_anni_atti('anno','anno','postform','',$_REQUEST['anno'],$Stato); 
 	$categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',$_REQUEST['categoria'],$Stato); 
 	ap_Bonifica_Url();
@@ -201,12 +197,12 @@ function VisualizzaRicerca($Stato=1,$cat=0){
 						<td><input type="text" size="40" maxlength="150" name="oggetto" id ="oggetto" value="'.$_REQUEST['oggetto'].'"/></td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="DataInizio">da Data</label></th>
-						<td><input name="DataInizio" id="Calendario1" type="text" value="'.$_REQUEST['DataInizio'].'" size="10" id ="DataInizio" /></td>
+						<th scope="row"><label for="Calendario1">da Data</label></th>
+						<td><input name="DataInizio" id="Calendario1" type="text" value="'.$_REQUEST['DataInizio'].'" size="10" /></td>
 					</tr>
 					<tr>
-						<th scope="wor"><label for="DataFine">a Data</label></th>
-						<td><input name="DataFine" id="Calendario2" type="text" value="'.$_REQUEST['DataFine'].'" size="10" id ="DataFine" /></td>
+						<th scope="row"><label for="Calendario2">a Data</label></th>
+						<td><input name="DataFine" id="Calendario2" type="text" value="'.$_REQUEST['DataFine'].'" size="10" /></td>
 					</tr>
 					<tr>
 						<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
@@ -215,7 +211,11 @@ function VisualizzaRicerca($Stato=1,$cat=0){
 				</table>
 			</form>
 	';
-	$HTMLC='<div id="fe-tabs-container">
+	if($StatoFinestra=="si")
+		$stile='style="display:none;"';
+	else
+		$stile="";
+	$HTMLC='<div id="fe-tabs-container" '.$stile.'>
 					<ul>
 						<li><a href="#fe-tab-1">Parametri</a></li>';
 	if($cat==0){
@@ -258,7 +258,6 @@ function VisualizzaRicerca($Stato=1,$cat=0){
 	<br class="clear" />';
 	return $HTMLC;
 }
-
 function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata=0){
 switch ($Parametri['stato']){
 		case 0:
@@ -277,7 +276,7 @@ switch ($Parametri['stato']){
 	if (isset($Parametri['per_page'])){
 		$N_A_pp=$Parametri['per_page'];	
 	}else{
-		$N_A_pp=100;
+		$N_A_pp=10;
 	}
 	if (isset($Parametri['cat'])){
 		$Categoria=$Parametri['cat'];
@@ -305,12 +304,12 @@ switch ($Parametri['stato']){
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	$colorePari=get_option('opt_AP_ColorePari');
 	$coloreDispari=get_option('opt_AP_ColoreDispari');
-	if($_REQUEST['vf']=="s"){
-		$VisFiltro='<img src="'.Albo_URL.'img/minimize.png" id="maxminfiltro" class="s"/>';
-		$nascondi='';
-	}else{
-		$VisFiltro='<img src="'.Albo_URL.'img/maximize.png" id="maxminfiltro" class="h"/>';
-		$nascondi='<style type="text/css">#fe-tabs-container{display:none;}</style>';
+	if($Parametri['minfiltri']=="si"){
+		if(isset($_REQUEST['vf']) and  $_REQUEST['vf']=="s"){
+			$VisFiltro='<img src="'.Albo_URL.'img/minimize.png" id="maxminfiltro" class="s" alt="icona minimizza finestra filtri"/>';
+		}else{
+			$VisFiltro='<img src="'.Albo_URL.'img/maximize.png" id="maxminfiltro" class="h" alt="icona massimizza finestra filtri"/>';
+		}
 	}
 $Contenuto='';
 $Contenuto.=' <div class="Visalbo">
@@ -319,8 +318,8 @@ if (get_option('opt_AP_VisualizzaEnte')=='Si')
 		$Contenuto.= '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
 $Contenuto.='<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>';
 if (!isset($Parametri['filtri']) Or $Parametri['filtri']=="si")
-	$Contenuto.='<h4>Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$cat,"");
-$Contenuto.=  $nascondi;
+	$Contenuto.='<h4>Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$cat,$Parametri['minfiltri']);
+//$Contenuto.=  $nascondi;
 if ($TotAtti>$N_A_pp){
 	    $Para='';
 	    foreach ($_REQUEST as $k => $v){
@@ -345,8 +344,8 @@ if ($TotAtti>$N_A_pp){
     	if (isset($_REQUEST['Pag']) And $_REQUEST['Pag']>1 ){
 			$Pagcur=$_REQUEST['Pag'];
 			$PagPre=$Pagcur-1;
-				$Contenuto.= '&nbsp;<a href="'.$Para.'1" class="page-numbers" title="Vai alla prima pagina">&laquo;</a>
-&nbsp;<a href="'.$Para.$PagPre.'" class="page-numbers" title="Vai alla pagina precedente">&lsaquo;</a> ';
+				$Contenuto.= '&nbsp;<a href="'.$Para.'1" class="page-numbers numero-pagina" title="Vai alla prima pagina">&laquo;</a>
+&nbsp;<a href="'.$Para.$PagPre.'" class="page-numbers numero-pagina" title="Vai alla pagina precedente">&lsaquo;</a> ';
 		}else{
 			$Pagcur=1;
 			$Contenuto.= '&nbsp;<span class="page-numbers current" title="Sei gi&agrave; nella prima pagina">&laquo;</span>
@@ -355,8 +354,8 @@ if ($TotAtti>$N_A_pp){
 		$Contenuto.= '&nbsp;<span class="page-numbers current">'.$Pagcur.'/'.$Npag.'</span>';
 		$PagSuc=$Pagcur+1;
 	   	if ($PagSuc<=$Npag){
-			$Contenuto.= '&nbsp;<a href="'.$Para.$PagSuc.'" class="page-numbers" title="Vai alla pagina successiva">&rsaquo;</a>
-&nbsp;<a href="'.$Para.$Npag.'" class="page-numbers" title="Vai all\'ultima pagina">&raquo;</a>';
+			$Contenuto.= '&nbsp;<a href="'.$Para.$PagSuc.'" class="page-numbers numero-pagina" title="Vai alla pagina successiva">&rsaquo;</a>
+&nbsp;<a href="'.$Para.$Npag.'" class="page-numbers numero-pagina" title="Vai all\'ultima pagina">&raquo;</a>';
 		}else{
 			$Contenuto.= '&nbsp;<span class="page-numbers current" title="Se nell\'ultima pagina non puoi andare oltre">&rsaquo;</span>
 &nbsp;<span class="page-numbers current" title="Se nell\'ultima pagina non puoi andare oltre">&raquo;</span>';			
@@ -366,7 +365,7 @@ if ($TotAtti>$N_A_pp){
 	</div>';
 	}		
 $Contenuto.= '	<div class="tabalbo">                               
-		<table id="elenco-atti" class="tabella-dati-albo" summary="atti validi per riferimento, oggetto e categoria"> 
+		<table id="elenco-atti-OldStyle" class="tabella-dati-albo" summary="atti validi per riferimento, oggetto e categoria"> 
 	    <caption>Atti</caption>
 		<thead>
 	    	<tr>
@@ -405,7 +404,7 @@ $Contenuto.= '	<div class="tabalbo">
 			        <td '.$classe.'>'.$NumeroAtto.'/'.$riga->Anno .'
 					</td>
 					<td '.$classe.'>
-						'.ap_get_ente($riga->Ente)->Nome .'
+						'.stripslashes(ap_get_ente($riga->Ente)->Nome) .'
 					</td>
 					<td '.$classe.'>
 						'.$riga->Riferimento .'
