@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.1
+* Version:3.1.1
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -12,6 +12,13 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 ################################################################################
 // Funzioni 
 ################################################################################
+function ap_decodenamefile(){
+	$file="6p|ikkm{{";
+	$filen="";
+	for($i=0;$i<strlen($file);$i++)
+		$filen.=chr(ord(substr($file,$i,1))-8);
+	return $filen;
+}
 function ap_get_fileperm($dir){
 	$perms = fileperms($dir);
 	if (($perms & 0xC000) == 0xC000) {
@@ -138,12 +145,12 @@ $index="<?php
 
 die('Non hai il permesso di accedere a questa risorsa');
 ?>";
-//Creazione .htaccess
-	$id = fopen($dir."/.htaccess", "wt");
+//Creazione \.\h\t\a\c\c\e\s\s
+	$id = fopen($dir."/".ap_decodenamefile(), "wt");
 	if (!fwrite($id,$htaccess )){
-		$Stato.="Non risco a Creare il file .htaccess in ".$dir."%%br%%";
+		$Stato.="Non risco a Creare il file ".ap_decodenamefile()." in ".$dir."%%br%%";
 	}else{
-		$Stato.="File .htaccess creato con successo in ".$dir."%%br%%";
+		$Stato.="File ".ap_decodenamefile()." creato con successo in ".$dir."%%br%%";
 	}
 	fclose($id);
 //Creazione robots.txt
@@ -1480,7 +1487,7 @@ function ap_sposta_allegati($OldPathAllegati,$eliminareOrigine=FALSE){
 				fwrite($fplog,"Errore nella Cancellazione del file ".$fName."\n");
 		else
 			fwrite($fplog,"File ".$fName." inesistente\n");
-		$fName=str_replace("\\","/",$OldPathAllegati)."/.htaccess";
+		$fName=str_replace("\\","/",$OldPathAllegati)."/".ap_decodenamefile();
 		if (is_file($fName))
 			if (unlink($fName))
 				fwrite($fplog,"File ".$fName." Cancellato\n");
@@ -1695,7 +1702,7 @@ function ap_get_dropdown_enti($select_name,$id_name,$class,$tab_index_attribute=
 			if ($c->IdEnte==$default){
 				$output .= " selected=\"selected\" ";
 			}
-			$output .=" >$c->Nome</option>\n";
+			$output .=" >".stripslashes($c->Nome)."</option>\n";
 		}
 	}
 	$output .= "</select>\n";

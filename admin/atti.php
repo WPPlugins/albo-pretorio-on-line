@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.1
+ * @since 3.1.1
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -299,10 +299,10 @@ function Nuovo_atto(){
 		$Oggetto=$_REQUEST['Oggetto'];
 	else
 		$Oggetto="";
-	if ($_REQUEST['DataInizio'])
+/*	if ($_REQUEST['DataInizio'])
 		$DataI=$_REQUEST['DataInizio'];
-	else
-		$DataI=date("d/m/Y");
+	else*/
+	$DataI=date("d/m/Y");
 	if ($_REQUEST['DataFine'])
 		$DataF=$_REQUEST['DataFine'];
 	else
@@ -358,19 +358,19 @@ function Nuovo_atto(){
 				<tr>
 					<th valign="top" style="text-align:right;">Numero Albo</th>
 					<td>&nbsp;&nbsp;<strong><em>00000/<?php echo date("Y");?></em></strong><br />
-						<span style="font-style: italic;">Numero progressivo generato dal programma</span>
+						<span style="font-style: italic;">Numero progressivo generato dal programma, verr&agrave; assegnato in fase di pubblicazione</span>
 					</td>
 				</tr>
 				<tr>
 					<th valign="top" style="text-align:right;">Data</th>
 					<td>
-						<input name="Data" id="Calendario1" type="text" value="<?php echo $dataCorrente;?>" maxlength="10" size="10"/>
+						<input name="Data" id="Calendario1" type="hidden" value="<?php echo $dataCorrente;?>" maxlength="10" size="10"/><strong><em><?php echo $dataCorrente;?></strong></em>
 						<br />
-						<span style="font-style: italic;">Data di codifica dell'atto</span>
+						<span style="font-style: italic;">Data di codifica dell'atto, viene inserita automaticamente nel momento in cui viene creato.</span>
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Codice di Riferimento</th>
+					<th valign="top" style="text-align:right;">Codice di Riferimento <span style="color:red;font-weight: bold;">*</span></th>
 					<td>
 						<input name="Riferimento" id="riferimento-atto" type="text" maxlength="100" size="70" value="<?php echo $Riferimento; ?>" />
 						<br />
@@ -378,7 +378,7 @@ function Nuovo_atto(){
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Oggetto</th>
+					<th valign="top" style="text-align:right;">Oggetto <span style="color:red;font-weight: bold;">*</span></th>
 					<td>
 						<textarea name="Oggetto" id="oggetto-atto" rows="2" cols="70" maxlength="200"><?php echo $Oggetto;?></textarea>
 						<br />
@@ -388,8 +388,8 @@ function Nuovo_atto(){
 				<tr>
 					<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
 					<td style="vertical-align: middle;">
-						<input name="DataInizio" id="Calendario2" type="text" maxlength="10" size="10" value="<?php echo $DataI;?>" /><br />
-					<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto</span></td>
+						<input name="DataInizio" type="hidden" value="<?php echo $DataI;?>" /><strong><em><?php echo $DataI;?></em></strong><br />
+					<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto, verr&agrave; valorizzata definitivamente in fase di pubblicazione dell'atto</span></td>
 				</tr>
 				<tr>
 					<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
@@ -404,7 +404,7 @@ function Nuovo_atto(){
 					<td><?php wp_editor( $Note, 'note_txt',
 							array('wpautop'=>true,
 								  'textarea_name' => 'Note',
-								  'textarea_rows' => 15,
+								  'textarea_rows' => 10,
 								  'teeny' => false,
 								  'media_buttons' => false)
 								)?>
@@ -413,7 +413,7 @@ function Nuovo_atto(){
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Categoria</th>
+					<th valign="top" style="text-align:right;">Categoria <span style="color:red;font-weight: bold;">*</span></th>
 					<td>
 						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$Categoria);?>
 						<br />
@@ -421,7 +421,7 @@ function Nuovo_atto(){
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Responsabile Procedimento</th>
+					<th valign="top" style="text-align:right;">Responsabile Procedimento <span style="color:red;font-weight: bold;">*</span></th>
 					<td style="vertical-align: middle;">
 						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$Responsabile);?>
 						<br />
@@ -434,6 +434,7 @@ function Nuovo_atto(){
 			    </tbody>
 	</table>
 </form>
+ <span style="color:red;font-weight: bold;">*</span> i campo contrassegnati dall'asterisco sono obbligatori
 </div>
 </div>
 <?php
@@ -472,7 +473,7 @@ $atto=$atto[0];
 				<tr>
 					<th valign="top" style="text-align:right;">Numero Albo</th>
 					<td>
-						<span style="font-weight: bold;"><?php echo $atto->Numero.'/'.$atto->Anno;?></span>
+						<span style="font-weight: bold;">00000/<?php echo $atto->Anno;?></span>
 						<br />
 						<span style="font-style: italic;">Numero progressivo generato dal programma</span>
 					</td>
@@ -480,13 +481,13 @@ $atto=$atto[0];
 				<tr>
 					<th valign="top" style="text-align:right;">Data</th>
 					<td>
-						<input name="Data" id="Calendario1" type="text" value="<?php echo ap_VisualizzaData($atto->Data);?>" maxlength="10" size="10" />
+						<input name="Data" type="hidden" value="<?php echo ap_VisualizzaData($atto->Data);?>" /><em><strong><?php echo ap_VisualizzaData($atto->Data);?></strong></em>
 						<br />
-						<span style="font-style: italic;">Data di codifica dell'atto</span>
+						<span style="font-style: italic;">Data di codifica dell'atto, viene inserita automaticamente nel momento in cui viene creato.</span>
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Codice di Riferimento</th>
+					<th valign="top" style="text-align:right;">Codice di Riferimento<span style="color:red;font-weight: bold;">*</span></th>
 					<td>
 						<input name="Riferimento" id="riferimento-atto" type="text" value="<?php echo stripslashes($atto->Riferimento);?>" maxlength="20" size="22" />
 						<br />
@@ -494,7 +495,7 @@ $atto=$atto[0];
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Oggetto</th>
+					<th valign="top" style="text-align:right;">Oggetto<span style="color:red;font-weight: bold;">*</span></th>
 					<td>
 						<textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="200"><?php echo stripslashes($atto->Oggetto);?></textarea>
 						<br />
@@ -504,9 +505,9 @@ $atto=$atto[0];
 				<tr>
 					<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
 					<td style="vertical-align: middle;">
-						<input name="DataInizio" id="Calendario2" type="text" value="<?php echo ap_VisualizzaData($atto->DataInizio);?>" maxlength="10" size="10"/>
+						<input name="DataInizio" type="hidden" value="<?php echo ap_VisualizzaData($atto->DataInizio);?>" /><em><strong><?php echo ap_VisualizzaData($atto->DataInizio);?></strong></em>
 						<br />
-						<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto</span>
+						<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto, verrà valorizzata definitivamente in fase di pubblicazione dell'atto</span>
 					</td>
 				</tr>
 				<tr>
@@ -522,7 +523,7 @@ $atto=$atto[0];
 					<td><?php wp_editor( stripslashes($atto->Informazioni), 'note_txt',
 							array('wpautop'=>true,
 								  'textarea_name' => 'Note',
-								  'textarea_rows' => 15,
+								  'textarea_rows' => 10,
 								  'teeny' => false,
 								  'media_buttons' => false)
 								)?>
@@ -531,7 +532,7 @@ $atto=$atto[0];
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Categoria</th>
+					<th valign="top" style="text-align:right;">Categoria<span style="color:red;font-weight: bold;">*</span></th>
 					<td>
 						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria);?>
 						<br />
@@ -539,7 +540,7 @@ $atto=$atto[0];
 					</td>
 				</tr>
 				<tr>
-					<th valign="top" style="text-align:right;">Responsabile Procedimento </th>
+					<th valign="top" style="text-align:right;">Responsabile Procedimento<span style="color:red;font-weight: bold;">*</span></th>
 					<td style="vertical-align: middle;">
 						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc);?>
 						<br />
@@ -554,6 +555,7 @@ $atto=$atto[0];
 			    </tbody>
 			</table>
 		</form>
+		<span style="color:red;font-weight: bold;">*</span> i campo contrassegnati dall'asterisco sono obbligatori
 	</div>
 </div>
 <?php	
@@ -711,7 +713,7 @@ function View_atto($IdAtto){
 	$responsabile=ap_get_responsabile($risultato->RespProc);
 	$responsabile=$responsabile[0];
 	$NomeEnte=ap_get_ente($risultato->Ente);
-	$NomeEnte=$NomeEnte->Nome;
+	$NomeEnte=stripslashes($NomeEnte->Nome);
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
@@ -963,16 +965,16 @@ echo'
 				echo "Bozza";
 		echo '  </td> 
 		        <td>
-					'.$Ente.'
+					'.stripslashes($Ente).'
 				</td>
 				<td>
 					'.ap_VisualizzaData($riga->Data) .'
 				</td>
 				<td>
-					'.$riga->Riferimento .'
+					'.stripslashes($riga->Riferimento) .'
 				</td>
 				<td>
-					'.$riga->Oggetto .'  
+					'.stripslashes($riga->Oggetto) .'  
 				</td>
 				<td>
 					'.$cat .'  
@@ -1144,7 +1146,7 @@ echo'
 		}
 		echo '  </td> 
 		        <td>
-					'.$Ente.'
+					'.stripslashes($Ente).'
 				</td>
 		        <td>
 					'.$NumeroAtto.'/'.$riga->Anno .'
@@ -1153,10 +1155,10 @@ echo'
 					'.ap_VisualizzaData($riga->Data) .'
 				</td>
 				<td>
-					'.$riga->Riferimento .'
+					'.stripslashes($riga->Riferimento) .'
 				</td>
 				<td>
-					'.$riga->Oggetto .'  
+					'.stripslashes($riga->Oggetto) .'  
 				</td>
 				<td>
 					'.ap_VisualizzaData($riga->DataInizio) .'  

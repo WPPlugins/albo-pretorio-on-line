@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.1
+ * @since 3.1.1
  */
 
 require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -270,9 +270,17 @@ switch ( $_REQUEST['action'] ) {
 	case "add-atto" :
 		$NonValidato=false;
 		$message="Impossibile memorizzare l'atto:";
+		if ($_POST['Riferimento']==""){
+			$NonValidato=true;
+			$message.="<br />Bisogna inserire il <em><strong>Riferimento</strong></em> ";
+		}
+		if ($_POST['Oggetto']==""){
+			$NonValidato=true;
+			$message.="<br />Bisogna inserire l'<em><strong>Oggetto</strong></em> ";
+		}
 		if ($_POST['Categoria']==0){
 			$NonValidato=true;
-			$message.="<br />Bisogna selezionare una Categoria ";
+			$message.="<br />Bisogna selezionare una <em><strong>Categoria</strong></em> ";
 		}
 		if ($_POST['Responsabile']==0){
 			$NonValidato=true;
