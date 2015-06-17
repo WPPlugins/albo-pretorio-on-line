@@ -10,6 +10,16 @@ jQuery.noConflict();
 				return false;
 			}					
 		});
+		
+		$('a.ripubblica').click(function(){
+			var answer = confirm("Confermi la ripubblicazione dei " + $(this).attr('rel') + ' atti in corso di validita?')
+			if (answer){
+				return true;
+			}
+			else{
+				return false;
+			}					
+		});
 		$('a.annullaatto').click(function(){
 			var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
 			if (answer){

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.0.2
+ * @since 3.2
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -287,171 +287,278 @@ function Nuovo_atto(){
 		$dataCorrente=date("d/m/Y");
 	else
 		$dataCorrente=$_REQUEST['Data'];
-	echo '
-<div class="wrap">
-<div style="display:inline;float:left;">
-	<img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto"/>
-</div>';
-echo '	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
-	<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
-if ( $_REQUEST['msg'] !="") {
-	echo '<div id="message" class="updated"><p>'.stripslashes($_REQUEST['msg']).'</p></div>';
-}
-echo'<div id="col-container">
-<form id="addatto" method="post" action="?page=atti" class="validate">
-<input type="hidden" name="action" value="add-atto" />
-<input type="hidden" name="id" value="'.$_REQUEST['id'].'" />
-'.wp_nonce_field('add-tag', '_wpnonce_add-tag').'
-<br />
-	<table class="widefat">
+	if ($_REQUEST['Ente'])
+		$defEnte=$_REQUEST['Ente'];
+	else
+		$defEnte=get_option('opt_AP_Ente');
+	if ($_REQUEST['Riferimento'])
+		$Riferimento=$_REQUEST['Riferimento'];
+	else
+		$Riferimento="";
+	if ($_REQUEST['Oggetto'])
+		$Oggetto=$_REQUEST['Oggetto'];
+	else
+		$Oggetto="";
+/*	if ($_REQUEST['DataInizio'])
+		$DataI=$_REQUEST['DataInizio'];
+	else*/
+	$DataI=date("d/m/Y");
+	if ($_REQUEST['DataFine'])
+		$DataF=$_REQUEST['DataFine'];
+	else
+		$DataF=date("d/m/Y");
+	if ($_REQUEST['Note'])
+		$Note=$_REQUEST['Note'];
+	else	
+		$Note="";
+	if ($_REQUEST['Categoria'])
+		$Categoria=$_REQUEST['Categoria'];
+	else
+		$Categoria="";
+	if ($_REQUEST['Responsabile'])
+		$Responsabile=$_REQUEST['Responsabile'];
+	else{
+		$Resp=ap_get_responsabili();
+		if (count($Resp)>0)
+			$Responsabile=$Resp[0]->IdResponsabile;
+		else
+			$Responsabile="";	
+	}
 		
-	    <thead>
-		<tr>
-			<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
-		</tr>
-	    </thead>
-	    <tbody id="dati-atto">
-		<tr>
-			<th valign="top" style="text-align:right;">Ente Emittente</th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$_REQUEST['Ente']).'<br />
-			<span style="font-style: italic;">Ente che pubblica l\'atto; potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span></td>
-		</tr>
-		<tr>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Numero Albo</th>
-			<td>&nbsp;&nbsp;/'.date("Y").'<br />
-			<span style="font-style: italic;">Numero progressivo generato dal programma</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.$dataCorrente.'" maxlength="10" size="10" aria-required="true" /><br />
-			<span style="font-style: italic;">Data di codifica dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" maxlength="100" size="70" aria-required="true" value="'.$_REQUEST['Riferimento'].'" /><br />
-			<span style="font-style: italic;">Numero di riferimento dell\'atto, es. N. Protocollo</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Oggetto</th>
-			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="70" maxlength="200" aria-required="true">'.$_REQUEST['Oggetto'].'</textarea><br />
-			<span style="font-style: italic;">Oggetto, descrizione sintetica dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataInizio'].'" /><br />
-			<span style="font-style: italic;">Data Inizio Pubblicazione dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" maxlength="10" size="10" aria-required="true" value="'.$_REQUEST['DataFine'].'" /><br />
-			<span style="font-style: italic;">Data Fine Pubblicazione dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Note</th>
-			<td><textarea  name="Note" id="Note-atto" rows="5" cols="70" wrap="ON" maxlength="255">'.$_REQUEST['Note'].'</textarea><br />
-			<span style="font-style: italic;">Descrizione dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Categoria</th>
-			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$_REQUEST['Categoria']).'<br />
-			<span style="font-style: italic;">Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Responsabile Procedimento</th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$_REQUEST['Responsabile']).'<br />
-			<span style="font-style: italic;">Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</span></td>
-		</tr>
-		<tr>
-			<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Atto"  /></td>
-		</tr>
-	    </tbody>
+?>
+<div class="wrap">
+	<div style="display:inline;float:left;">
+		<img src="<?php echo Albo_URL.'/img/atti32.png';?>" alt="Icona Nuovo Atto"/>
+	</div>
+	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
+	<a href="<?php echo home_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+<?php 
+	if ( $_REQUEST['msg'] !="") {
+		?><div id="message" class="updated"><p><?php echo stripslashes($_REQUEST['msg']);?></p></div>
+<?php	}?>
+	<div style="margin-top: 30px;">
+		<form id="addatto" method="post" action="?page=atti" class="validate">
+		<input type="hidden" name="action" value="add-atto" />
+		<input type="hidden" name="id" value="'.$_REQUEST['id'].'" />
+        <?php wp_nonce_field('add-tag', '_wpnonce_add-tag')?>
+		<table class="widefat">
+		    <thead>
+				<tr>
+					<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
+				</tr>
+	    	</thead>
+	    	<tbody id="dati-atto">
+				<tr>
+					<th valign="top" style="text-align:right;">Ente Emittente</th>
+					<td style="vertical-align: middle;"><?php echo ap_get_dropdown_enti('Ente','Ente','postform','',$defEnte)?>
+						<br />
+						<span style="font-style: italic;">Ente che pubblica l'atto; potrebbe essere diverso dall'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Numero Albo</th>
+					<td>&nbsp;&nbsp;<strong><em>00000/<?php echo date("Y");?></em></strong><br />
+						<span style="font-style: italic;">Numero progressivo generato dal programma, verr&agrave; assegnato in fase di pubblicazione</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Data</th>
+					<td>
+						<input name="Data" id="Calendario1" type="hidden" value="<?php echo $dataCorrente;?>" maxlength="10" size="10"/><strong><em><?php echo $dataCorrente;?></strong></em>
+						<br />
+						<span style="font-style: italic;">Data di codifica dell'atto, viene inserita automaticamente nel momento in cui viene creato.</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Codice di Riferimento <span style="color:red;font-weight: bold;">*</span></th>
+					<td>
+						<input name="Riferimento" id="riferimento-atto" type="text" maxlength="100" size="70" value="<?php echo $Riferimento; ?>" />
+						<br />
+						<span style="font-style: italic;">Numero di riferimento dell'atto, es. N. Protocollo</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Oggetto <span style="color:red;font-weight: bold;">*</span></th>
+					<td>
+						<textarea name="Oggetto" id="oggetto-atto" rows="2" cols="70" maxlength="200"><?php echo $Oggetto;?></textarea>
+						<br />
+						<span style="font-style: italic;">Oggetto, descrizione sintetica dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
+					<td style="vertical-align: middle;">
+						<input name="DataInizio" type="hidden" value="<?php echo $DataI;?>" /><strong><em><?php echo $DataI;?></em></strong><br />
+					<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto, verr&agrave; valorizzata definitivamente in fase di pubblicazione dell'atto</span></td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
+					<td style="vertical-align: middle;">
+						<input name="DataFine" id="Calendario3" type="text" maxlength="10" size="10" value="<?php echo $DataF;?>" />
+						<br />
+						<span style="font-style: italic;">Data Fine Pubblicazione dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Note</th>
+					<td><?php wp_editor( $Note, 'note_txt',
+							array('wpautop'=>true,
+								  'textarea_name' => 'Note',
+								  'textarea_rows' => 10,
+								  'teeny' => false,
+								  'media_buttons' => false)
+								)?>
+							<br />
+							<span style="font-style: italic;">Descrizione dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Categoria <span style="color:red;font-weight: bold;">*</span></th>
+					<td>
+						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$Categoria);?>
+						<br />
+						<span style="font-style: italic;">Categoria in cui viene collocato l'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Responsabile Procedimento <span style="color:red;font-weight: bold;">*</span></th>
+					<td style="vertical-align: middle;">
+						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$Responsabile);?>
+						<br />
+						<span style="font-style: italic;">Persona preposta dall'ente alla gestione del procedimento che ha generato l'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Atto"  /></td>
+				</tr>
+			    </tbody>
 	</table>
 </form>
+ <span style="color:red;font-weight: bold;">*</span> i campo contrassegnati dall'asterisco sono obbligatori
 </div>
-</div>';	
+</div>
+<?php
 }
+
 
 function Edit_atto($id){
 $atto=ap_get_atto($id);
 $atto=$atto[0];
-	echo '
+?>
 <div class="wrap">
-<div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/atti32.png" alt="Icona Nuovo Atto" /></div>
-<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2>
-<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
-<div id="col-container">
-<form id="addatto" method="post" action="?page=atti" class="validate">
-<input type="hidden" name="action" value="memo-atto" />
-<input type="hidden" name="id" value="'.$_REQUEST['id'].'" />
-'.wp_nonce_field('add-tag', '_wpnonce_add-tag').'
-<br />
-	<table class="widefat">
-	    <thead>
-		<tr>
-			<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
-		</tr>
-	    </thead>
-	    <tbody id="dati-atto">
-		<tr>
-			<th valign="top" style="text-align:right;">Ente</th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente).'<br />
-			<span style="font-style: italic;">Ente che pubblica l\'atto; potrebbe essere diverso dall\'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Numero Albo</th>
-			<td><span style="font-weight: bold;">'.$atto->Numero.'/'.$atto->Anno.'</span><br />
-			<span style="font-style: italic;">Numero progressivo generato dal programma</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Data</th>
-			<td><input name="Data" id="Calendario1" type="text" value="'.ap_VisualizzaData($atto->Data).'" maxlength="10" size="10" aria-required="true" /><br />
-			<span style="font-style: italic;">Data di codifica dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Codice di Riferimento</th>
-			<td><input name="Riferimento" id="riferimento-atto" type="text" value="'.stripslashes($atto->Riferimento).'" maxlength="20" size="22" aria-required="true" /><br />
-			<span style="font-style: italic;">Numero di riferimento dell\'atto, es. N. Protocollo</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Oggetto</th>
-			<td><textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="200" aria-required="true">'.stripslashes($atto->Oggetto).'</textarea><br />
-			<span style="font-style: italic;">Oggetto, descrizione sintetica dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataInizio" id="Calendario2" type="text" value="'.ap_VisualizzaData($atto->DataInizio).'" maxlength="10" size="10" aria-required="true" /><br />
-			<span style="font-style: italic;">Data Inizio Pubblicazione dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
-			<td style="vertical-align: middle;"><input name="DataFine" id="Calendario3" type="text" value="'.ap_VisualizzaData($atto->DataFine).'" maxlength="10" size="10" aria-required="true" /><br />
-			<span style="font-style: italic;">Data Fine Pubblicazione dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Note</th>
-			<td><textarea  name="Note" rows="5" cols="60" wrap="ON" maxlength="255">'.stripslashes($atto->Informazioni).'</textarea><br />
-			<span style="font-style: italic;">Descrizione dell\'atto</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Categoria</th>
-			<td>'.ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria).'<br />
-			<span style="font-style: italic;">Categoria in cui viene collocato l\'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</span></td>
-		</tr>
-		<tr>
-			<th valign="top" style="text-align:right;">Responsabile Procedimento </th>
-			<td style="vertical-align: middle;">'.ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc).'<br />
-			<span style="font-style: italic;">Persona preposta dall\'ente alla gestione del procedimento che ha generato l\'atto</span></td>
-		</tr>
-		<tr>
-			<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Memorizza Modifiche Atto" /></td>
-		</tr>
-	    </tbody>
-	</table>
-</form>
+<div style="display:inline;float:left;"><img src="<?php echo Albo_URL.'/img/atti32.png';?>" alt="Icona Nuovo Atto" /></div>
+	<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2>
+	<a href="<?php echo home_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+	<div id="col-container">
+		<form id="addatto" method="post" action="?page=atti" class="validate">
+			<input type="hidden" name="action" value="memo-atto" />
+			<input type="hidden" name="id" value="<?php echo $_REQUEST['id'];?>" />
+			<?php echo wp_nonce_field('add-tag', '_wpnonce_add-tag');?>
+			<br />
+			<table class="widefat">
+			    <thead>
+				<tr>
+					<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
+				</tr>
+			    </thead>
+			    <tbody id="dati-atto">
+				<tr>
+					<th valign="top" style="text-align:right;">Ente</th>
+					<td style="vertical-align: middle;">
+						<?php echo ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente);?>
+						<br />
+						<span style="font-style: italic;">Ente che pubblica l'atto; potrebbe essere diverso dall'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Numero Albo</th>
+					<td>
+						<span style="font-weight: bold;">00000/<?php echo $atto->Anno;?></span>
+						<br />
+						<span style="font-style: italic;">Numero progressivo generato dal programma</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Data</th>
+					<td>
+						<input name="Data" type="hidden" value="<?php echo ap_VisualizzaData($atto->Data);?>" /><em><strong><?php echo ap_VisualizzaData($atto->Data);?></strong></em>
+						<br />
+						<span style="font-style: italic;">Data di codifica dell'atto, viene inserita automaticamente nel momento in cui viene creato.</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Codice di Riferimento<span style="color:red;font-weight: bold;">*</span></th>
+					<td>
+						<input name="Riferimento" id="riferimento-atto" type="text" value="<?php echo stripslashes($atto->Riferimento);?>" maxlength="20" size="22" />
+						<br />
+						<span style="font-style: italic;">Numero di riferimento dell'atto, es. N. Protocollo</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Oggetto<span style="color:red;font-weight: bold;">*</span></th>
+					<td>
+						<textarea name="Oggetto" id="oggetto-atto" rows="2" cols="60" maxlength="200"><?php echo stripslashes($atto->Oggetto);?></textarea>
+						<br />
+						<span style="font-style: italic;">Oggetto, descrizione sintetica dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
+					<td style="vertical-align: middle;">
+						<input name="DataInizio" type="hidden" value="<?php echo ap_VisualizzaData($atto->DataInizio);?>" /><em><strong><?php echo ap_VisualizzaData($atto->DataInizio);?></strong></em>
+						<br />
+						<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto, verrà valorizzata definitivamente in fase di pubblicazione dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
+					<td style="vertical-align: middle;">
+						<input name="DataFine" id="Calendario3" type="text" value="<?php echo ap_VisualizzaData($atto->DataFine);?>" maxlength="10" size="10" />
+						<br />
+						<span style="font-style: italic;">Data Fine Pubblicazione dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Note</th>
+					<td><?php wp_editor( stripslashes($atto->Informazioni), 'note_txt',
+							array('wpautop'=>true,
+								  'textarea_name' => 'Note',
+								  'textarea_rows' => 10,
+								  'teeny' => false,
+								  'media_buttons' => false)
+								)?>
+						<br />
+						<span style="font-style: italic;">Descrizione dell'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Categoria<span style="color:red;font-weight: bold;">*</span></th>
+					<td>
+						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria);?>
+						<br />
+						<span style="font-style: italic;">Categoria in cui viene collocato l'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</span>
+					</td>
+				</tr>
+				<tr>
+					<th valign="top" style="text-align:right;">Responsabile Procedimento<span style="color:red;font-weight: bold;">*</span></th>
+					<td style="vertical-align: middle;">
+						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc);?>
+						<br />
+						<span style="font-style: italic;">Persona preposta dall'ente alla gestione del procedimento che ha generato l'atto</span>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="3">
+						<input type="submit" name="submit" id="submit" class="button" value="Memorizza Modifiche Atto" />
+					</td>
+				</tr>
+			    </tbody>
+			</table>
+		</form>
+		<span style="color:red;font-weight: bold;">*</span> i campo contrassegnati dall'asterisco sono obbligatori
+	</div>
 </div>
-</div>';	
+<?php	
 }
 
 function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
@@ -606,7 +713,7 @@ function View_atto($IdAtto){
 	$responsabile=ap_get_responsabile($risultato->RespProc);
 	$responsabile=$responsabile[0];
 	$NomeEnte=ap_get_ente($risultato->Ente);
-	$NomeEnte=$NomeEnte->Nome;
+	$NomeEnte=stripslashes($NomeEnte->Nome);
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
@@ -764,7 +871,7 @@ if (ap_get_num_categorie()==0){
 	$HtmlNP.='<p> </p>
 			<div class="widefat" >
 				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
-				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utility&amp;action=creacategorie">Crea Categorie di Default</a>
+				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utilityAlboP&amp;action=creacategorie">Crea Categorie di Default</a>
 				</p>
 			</div>';
 }
@@ -858,16 +965,16 @@ echo'
 				echo "Bozza";
 		echo '  </td> 
 		        <td>
-					'.$Ente.'
+					'.stripslashes($Ente).'
 				</td>
 				<td>
 					'.ap_VisualizzaData($riga->Data) .'
 				</td>
 				<td>
-					'.$riga->Riferimento .'
+					'.stripslashes($riga->Riferimento) .'
 				</td>
 				<td>
-					'.$riga->Oggetto .'  
+					'.stripslashes($riga->Oggetto) .'  
 				</td>
 				<td>
 					'.$cat .'  
@@ -1039,7 +1146,7 @@ echo'
 		}
 		echo '  </td> 
 		        <td>
-					'.$Ente.'
+					'.stripslashes($Ente).'
 				</td>
 		        <td>
 					'.$NumeroAtto.'/'.$riga->Anno .'
@@ -1048,10 +1155,10 @@ echo'
 					'.ap_VisualizzaData($riga->Data) .'
 				</td>
 				<td>
-					'.$riga->Riferimento .'
+					'.stripslashes($riga->Riferimento) .'
 				</td>
 				<td>
-					'.$riga->Oggetto .'  
+					'.stripslashes($riga->Oggetto) .'  
 				</td>
 				<td>
 					'.ap_VisualizzaData($riga->DataInizio) .'  

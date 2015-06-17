@@ -25,27 +25,24 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>Albo Pretorio on Line</title>
+	<base target="_self" />
 	<meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
 	<script language="javascript" type="text/javascript" src="<?php echo site_url(); ?>/wp-includes/js/tinymce/tiny_mce_popup.js"></script>
 	<script language="javascript" type="text/javascript" src="<?php echo site_url(); ?>/wp-includes/js/tinymce/utils/form_utils.js"></script>
 	<script language="javascript" type="text/javascript">
+
 		function init() {
 			tinyMCEPopup.resizeToInnerSize();
 		}
 
 		function insertAlboShortCode() {
 			var stato   		 = document.getElementById('StatoAtti').value;
-			var attipp  		 = document.getElementById('AttiPerPagina').value;
 			var categoria 		 = document.getElementById('Categoria').value;
 			var filtri  		 = document.getElementById('Filtri');
 			var minfiltri  		 = document.getElementById('MinFiltri');
 			
 			var tagtext = "[Albo ";
 			tagtext = tagtext + " stato=\"" + stato+ "\"";
-			if ((!isNaN(attipp) && !isNaN(parseFloat(attipp))) && attipp>0 )
-				tagtext = tagtext + " per_page=\""+attipp+"\"";
-			else
-				tagtext = tagtext + " per_page=\"10\"";
 			if ((!isNaN(categoria) && !isNaN(parseFloat(categoria))) && categoria>0 )
 				tagtext = tagtext + " cat=\"" + categoria+"\"";
 			//if (!isNaN(filtri) && filtri!="si" )
@@ -59,31 +56,25 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 				tagtext = tagtext + " minfiltri=\"si\"";
 			tagtext = tagtext + "]";
 			if(window.tinyMCE) {
-				window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tagtext);
-				/* tinyMCEPopup.editor.execCommand('mceRepaint'); */
+				window.tinyMCE.activeEditor.execCommand('mceInsertContent', 0, tagtext);
 			}
 			tinyMCEPopup.close();
 			return;
 		}
 	</script>
 </head>
-<body onload="tinyMCEPopup.executeOnLoad('init();');document.body.style.display='';" style="display: none;">
+<body onload="tinyMCEPopup.executeOnLoad('init();');">
 <?php 
 $Ele_Cate=ap_get_dropdown_categorie("Categoria","Categoria","","")
 ?>
-	<div class="mceActionPanel" >
+	<div class="mceActionPanel">
 		<form action="#" method="get" accept-charset="utf-8">
-			<p>
+				<p>
 				<label for="StatoAtti"><strong>Sato Atti</strong></label>
 					<select id="StatoAtti" name="StatoAtti">
-						<option value="0">Tutti</option>
 						<option value="1">Atti Correnti</option>
 						<option value="2">Atti Scaduti, Storico</option>
 					</select>
-				</p>
-				<p>
-					<label for="AttiPerPagina"><strong>Numero Atti per Pagina</strong></label>
-					<input type="text" name="AttiPerPagina" id="AttiPerPagina" size="5" value="10"/>
 				</p>
 				<p>
 					<label for="Categoria"><strong>Categoria</strong></label>
