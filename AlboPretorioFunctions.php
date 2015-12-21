@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.2
+* Version:3.3
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -391,20 +391,6 @@ function ap_ModificaParametriCampo($Tabella, $Campo, $Tipo, $Parametro){
 	}
 }
 
-/*function SvuotaTabelle(){
-	global $wpdb;
-	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati"));
-	ap_insert_log(3,7,$id,"Svuotamento Tabella Allegati");
-	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Atti"));
-	ap_insert_log(1,7,$id,"Svuotamento Tabella Atti");
-	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Categorie"));
-	ap_insert_log(2,7,$id,"Svuotamento Tabella Categorie");
-	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Enti"));
-	ap_insert_log(7,7,$id,"Svuotamento Tabella Enti");
-	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_RespProc"));
-	ap_insert_log(4,7,$id,"Svuotamento Tabella Responsabili Procedura");
-}
-*/
 function ap_DaPath_a_URL($File){
 	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
 	$allegato=$base.strstr($File, "wp-content");
@@ -605,7 +591,14 @@ global $wpdb, $current_user;
 										      'IdOggetto' => $IdOggetto,
 											  'IdAtto' => $IdAtto,
 											  'TipoOperazione' => $TipoOperazione,
-											  'Operazione' => $Operazione));	
+											  'Operazione' => $Operazione),
+										array('%s',
+											  '%s',
+											  '%s',
+											  '%d',
+											  '%d',
+											  '%d',
+											  '%s'));	
 }
 
 function ap_svuota_log($Tipo=0){
@@ -634,7 +627,7 @@ global $wpdb;
 	return $wpdb->get_results("SELECT date( `Data` ) AS Data, count( `Data` ) AS Accessi
 							   FROM $wpdb->table_name_Log
 							   WHERE `Oggetto` =5
-							   AND `IdOggetto` =".$IdAtto."
+							   AND `IdOggetto` =".(int)$IdAtto."
 							   GROUP BY date( `Data` )
 							   ORDER BY Data DESC;");	
 }
@@ -659,7 +652,7 @@ global $wpdb;
 							   INNER JOIN $wpdb->table_name_Allegati 
 							   	ON $wpdb->table_name_Log.`IdOggetto` = $wpdb->table_name_Allegati.IdAllegato
 							   WHERE `Oggetto` =6
-							   AND $wpdb->table_name_Allegati.`IdAtto` =$IdAtto
+							   AND $wpdb->table_name_Allegati.`IdAtto` =". (int)$IdAtto."
 							   GROUP BY date( `Data` ) , IdOggetto
 							   ORDER BY Data DESC");	
 }
@@ -713,7 +706,14 @@ function ap_get_num_categorie(){
 
 function ap_insert_categoria($cat_name,$cat_parente,$cat_descrizione,$cat_durata){
 	global $wpdb;
-	if ( false === $wpdb->insert($wpdb->table_name_Categorie,array('Nome' => $cat_name,'Genitore' => $cat_parente,'Descrizione' => $cat_descrizione,'Giorni' => $cat_durata)))	
+	if ( false === $wpdb->insert($wpdb->table_name_Categorie,array('Nome' => $cat_name,
+																   'Genitore' => $cat_parente,
+																   'Descrizione' => $cat_descrizione,
+																   'Giorni' => $cat_durata),
+															 array('%s',
+															 	   '%d',
+															 	   '%s',
+															 	   '%d')))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire la Nuova Categoria'.$wpdb->last_error, $wpdb->last_error);
     else{
     	$NomeCategoria=ap_get_categoria($Categoria);
@@ -732,6 +732,8 @@ function ap_get_categorie(){
 }
 function ap_memo_categorie($id,$cat_name,$cat_parente,$cat_descrizione,$cat_durata){
 	global $wpdb;
+	$id=(int)$id;
+	$cat_parente=(int)$cat_parente;
 	$Categoria=ap_get_categoria($id);
 	$Categoria=$Categoria[0];
 	$Log='{Id}==>'.$id .' ' ;
@@ -802,6 +804,7 @@ function ap_num_atti_categoria($IdCategoria,$Stato=0){
  	2 storici
 */
 	global $wpdb;
+	$IdCategoria=(int)$IdCategoria;
 	$Sql=$Sql="SELECT COUNT(*) FROM $wpdb->table_name_Atti WHERE IdCategoria=$IdCategoria";
 	switch ($Stato){
 		case 1:
@@ -906,6 +909,7 @@ function ap_get_categorie_gerarchica() {
 
 function ap_del_categorie($id) {
 	global $wpdb;
+	$id=(int)$id;
 	if ((ap_num_atti_categoria($id)>0) or (ap_num_figli_categorie($id)>0)){
 		return array("atti" => ap_num_atti_categoria($id),
 		             "figli" => ap_num_figli_categorie($id));
@@ -937,6 +941,7 @@ function ap_num_categorie_inutilizzate(){
 }
 function ap_num_categoria_atto($id){
 	global $wpdb;
+	$id=(int)$id;
 	$Sql="SELECT count(*) 
 	      FROM $wpdb->table_name_Atti  
 		  WHERE $wpdb->table_name_Atti.IdCategoria =%d;";
@@ -973,7 +978,19 @@ function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,
 				'DataFine' => $DataFine,
 				'Informazioni' => $Note,
 				'IdCategoria' => $Categoria,
-				'RespProc' => $Responsabile)))	{
+				'RespProc' => $Responsabile),
+								array(
+				'%d',
+				'%d',
+				'%d',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%d',
+				'%d')))	{
  
 // echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo Atto'.$wpdb->last_error, $wpdb->last_error);}
@@ -1010,7 +1027,7 @@ function ap_del_atto($id) {
 	}
 	else{
 	 	$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Atti WHERE	IdAtto=%d",$id));
-		ap_insert_log(1,3,$id,"Cancellazione Atto",$id);
+		ap_insert_log(1,3,$id,"Cancellazione Atto",(int)$id);
 
 		return True;
 	}
@@ -1084,7 +1101,7 @@ function ap_update_selettivo_atto($id,$ArrayCampiValori,$ArrayTipi,$TestaMsg){
 	if ( false === $wpdb->update($wpdb->table_name_Atti,$ArrayCampiValori,array( 'IdAtto' => $id ),$ArrayTipi))
     	return new WP_Error('db_update_error', 'Non sono riuscito a modifire l\' Atto'.$wpdb->last_error, $wpdb->last_error);
     else{
-		ap_insert_log(1,2,$id,$TestaMsg.ap_ListaElementiArray($ArrayCampiValori));
+		ap_insert_log(1,2,(int)$id,$TestaMsg.ap_ListaElementiArray($ArrayCampiValori));
 		return 'Atto Aggiornato: %%br%%'.ap_ListaElementiArray($ArrayCampiValori);	
 	}
     	
@@ -1092,6 +1109,7 @@ function ap_update_selettivo_atto($id,$ArrayCampiValori,$ArrayTipi,$TestaMsg){
 
 function ap_approva_atto($IdAtto){
 	global $wpdb;
+	$IdAtto=(int)$IdAtto;
 	$NumeroDaDb=ap_get_last_num_anno(date("Y"));
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
@@ -1122,6 +1140,7 @@ function ap_approva_atto($IdAtto){
 
 function ap_annulla_atto($IdAtto,$Motivo){
 	global $wpdb;
+	$IdAtto=(int)$IdAtto;
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
 	if($x=$wpdb->update($wpdb->table_name_Atti,array('DataAnnullamento' => date('Y-m-d'),'MotivoAnnullamento' =>$Motivo),
@@ -1256,6 +1275,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 
 function ap_get_atto($id){
 	global $wpdb;
+	$id=(int)$id;
 	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_Atti Where IdAtto=$id;");
 }	
 
@@ -1386,7 +1406,7 @@ function ap_memo_allegato($idAllegato,$Titolo,$idAtto){
 						  array( 'IdAllegato' => $idAllegato ),
 						  array('%s'),
 						  array('%d'))){
-		ap_insert_log(3,2,$id,"{Titolo Allegato}==> $Titolo",idAtto);
+		ap_insert_log(3,2,$id,"{Titolo Allegato}==> $Titolo",(int)$idAtto);
 		return true;
 	}else{
 		return new WP_Error('db_update_error', 'Non sono riuscito a modifire l\'allegato '.$wpdb->last_error, $wpdb->last_error);
@@ -1400,7 +1420,10 @@ global $wpdb;
 		$wpdb->table_name_Allegati,array(
 				'TitoloAllegato' => $TitoloAllegato,
 				'Allegato' =>  $Allegato,
-				'IdAtto' => $IdAtto)))	
+				'IdAtto' => $IdAtto),array(
+				'%s',
+				'%s',
+				'%d')))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo allegato'.$wpdb->last_error, $wpdb->last_error);
     else
     	ap_insert_log(3,1,$wpdb->insert_id,"{IdAllegato}==> $wpdb->insert_id
@@ -1411,6 +1434,8 @@ global $wpdb;
 
 function ap_del_allegato_atto($idAllegato,$idAtto=0,$nomeAllegato=''){
 global $wpdb;
+	$idAllegato=(int)$idAllegato;
+	$idAtto=(int)$idAtto;
 	$allegato=ap_get_allegato_atto($idAllegato);
 	if (file_exists($allegato[0]->Allegato) && is_file($allegato[0]->Allegato))
 		if (unlink($allegato[0]->Allegato)){
@@ -1424,6 +1449,7 @@ global $wpdb;
 function ap_del_allegati_atto($idAtto){
 global $wpdb;
 	$Del=FALSE;
+	$idAtto=(int)$idAtto;
 	$Allegati=ap_get_all_allegati_atto($idAtto);
 	foreach($Allegati as $allegato){
 		if (file_exists($allegato->Allegato) && is_file($allegato->Allegato))
@@ -1615,17 +1641,23 @@ function ap_get_responsabili(){
 }
 function ap_get_responsabile($Id){
 	global $wpdb;
-//	echo "SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=$Id;";
-	return $wpdb->get_results("SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=$Id;");	
+	return $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=%d;",$Id));	
 }
 function ap_insert_responsabile($resp_cognome,$resp_nome,$resp_email,$resp_telefono,$resp_orario,$resp_note){
 	global $wpdb;
-	if ( false === $wpdb->insert($wpdb->table_name_RespProc,array('Cognome' => $resp_cognome,
-	                                                              'Nome' => $resp_nome,
-																  'Email' => $resp_email,
-																  'Telefono' => $resp_telefono,
-																  'Orario' => $resp_orario,
-																  'Note' => $resp_note)))	
+	if ( false === $wpdb->insert($wpdb->table_name_RespProc,
+									array('Cognome' => $resp_cognome,
+                                          'Nome' => $resp_nome,
+										  'Email' => $resp_email,
+										  'Telefono' => $resp_telefono,
+										  'Orario' => $resp_orario,
+										  'Note' => $resp_note),
+									array('%s',
+										  '%s',
+										  '%s',
+										  '%s',
+										  '%s',
+										  '%s')))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il Nuovo Responsabile'.$wpdb->last_error, $wpdb->last_error);
     else
     	ap_insert_log(4,1,$wpdb->insert_id,"{IdResponsabile}==> $wpdb->insert_id
@@ -1638,6 +1670,7 @@ function ap_insert_responsabile($resp_cognome,$resp_nome,$resp_email,$resp_telef
 }
 function ap_memo_responsabile($Id,$resp_cognome,$resp_nome,$resp_email,$resp_telefono,$resp_orario,$resp_note){
 	global $wpdb;
+	$Id=(int)$Id;
 	$Responsabile=ap_get_responsabile($Id);
 	$Responsabile=$Responsabile[0];
 	$Log='{Id}==>'.$Id .' ' ;
@@ -1667,14 +1700,16 @@ function ap_memo_responsabile($Id,$resp_cognome,$resp_nome,$resp_email,$resp_tel
 						   '%s',
 						   '%s',
 						   '%s',
-						   '%s')))
+						   '%s'),
+					array('%d')))
 	    	return new WP_Error('db_update_error', 'Non sono riuscito a modifire il resposnabile del Trattamento'.$wpdb->last_error, $wpdb->last_error);
 	else 
-		ap_insert_log(4,2,$id,$Log);
+		ap_insert_log(4,2,$Id,$Log);
 }
 
 function ap_del_responsabile($id) {
 	global $wpdb;
+	$id=(int)$id;
 	$resp=ap_get_responsabile($id);
 	$responsabile= "Cancellazione Responsabile {IdResponsabile}==> $id {Cognome}==> ".$resp[0]->Cognome." {Nome}==> ".$resp[0]->Nome; 
 	$N_atti=ap_num_responsabili_atto($id);
@@ -1747,7 +1782,7 @@ function ap_get_enti(){
 function ap_get_ente($Id){
 	global $wpdb;
 //	echo "SELECT * FROM $wpdb->table_name_RespProc WHERE IdResponsabile=$Id;";
-	$ente=$wpdb->get_results("SELECT * FROM $wpdb->table_name_Enti WHERE IdEnte=$Id;");
+	$ente=$wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->table_name_Enti WHERE IdEnte=%d;",$Id));
 	return $ente[0];	
 }
 function ap_get_ente_me(){
@@ -1768,7 +1803,7 @@ function ap_set_ente_me($ente_nome){
 function ap_create_ente_me($nome="Ente non definito"){
 	global $wpdb;
 		if ($wpdb->get_var("SELECT COUNT(IdEnte) FROM $wpdb->table_name_Enti  WHERE IdEnte=0;")==0){
-			$wpdb->insert($wpdb->table_name_Enti,array('Nome' =>$nome));
+			$wpdb->insert($wpdb->table_name_Enti,array('Nome' =>$nome),array('%s'));
 			$wpdb->update($wpdb->table_name_Enti,
 									 array('IdEnte' => 0),
 									 array( 'IdEnte' => $wpdb->insert_id),
@@ -1782,13 +1817,21 @@ function ap_create_ente_me($nome="Ente non definito"){
 function ap_insert_ente($ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente_pec,$ente_telefono,$ente_fax,$ente_note){
 	global $wpdb;
 	if ( false === $wpdb->insert($wpdb->table_name_Enti,array('Nome' => $ente_nome,
-	                                                              'Indirizzo' => $ente_indirizzo,
-	                                                              'Url' => $ente_url,
-																  'Email' => $ente_email,
-																  'Pec' => $ente_pec,
-																  'Telefono' => $ente_telefono,
-																  'Fax' => $ente_fax,
-																  'Note' => $ente_note))){
+                                                              'Indirizzo' => $ente_indirizzo,
+                                                              'Url' => $ente_url,
+															  'Email' => $ente_email,
+															  'Pec' => $ente_pec,
+															  'Telefono' => $ente_telefono,
+															  'Fax' => $ente_fax,
+															  'Note' => $ente_note),
+														array('%s',
+															  '%s',
+															  '%s',
+															  '%s',
+															  '%s',
+															  '%s',
+															  '%s',
+															  '%s'))){
 //		echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il Nuovo Ente'.$wpdb->last_error, $wpdb->last_error);}
     else
@@ -1805,6 +1848,7 @@ function ap_insert_ente($ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente_p
 
 function ap_memo_ente($Id,$ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente_pec,$ente_telefono,$ente_fax,$ente_note){
 	global $wpdb;
+	$Id=(int)$Id;
 	$EnteL=ap_get_ente($Id);
 	$Log='{Id}==>'.$Id .' ' ;
 	if ($EnteL->Nome!=$ente_nome)
@@ -1848,6 +1892,7 @@ function ap_memo_ente($Id,$ente_nome,$ente_indirizzo,$ente_url,$ente_email,$ente
 
 function ap_del_ente($id) {
 	global $wpdb;
+	$id=(int)$id;
 	$N_atti=ap_num_enti_atto($id);
 	if ($N_atti>0){
 		return array("atti" => $N_atti);

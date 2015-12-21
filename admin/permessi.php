@@ -5,50 +5,55 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.2
+ * @since 3.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 if ($_REQUEST['action']=="memoPermessi"){
-	$lista=ap_get_users(); 
-// Azzera capacit࠵tenti di gestione ed amministrazione Albo Pretorio
-	foreach($lista as $riga){
-		if (!(user_can( $riga->ID, 'create_users') or user_can( $riga->ID, 'manage_network'))) {
-			$users = new WP_User( $riga->ID);
-			$users->remove_cap("gest_atti_albo");
-			$users->remove_cap("admin_albo");
-		}
-	}	
-// Crea capacit࠵tenti di gestione ed amministrazione Al Pretorio in base a quanto scelto dall'Utente
-	foreach($_REQUEST as $key=>$val){
-		$UID=substr($key,1);
-		if (is_numeric($UID)){
-			$users = new WP_User($UID);
-			if ($val=="Amministratore"){
-				$users->add_cap("admin_albo");
-				$users->add_cap("gest_atti_albo");
+	if (isset($_REQUEST['permessi'])){
+		if (wp_verify_nonce($_REQUEST['permessi'],'gestpermessi')){
+			$lista=ap_get_users(); 
+		// Azzera capacit࠵tenti di gestione ed amministrazione Albo Pretorio
+			foreach($lista as $riga){
+				if (!(user_can( $riga->ID, 'create_users') or user_can( $riga->ID, 'manage_network'))) {
+					$users = new WP_User( $riga->ID);
+					$users->remove_cap("gest_atti_albo");
+					$users->remove_cap("admin_albo");
+				}
+			}	
+		// Crea capacit࠵tenti di gestione ed amministrazione Al Pretorio in base a quanto scelto dall'Utente
+			foreach($_REQUEST as $key=>$val){
+				$UID=substr($key,1);
+				if (is_numeric($UID)){
+					$users = new WP_User($UID);
+					if ($val=="Amministratore"){
+						$users->add_cap("admin_albo");
+						$users->add_cap("gest_atti_albo");
+					}
+					if ($val=="Gestore")
+						$users->add_cap("gest_atti_albo");
+				}
 			}
-			if ($val=="Gestore")
-				$users->add_cap("gest_atti_albo");
-			}
+		}else{
+			$Msg="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
 		}
+	}else{
+		$Msg="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+	}
 }
 
 echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/ruoli32.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Permessi Utente</h2>';
-if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
-	echo '<div id="message" class="updated"><p>'.$messages[$msg];
-	if (isset($_REQUEST['errore'])) 
-		echo '<br />'.$_REQUEST['errore'];
-	echo '</p></div>';
-	$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+if (isset($Msg)) {
+	echo '<div id="message" class="updated"><p>'.$Msg.'</p></div>';
 }
 echo '
 		<div class="postbox-container" style="margin-top:20px;">
 			<div class="widefat">
 			<form id="gestPermessi" method="post" action="?page=permessiAlboP"  >
 			<input type="hidden" name="action" value="memoPermessi"/>
+			<input type="hidden" name="permessi" value="'.wp_create_nonce("gestpermessi").'" />
 				<table style="width:100%;">
 					<caption>Permessi</caption>
 					<thead>

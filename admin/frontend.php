@@ -5,19 +5,25 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.2
+ * @since 3.3
  */
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 switch ($_REQUEST['action']){
 	case 'visatto':
-		VisualizzaAtto($_REQUEST['id']);
+		if(is_numeric($_REQUEST['id']))
+			VisualizzaAtto($_REQUEST['id']);
+		else{
+			$ret=Lista_Atti($Parametri);
+		}
+			
 		break;
 	case 'addstatall':
-		ap_insert_log(6,5,$_GET['id'],"Download",$_GET['idAtto']);
+		if(is_numeric($_GET['id']) and is_numeric($_GET['idAtto']))
+			ap_insert_log(6,5,(int)$_GET['id'],"Download",(int)$_GET['idAtto']);
 		break;
 	default: 
 		if (isset($_REQUEST['filtra']))
-		 		$ret=Lista_Atti($Parametri,$_REQUEST['categoria'],$_REQUEST['anno'], $_REQUEST['oggetto'],$_REQUEST['DataInizio'],$_REQUEST['DataFine']);
+		 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
 		else if(isset($_REQUEST['annullafiltro'])){
 				 unset($_REQUEST['categoria']);
 				 unset($_REQUEST['anno']);
@@ -136,7 +142,7 @@ foreach ($allegati as $allegato) {
 			</div>
 			<div>
 				<p>
-					'.$allegato->TitoloAllegato.' <br />';
+					'.strip_tags($allegato->TitoloAllegato).' <br />';
 			if (strpos(get_permalink(),"?")>0)
 				$sep="&amp;";
 			else
@@ -169,9 +175,9 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 	//$HTML='<div class="ricerca">';
 	$HTML='';
 	//		<'.$titFiltri.' style="margin-bottom:10px;">Filtri</'.$titFiltri.'>
-	$HTML.='		<form id="filtro-atti" action="'.$_SERVER['REQUEST_URI'].'" method="post">
+	$HTML.='		<form id="filtro-atti" action="'.htmlentities($_SERVER['REQUEST_URI']).'" method="post">
 	';
-			if (strpos($_SERVER['REQUEST_URI'],'page_id')>0){
+			if (strpos(htmlentities($_SERVER['REQUEST_URI']),'page_id')>0){
 				$HTML.= '<input type="hidden" name="page_id" value="'.ap_Estrai_PageID_Url().'" />';
 			}	
 	$HTML.= '
@@ -194,11 +200,11 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 					</tr>
 					<tr>
 						<th scope="row"><label for="Calendario1">da Data</label></th>
-						<td><input name="DataInizio" id="Calendario1" type="text" value="'.$_REQUEST['DataInizio'].'" size="10" /></td>
+						<td><input name="DataInizio" id="Calendario1" type="text" value="'.htmlentities($_REQUEST['DataInizio']).'" size="10" /></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="Calendario2">a Data</label></th>
-						<td><input name="DataFine" id="Calendario2" type="text" value="'.$_REQUEST['DataFine'].'" size="10" /></td>
+						<td><input name="DataFine" id="Calendario2" type="text" value="'.htmlentities($_REQUEST['DataFine']).'" size="10" /></td>
 					</tr>
 					<tr>
 						<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>

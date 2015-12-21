@@ -5,23 +5,36 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.2
+ * @since 3.3
  */
 
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
+$Stato="";
+if (isset($_REQUEST['message']))
+	if($_REQUEST['message']==80)
+		$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata";
 switch($_REQUEST['action']){
 
 	case "Crearobots":
-		ap_crearobots();
+		if (!isset($_REQUEST['creasic'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['creasic'],'creasicurezza')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 			ap_crearobots();
 		menu();
 		break;
 	case "rip":
-		ap_ripubblica_atti_correnti($_GET['Data']);
+		ap_ripubblica_atti_correnti(htmlentities($_GET['Data']));
 		menu();
 		break;
 	case "menu":
-		menu(str_replace("%%br%%","<br />",$_GET['stato']));
+		menu(str_replace("%%br%%","<br />",htmlentities($_GET['stato'])));
 		unset($_GET['action']);
 		break;
 	case "creafsic":
@@ -29,12 +42,32 @@ switch($_REQUEST['action']){
 		unset($_POST['action']);
 		break;
 	case "posttrasf":
+		if (!isset($_REQUEST['posttrasf'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['posttrasf'],'posttrasferimento')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 			
 		$Msg=ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload'))."<br />";
 		$Msg.=ap_allinea_allegati();
 		unset($_POST['action']);
 		menu($Msg);
 		break;
 	case "BackupData":
+		if (!isset($_REQUEST['bckdata'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['bckdata'],'BackupDatiAlbo')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 			
 		$Data=date('Ymd_H_i_s');
 		$nf=ap_BackupDatiFiles($Data);
 		$filename=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
@@ -45,6 +78,16 @@ switch($_REQUEST['action']){
 		unset($_POST['action']);
 		break;
 	case "setData":
+		if (!isset($_REQUEST['ripub'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['ripub'],'ripubblicaatti')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 	
 		if ($_REQUEST['Data']> date("d/m/Y")){
 			$Stato="La Data dell'interruzione del serzio deve essere nel passato";
 			menu($Stato);
@@ -52,34 +95,74 @@ switch($_REQUEST['action']){
 			menu("","1",$_REQUEST['Data']);
 		break;
 	case "verificaproc":
+		if (!isset($_REQUEST['verproc'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['verproc'],'verificaprocedura')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 			
 		TestProcedura();
 		break;
 	case "oblio":
 		MSGOblio();  
 		break;		
 	case "creaninf":
+		if (!isset($_REQUEST['rigenera'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['rigenera'],'rigenerasic')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 		
 		ImplementaNINF();
 		break;
 	case "imploblio":
 		ImplementaOblio();
 		break;
 	case "creaTabella":
-		creaTabella($_REQUEST['Tabella']);
+		creaTabella(htmlentities($_REQUEST['Tabella']));
 		TestProcedura();
 		break;
 	case "creacategorie":
 		CreaCategorie();
 		break;
 	case "svuotalog":
+		if (!isset($_REQUEST['svuotalog'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['svuotalog'],'svuotafilelog')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 		
 		$Msg=SvuotaLog(0);
 		menu($Msg);
 		break;
 	case "puliscilog":
+		if (!isset($_REQUEST['puliscilog'])) {
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		}
+		if (!wp_verify_nonce($_REQUEST['puliscilog'],'puliscifilelog')){
+			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+			menu($Stato);
+			break;
+		} 		
 		$Msg=SvuotaLog(11);
 		menu($Msg);
 		break;
 	default:
-		menu();
+		menu($Stato);
 }
 function CreaCategorie(){
 echo '<div class="wrap">
@@ -195,6 +278,7 @@ switch ($passo){
 	case "":
 		echo '<form action="?page=utilityAlboP" id="ripub" method="post"  class="validate">
 				<input type="hidden" name="action" value="setData" />
+				<input type="hidden" name="ripub" value="'.wp_create_nonce('ripubblicaatti').'" />
 				Data Interruzione: <input name="Data" id="Calendario1" type="text" size="8" />
 				<input type="submit" name="submit" id="submit" class="button" value="Avvia Procedura"  />
 				</form>
@@ -218,7 +302,7 @@ Questa procedura esegue un test generale della procedura e riporta eventuali ano
 	<br />Verifica dati del Data Base e viene riportata una breve statistica sui dati
 </p>
 				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utilityAlboP&action=verificaproc">Verifica</a>
+ 					<a href="?page=utilityAlboP&action=verificaproc&amp;verproc='.wp_create_nonce('verificaprocedura').'">Verifica</a>
 				</p>
 		</div>
 				<div class="widefat" style="padding:10px;">
@@ -237,7 +321,7 @@ Questa procedura esegue le seguenti operazioni:
 						<li>Aggiornamento del percorso nella tabella degli allegati nel Data Base</li>
 					</ul>
 				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utilityAlboP&action=posttrasf">Avvia operazione</a>
+ 					<a href="?page=utilityAlboP&action=posttrasf&amp;posttrasf='.wp_create_nonce('posttrasferimento').'">Avvia operazione</a>
 				</p>
 		</div>
 		
@@ -251,12 +335,12 @@ Questa procedura esegue le seguenti operazioni:
 					<ul style="list-style: none;">
 						<li>Questa procedura cancella tutte le registrazioni presenti nel file di log&nbsp;&nbsp;
 							<span style="font-size:1.5em;font-weight: bold;">
-								<a href="?page=utilityAlboP&action=svuotalog">Svuota file di Log</a>
+								<a href="?page=utilityAlboP&action=svuotalog&amp;svuotalog='.wp_create_nonce('svuotafilelog').'">Svuota file di Log</a>
 							</span>
 						</li>
 						<li>Questa procedura cancella tutte le registrazioni di gestione dal file di log mantenendo le statistiche di accesso
 							<span style="font-size:1.5em;font-weight: bold;">
-								<a href="?page=utilityAlboP&action=puliscilog">Pulisci file di Log</a>
+								<a href="?page=utilityAlboP&action=puliscilog&amp;puliscilog='.wp_create_nonce('puliscifilelog').'">Pulisci file di Log</a>
 								  </span>
 						</li>
 					</ul>
@@ -282,6 +366,7 @@ echo '
 				<p>
 				<form action="?page=utilityAlboP" id="backup" method="post"  class="validate">
 					<input type="hidden" name="action" value="BackupData" />
+					<input type="hidden" name="bckdata" value="'.wp_create_nonce('BackupDatiAlbo').'" />
 					Backup dei Dati:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" name="submit" id="submit" class="button" value="Avvia Backup"  />
 				</form>
 				</p>
@@ -289,6 +374,7 @@ echo '
 					<form action="?page=utilityAlboP" id="exportBackup" method="post"  class="validate">
 					Esporta file di Backup: 
 						<input type="hidden" name="action" value="ExportBackupData" />
+						<input type="hidden" name="exportbckdata" value="'.wp_create_nonce('EsportaBackupDatiAlbo').'" />
 						<select name="elenco_Backup_Expo" id="elenco_Backup_Expo" >\n'
 						.$elencoExpo.'
 						</select>
@@ -344,8 +430,8 @@ switch ($Tabella){
 										"Key" => "", 
 										"Default" => "0000-00-00", 
 										"Extra" =>""),
-					"Informazioni" => array("Tipo" => "varchar(255)", 
-											"Null" =>"NO", 
+					"Informazioni" => array("Tipo" => "text", 
+											"Null" =>"YES", 
 											"Key" => "", 
 											"Default" => "", 
 											"Extra" =>""),
@@ -562,23 +648,23 @@ switch ($Tabella){
         $Msg="";
 		foreach ( $result as $campo ){
 			if (strtolower($Par[$campo->Field]["Tipo"])!=strtolower($campo->Type)){
-				$Msg.= $campo->Field." Tipo DB ". $campo->Type . " Tipo Originale ".$Par[$campo->Field]["Tipo"]."<br />";
+				$Msg.= "<strong>".$campo->Field."</strong><br />&nbsp;&nbsp;&nbsp;Tipo DB <strong>". $campo->Type . "</strong><br />&nbsp;&nbsp;&nbsp;Tipo Originale <strong>".$Par[$campo->Field]["Tipo"]."</strong><br />";
 				$Verificato=false;
 			}
 			if (strtolower($Par[$campo->Field]["Null"])!=strtolower($campo->Null)){
-				$Msg.= $campo->Field." Null DB ". $campo->Null . " Null Originale ".$Par[$campo->Field]["Null"]."<br />";
+				$Msg.= "<strong>".$campo->Field."</strong><br />&nbsp;&nbsp;&nbsp;Null DB <strong>". $campo->Null . "</strong><br />&nbsp;&nbsp;&nbsp;Null Originale <strong>".$Par[$campo->Field]["Null"]."</strong><br />";
 				$Verificato=false;
 			}
 			if (strtolower($Par[$campo->Field]["Default"])!=strtolower($campo->Default)){
-				$Msg.= $campo->Field." Default DB ". $campo->Default . " Default Originale ".$Par[$campo->Field]["Default"]."<br />";
+				$Msg.= "<strong>".$campo->Field."</strong><br />&nbsp;&nbsp;&nbsp;Default DB <strong>". $campo->Default . "</strong><br />&nbsp;&nbsp;&nbsp;Default Originale <strong>".$Par[$campo->Field]["Default"]."</strong><br />";
 				$Verificato=false;
 			}
 			if (strtolower($Par[$campo->Field]["Extra"])!=strtolower($campo->Extra)){
-				$Msg.= $campo->Field." Extra DB ". $campo->Extra . " Extra Originale ".$Par[$campo->Field]["Extra"]."<br />";
+				$Msg.= "<strong>".$campo->Field."</strong><br />&nbsp;&nbsp;&nbsp;Extra DB <strong>". $campo->Extra . "</strong><br />&nbsp;&nbsp;&nbsp;Extra Originale <strong>".$Par[$campo->Field]["Extra"]."</strong><br />";
 				$Verificato=false;
 			}
 			if (strtolower($Par[$campo->Field]["Key"])!=strtolower($campo->Key)){
-				$Msg.= $campo->Field." Key DB ". $campo->Key . " Key Originale ".$Par[$campo->Field]["Key"]."<br />";
+				$Msg.= "<strong>".$campo->Field."</strong><br />&nbsp;&nbsp;&nbsp;Key DB <strong>". $campo->Key . "</strong><br />&nbsp;&nbsp;&nbsp;Key Originale <strong>".$Par[$campo->Field]["Key"]."</strong><br />";
 				$Verificato=false;
 			}
 		}
@@ -706,7 +792,7 @@ echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Analisi Procedura</h2>
 		<div class="postbox-container" style=";margin-top:20px;">
-			<a class="add-new-h2 tornaindietro" href="'.$_SERVER[PHP_SELF].'?page=utilityAlboP" >
+			<a class="add-new-h2 tornaindietro" href="'.htmlentities($_SERVER[PHP_SELF]).'?page=utilityAlboP" >
 			Torna indietro
 			</a>
 		<h3>Librerie</h3>
@@ -763,7 +849,7 @@ if($ob2)
 echo '							</td>
 			<td></td>';
 //if (!$ob1 or !$ob2)
-echo '							<td><a href="?page=utilityAlboP&amp;action=creaninf">Rigenera</a></td>';
+echo '							<td><a href="?page=utilityAlboP&amp;action=creaninf&amp;rigenera='.wp_create_nonce('rigenerasic').'">Rigenera</a></td>';
 echo '
 						</tr>
 						<tr>
@@ -777,7 +863,7 @@ if($ob3)
 		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
 echo '							</td>';
 //if (!$ob3)
-echo '							<td><a href="?page=utilityAlboP&amp;action=Crearobots">Crea</a></td>';
+echo '							<td><a href="?page=utilityAlboP&amp;action=Crearobots&amp;creasic='.wp_create_nonce('creasicurezza').'">Crea</a></td>';
 echo '
 						</tr>
 					</tbody>
@@ -811,14 +897,14 @@ echo '				<tr>
 		</div>
 		<div class="postbox-container" style="margin-top:20px;">
 		<h3>Analisi Data Base</h2>
-	<div class="widefat" style="width:850px;">
+	<div class="widefat">
 		<table style="width:99%;">
 			<thead>
 				<tr>
-					<th style="text-align:left;">Tabella</th>
-					<th style="text-align:left;">Esistenza</th>
-					<th style="text-align:left;">Struttura</th>
-					<th style="text-align:left;">Analisi dati</th>
+					<th style="text-align:left;width:15%;">Tabella</th>
+					<th style="text-align:left;width:10%;">Esistenza</th>
+					<th style="text-align:left;width:25%;">Struttura</th>
+					<th style="text-align:left;width:50%;">Analisi dati</th>
 				</tr>
 			</thead>
 			<tbody>

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.2
+ * @since 3.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -20,10 +20,11 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 	<form id="allegato" enctype="multipart/form-data" method="post" action="?page=atti" class="validate">
 	<input type="hidden" name="operazione" value="upload" />
 	<input type="hidden" name="action" value="memo-allegato-atto" />
-	<input type="hidden" name="id" value="<?php echo $_REQUEST['id']; ?>" />
+	<input type="hidden" name="uploallegato" value="<?php echo wp_create_nonce('uploadallegato')?>" />
+	<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id']; ?>" />
 <?php 
 	if (isset($_REQUEST['ref']))
-		echo '<input type="hidden" name="ref" value="'.$_REQUEST['ref'].'" />';
+		echo '<input type="hidden" name="ref" value="'.htmlentities($_REQUEST['ref']).'" />';
 ?>	
 	<table class="widefat">
 	    <thead>

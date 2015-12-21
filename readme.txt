@@ -3,8 +3,8 @@ Contributors: Scimone Ignazio
 Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
-Tested up to: 4.1
-Stable tag: 3.2
+Tested up to: 4.2
+Stable tag: 3.3
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -12,28 +12,28 @@ Albo Pretorio On Line e' un plugin per WordPress che tenta di dare una risposta 
 
 Questa legge prevede che dal 1 gennaio 2011 gli atti soggetti a pubblicazione devono essere pubblicati sul sito internet istituzionale dell'ente per avere efficacia legale.
 
+Si ringrazia Alessandro Cingolani per la consulenza in ambito sicurezza informatica.
 == Installation ==
 
 Di seguito sono riportati i passi necessari per l'installazione del plugin. la procedura dettagliata la potete trovare sul sito dedicato al plugin http://www.sisviluppo.info
 
-
 1. Scaricare il plugin dal repository di wordpress o dal sito di riferimento
 2. Attivare il plugin dal menu Plugins
 3. Inserire gli atti lato amministrazione
-4. inserire lo shortcode [Albo stato="1" per_page="10" cat="1" filtri="si" minfiltri="no"]
+4. inserire lo shortcode attraverso il pulsante dell'editor della pagina/articolo oppure manualmente [Albo stato="1" per_page="10" cat="1" filtri="si" minfiltri="no"]
 
 <strong>stato</strong> può assumere i seguenti valori
 
-         0 - tutti gli atti (per ovvi motivi si scoglia l'uso se non per motivi di test)
          1 - solo gli atti in corso di validita'
          2 - solo gli atti scaduti (storico)
-         3 - solo gli atti da pubblicare (per ovvi motivi si scoglia l'uso se non per motivi di test)
 
 <strong>per_page</strong> indica il numero massimo di atti che vengono visualizza in ogni pagina
 <strong>cat</strong> opzionale l' ID della categoria di cui verranno visualizzati gli atti 
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
+= 3.3 =
+- <strong>Risolti</strong> vari problemi dii sicurezza
 = 3.2 =
 - <strong>Introdotta</strong> la possibilità di disattivare il tracciamento delle operazioni attraverso il log delle operazioni, tutte o solo quelle di gestione degli atti, con la possibilità di mantenere il tracciamento delle visite e dei download
 - <strong>Introdotta</strong> la possibilità di svuotare il file di log, tutte le registrazioni o solo squelle di gestione degli atti, con la possibilità di mantenere quelle relative al tracciamento delle visite e dei download

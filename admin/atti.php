@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.2
+ * @since 3.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -16,42 +16,66 @@ switch ($_REQUEST['action']){
 		die();
 		break;
 	case "view-atto" :
-		View_atto($_REQUEST['id']);
+		View_atto((int)$_REQUEST['id']);
 		break;
 	case "new-atto" :
 		Nuovo_atto();
 		break;
 	case "edit-atto" :
-		Edit_atto($_REQUEST['id']);
+		if (!isset($_REQUEST['modificaatto'])) {
+			Go_Atti();
+			break;	
+		}
+		if (!wp_verify_nonce($_REQUEST['modificaatto'],'editatto')){
+			Go_Atti();
+			break;
+		} 		
+		Edit_atto((int)$_REQUEST['id']);
 		break;
 	case "pubblica-atto":
-		Lista_Atti(ap_approva_atto($_REQUEST['id']));
+		Lista_Atti(ap_approva_atto((int)$_REQUEST['id']));
 		break;
 	case "setta-anno":
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
 	  	update_option('opt_AP_NumeroProgressivo',1 );
-		PreApprovazione($_REQUEST['id'],"Anno Albo settato a ".date("Y")." Numero prograssivo settato a 0");
+		PreApprovazione((int)$_REQUEST['id'],"Anno Albo settato a ".date("Y")." Numero prograssivo settato a 0");
 		break;
 	case "approva-atto" :
 		if ($_REQUEST['apa']){
-			$ret=ap_update_selettivo_atto($_REQUEST['id'],array('Anno' => $_REQUEST['apa']),array('%s'),"Modifica in Approvazione\n");
+			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('Anno' => $_REQUEST['apa']),array('%s'),"Modifica in Approvazione\n");
 		}
 		if ($_REQUEST['pnp']){
-			update_option( 'opt_AP_NumeroProgressivo', $_REQUEST['pnp']);
+			update_option( 'opt_AP_NumeroProgressivo', (int)$_REQUEST['pnp']);
 		}
 		if ($_REQUEST['udi']){
-			$ret=ap_update_selettivo_atto($_REQUEST['id'],array('DataInizio' => $_REQUEST['udi']),array('%s'),"Modifica in Approvazione\n");	
+			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataInizio' => $_REQUEST['udi']),array('%s'),"Modifica in Approvazione\n");	
 		}
 		if ($_REQUEST['udf']){
-			$ret=ap_update_selettivo_atto($_REQUEST['id'],array('DataFine' => $_REQUEST['udf']),array('%s'),"Modifica in Approvazione\n");	
+			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataFine' => $_REQUEST['udf']),array('%s'),"Modifica in Approvazione\n");	
 		}
-		PreApprovazione($_REQUEST['id'],$ret);
+		PreApprovazione((int)$_REQUEST['id'],$ret);
 		break;
 	case "allegati-atto" :
-		Allegati_atto($_REQUEST['id'],$_REQUEST['messaggio']);
+		if (!isset($_REQUEST['allegatoatto'])) {
+			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+			break;	
+		}
+		if (!wp_verify_nonce($_REQUEST['allegatoatto'],'gestallegatiatto')){
+			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+			break;
+		} 		
+		Allegati_atto((int)$_REQUEST['id'],$_REQUEST['messaggio']);
 		break;
 	case "edit-allegato-atto" :
-		Allegati_atto($_REQUEST['id'],$_REQUEST['messaggio'],$_REQUEST['idAlle']);
+		if (!isset($_REQUEST['modificaallegatoatto'])) {
+			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+			break;	
+		}
+		if (!wp_verify_nonce($_REQUEST['modificaallegatoatto'],'editallegatoatto')){
+			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+			break;
+		} 				
+		Allegati_atto((int)$_REQUEST['id'],$_REQUEST['messaggio'],(int)$_REQUEST['idAlle']);
 		break;
 	case "UpAllegati":
 		include_once ( dirname (__FILE__) . '/allegati.php' );
@@ -292,11 +316,11 @@ function Nuovo_atto(){
 	else
 		$defEnte=get_option('opt_AP_Ente');
 	if ($_REQUEST['Riferimento'])
-		$Riferimento=$_REQUEST['Riferimento'];
+		$Riferimento=htmlentities($_REQUEST['Riferimento']);
 	else
 		$Riferimento="";
 	if ($_REQUEST['Oggetto'])
-		$Oggetto=$_REQUEST['Oggetto'];
+		$Oggetto=htmlentities($_REQUEST['Oggetto']);
 	else
 		$Oggetto="";
 /*	if ($_REQUEST['DataInizio'])
@@ -304,7 +328,7 @@ function Nuovo_atto(){
 	else*/
 	$DataI=date("d/m/Y");
 	if ($_REQUEST['DataFine'])
-		$DataF=$_REQUEST['DataFine'];
+		$DataF=htmlentities($_REQUEST['DataFine']);
 	else
 		$DataF=date("d/m/Y");
 	if ($_REQUEST['Note'])
@@ -339,8 +363,8 @@ function Nuovo_atto(){
 	<div style="margin-top: 30px;">
 		<form id="addatto" method="post" action="?page=atti" class="validate">
 		<input type="hidden" name="action" value="add-atto" />
-		<input type="hidden" name="id" value="'.$_REQUEST['id'].'" />
-        <?php wp_nonce_field('add-tag', '_wpnonce_add-tag')?>
+		<input type="hidden" name="id" value="<?php echo(int)$_REQUEST['id']?>" />
+		<input type="hidden" name="nuovoatto" value="<?php echo wp_create_nonce('nuovoatto')?>" />
 		<table class="widefat">
 		    <thead>
 				<tr>
@@ -452,8 +476,8 @@ $atto=$atto[0];
 	<div id="col-container">
 		<form id="addatto" method="post" action="?page=atti" class="validate">
 			<input type="hidden" name="action" value="memo-atto" />
-			<input type="hidden" name="id" value="<?php echo $_REQUEST['id'];?>" />
-			<?php echo wp_nonce_field('add-tag', '_wpnonce_add-tag');?>
+			<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id'];?>" />
+			<input type="hidden" name="modificaatto" value="<?php echo wp_create_nonce('editatto')?>" />
 			<br />
 			<table class="widefat">
 			    <thead>
@@ -489,7 +513,7 @@ $atto=$atto[0];
 				<tr>
 					<th valign="top" style="text-align:right;">Codice di Riferimento<span style="color:red;font-weight: bold;">*</span></th>
 					<td>
-						<input name="Riferimento" id="riferimento-atto" type="text" value="<?php echo stripslashes($atto->Riferimento);?>" maxlength="20" size="22" />
+						<input name="Riferimento" id="riferimento-atto" type="text" value="<?php echo stripslashes($atto->Riferimento);?>" maxlength="100" size="70" />
 						<br />
 						<span style="font-style: italic;">Numero di riferimento dell'atto, es. N. Protocollo</span>
 					</td>
@@ -591,6 +615,7 @@ if ($IdAllegato!=0){
 	<input type="hidden" name="action" value="update-allegato-atto" />
 	<input type="hidden" name="id" value="'.$IdAtto.'" />
 	<input type="hidden" name="idAlle" value="'.$IdAllegato.'" />
+	<input type="hidden" name="modificaallegatoatto" value="'.wp_create_nonce("editallegatoatto").'" />
 	<table class="widefat">
 	    <thead>
 		<tr>
@@ -632,10 +657,10 @@ if ($IdAllegato!=0){
 	foreach ($righe as $riga) {
 		echo '<tr>
 				<td>	
-					<a href="?page=atti&amp;action=delete-allegato-atto&amp;idAllegato='.$riga->IdAllegato.'&amp;idAtto='.$IdAtto.'&amp;Allegato='.$riga->TitoloAllegato.'" rel="'.$riga->TitoloAllegato.'" class="da">
+					<a href="?page=atti&amp;action=delete-allegato-atto&amp;idAllegato='.$riga->IdAllegato.'&amp;idAtto='.$IdAtto.'&amp;Allegato='.$riga->TitoloAllegato.'&amp;cancellaallegatoatto='.wp_create_nonce('deleteallegatoatto').'" rel="'.$riga->TitoloAllegato.'" class="da">
 						<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
-					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'" rel="'.$riga->TitoloAllegato.'">
+					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'&amp;modificaallegatoatto='.wp_create_nonce('editallegatoatto').'" rel="'.$riga->TitoloAllegato.'">
 						<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>
 					<a href="'.ap_DaPath_a_URL($riga->Allegato).'" target="_parent">
@@ -813,7 +838,7 @@ foreach ($allegati as $allegato) {
 				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
 			</div>
 			<div style="margin-top:0;">
-				<p style="margin-top:0;">'.$allegato->TitoloAllegato.' <br />';
+				<p style="margin-top:0;">'.strip_tags($allegato->TitoloAllegato).' <br />';
 			if (is_file($allegato->Allegato))
 				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
 			else
@@ -841,6 +866,7 @@ $messages[8] = 'Impossibile ANULLARE l\'Atto';
 $messages[9] = 'Atto ANNULLATO';
 $messages[10] = 'Allegati all\'Atto Cancellati';
 $messages[11] = 'Allegati all\'Atto NON Cancellati';
+$messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 $messages[99] = 'Non puoi eseguire questa OPERAZIONE DIRETTAMENTE';
 $N_A_pp=10;
 //Paginazione Inizializzazione
@@ -848,7 +874,7 @@ $N_A_pp=10;
 		$Da=0;
 		$A=$N_A_pp;
 	}else{
-		$Da=($_REQUEST['Pag']-1)*$N_A_pp;
+		$Da=((int)$_REQUEST['Pag']-1)*$N_A_pp;
 		$A=$N_A_pp;
 	}
 	$TotAtti=ap_get_all_atti(9,0,0,'',0,0,'',0,0,true);
@@ -945,13 +971,13 @@ echo'
 		$Ente=$Ente->Nome; 
 		echo '<tr>
 	        	<td>
-				    <a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'" rel="'.$riga->Oggetto.'" tag="" class="ac">
+				    <a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'&amp;cancellaatto='.wp_create_nonce('deleteatto').'" rel="'.$riga->Oggetto.'" tag="" class="ac">
 						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
-					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'">
+					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'&amp;modificaatto='.wp_create_nonce('editatto').'">
 						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>
-					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'">
+					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'&amp;allegatoatto='.wp_create_nonce('gestallegatiatto').'">
 						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
 					</a>
 					<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'"  >
@@ -1014,7 +1040,7 @@ echo'
 		<div class="tablenav-pages">
     		<p><strong>N. Atti '.$TotAtti.'</strong>&nbsp;&nbsp; Pagine';
     	if (isset($_REQUEST['Pag']) And $_REQUEST['Pag']>1 ){
-			$Pagcur=$_REQUEST['Pag'];
+			$Pagcur=(int)$_REQUEST['Pag'];
 			$PagPre=$Pagcur-1;
 			echo '&nbsp;<a href="'.$Para.$PagPre.'" class="next page-numbers">&laquo;</a>';
 		}else{
@@ -1091,7 +1117,7 @@ echo'
 			$Annullato='';
 		echo '<tr '.$Annullato.'>
 	        	<td style="width:80px;">';
-		if ($NumeroAtto ==0 )
+/*		if ($NumeroAtto ==0 )
 			echo'	<a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'" rel="'.$riga->Oggetto.'" tag="" class="ac">
 						<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
@@ -1105,7 +1131,8 @@ echo'
 						<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
 					</a>';
 		else{
-			if ((ap_cvdate($riga->DataInizio) <= ap_cvdate(date("Y-m-d"))) and (ap_cvdate($riga->DataFine) >= ap_cvdate(date("Y-m-d"))))
+*/
+		if ((ap_cvdate($riga->DataInizio) <= ap_cvdate(date("Y-m-d"))) and (ap_cvdate($riga->DataFine) >= ap_cvdate(date("Y-m-d"))))
 				$Scaduto=False;
 			else	
 				$Scaduto=True;
@@ -1114,7 +1141,8 @@ echo'
 					</a>';
 			if (current_user_can('admin_albo')){
 				 if( !$Scaduto and $Annullato==''){
-					echo ' <a class="annullaatto" href="?page=atti&amp;action=annulla-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+				 	
+					echo ' <a class="annullaatto" href="?page=atti&amp;action=annulla-atto&amp;id='.$riga->IdAtto.'&amp;annullaatto='.wp_create_nonce('annullamento-atto').'"  rel="'.$riga->Oggetto.'">
 							<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
 						</a>';
 				}
@@ -1124,7 +1152,6 @@ echo'
 						</a>';
 				}
 			}
-		}
 		echo '				</td>
 				<td>';
 		if ($NumeroAtto == 0)

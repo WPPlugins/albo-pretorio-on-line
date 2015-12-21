@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.2
+ * @since 3.3
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -19,7 +19,7 @@ $messages[6] = __('Item not deleted.');
 $messages[7] = __('Impossibile cancellare Categorie che contengono Categorie Figlio. Cancellare prima i Figli');
 $messages[8] = __('Impossibile cancellare Categorie che sono collegate ad Atti');
 $messages[9] = __('Bisogna assegnare il nome alla nuova categoria');
-
+$messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
 <img src="<?php echo Albo_URL; ?>/img/categoria32.png" alt="Icona Visualizza Categorie Atti" style="display:inline;float:left;margin-top:10px;"/>
@@ -58,14 +58,21 @@ echo '<tr>
 if ($lista){
 	foreach($lista as $riga){
 	 $shift=(((int)$riga[2])*30)+5;
-		echo'<li style="text-align:left;padding-left:'.$shift.'px;">
-			<a href="?page=categorie&amp;action=delete-categorie&amp;id='.$riga[0].'" rel="'.$riga[1].'" class="dc">
-			<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
+	 echo'<li style="text-align:left;padding-left:'.$shift.'px;">';
+	 	if (ap_num_atti_categoria($riga[0])==0)
+			echo'
+				<a href="?page=categorie&amp;action=delete-categorie&amp;id='.$riga[0].'&amp;canccategoria='.wp_create_nonce('delcategoria').'" rel="'.$riga[1].'" class="dc">			
+				<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 			</a>
-			<a href="?page=categorie&amp;action=edit-categorie&amp;id='.$riga[0].'" rel="'.$riga[1].'">
+';
+		else
+			echo'
+				<img src="'.Albo_URL.'/img/null.png" alt="Vuoto" title="Spazio vuoto" />';
+			echo'					
+			<a href="?page=categorie&amp;action=edit-categorie&amp;id='.$riga[0].'&amp;modcategoria='.wp_create_nonce('editcategoria').'" rel="'.$riga[1].'">
 			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 			</a>
-			('.$riga[0] .') '.$riga[1] .'
+			('.$riga[0] .') '.$riga[1] .' (n&ordm; atti '.ap_num_atti_categoria($riga[0]).')
 			</li>'; 
 	}
 } else {
@@ -119,8 +126,8 @@ echo '    </tbody>
 <h3><?php echo $tax->labels->add_new_item; ?></h3>
 <form id="addtag" method="post" action="?page=categorie" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
 <input type="hidden" name="action" value="<?php if($edit) echo "memo-categoria"; else echo "add-categorie"; ?>"/>
-<input type="hidden" name="id" value="<?php echo $_REQUEST['id']; ?>" />
-<?php wp_nonce_field('add-tag', '_wpnonce_add-tag'); ?>
+<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id']; ?>" />
+<input type="hidden" name="categoria" value="<?php echo wp_create_nonce('categoria')?>" />
 
 <div class="form-field form-required">
 	<label for="tag-name">Nome</label>

@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.2
+Version:3.3
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -25,9 +25,6 @@ License: GPL2
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
-if ($_GET['update'] == 'true')
-	$stato="<div id='setting-error-settings_updated' class='updated settings-error'> 
-			<p><strong>Impostazioni salvate.</strong></p></div>";
 
 include_once(dirname (__FILE__) .'/AlboPretorioFunctions.php');				/* Various functions used throughout */
 include_once(dirname (__FILE__) .'/AlboPretorioWidget.php');
@@ -317,7 +314,7 @@ function add_albo_plugin($plugin_array) {
 						break;
 				}
 				$.ajax({
-					type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo $_REQUEST['id']; ?>', IdAtto: '<?php echo $IdAtto; ?>'},
+					type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo (int)$_REQUEST['id']; ?>', IdAtto: '<?php echo (int)$IdAtto; ?>'},
 					beforeSend: function() {
 					 $("#DatiLog").html('');
 					 $("#loading").fadeIn('fast');}, 
@@ -581,12 +578,20 @@ echo '<div  style="margin-left: 10px;">
 	}	
 
 	function AP_config(){
-	   global $current_user,$stato;
+	  global $current_user;
 	  if ($_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
 		update_option('opt_AP_NumeroProgressivo',1 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 	  }
+	  
+	  if (isset($_GET['update']))
+	  	if($_GET['update'] == 'true')
+			$stato="<div id='setting-error-settings_updated' class='updated settings-error'> 
+				<p><strong>Impostazioni salvate.</strong></p></div>";
+		  else
+			$stato="<div id='setting-error-settings_updated' class='updated settings-error'> 
+				<p><strong>ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata.</strong></p></div>";
 	  get_currentuserinfo();
 	  $ente   = stripslashes(ap_get_ente_me());
 	  $nprog  =  get_option('opt_AP_NumeroProgressivo');
@@ -634,6 +639,7 @@ echo '<div  style="margin-left: 10px;">
 	  '.$stato.'
 	  <form name="AlboPretorio_cnf" action="'.get_bloginfo('wpurl').'/wp-admin/index.php" method="post">
 	  <input type="hidden" name="c_AnnoProgressivo" value="'.$nanno.'"/>
+	  <input type="hidden" name="confAP" value="'.wp_create_nonce('configurazionealbo').'" />
 	  <table class="form-table">
 		<tr valign="top">
 			<th scope="row"><label for="nomeente">Nome Ente</label></th>
@@ -740,6 +746,7 @@ echo '<div  style="margin-left: 10px;">
 					<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
 						<form id="agg_anno_progressivo" method="post" action="?page=configAlboP">
 						<input type="hidden" name="action" value="setta-anno" />
+	  					<input type="hidden" name="confAP" value="'.wp_create_nonce('configurazionealbo').'" />
 						<input type="submit" name="submit" id="submit" class="button" value="Aggiorna Anno Albo ed Azzera numero Progressivo"  />
 						</form>
 					</div>
@@ -964,7 +971,13 @@ echo '<div  style="margin-left: 10px;">
 
 	function update_AlboPretorio_settings(){
 	    if($_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
-		    ap_set_ente_me($_POST['c_Ente']);
+	    	if (!isset($_POST['confAP'])) {
+	    		header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=false'); 		
+	    	}
+			if (!wp_verify_nonce($_POST['confAP'],'configurazionealbo')){
+				header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=false'); 
+			} 		
+		    ap_set_ente_me(strip_tags($_POST['c_Ente']));
 			if ($_POST['c_VEnte']=='Si')
 			    update_option('opt_AP_VisualizzaEnte','Si' );
 			else
@@ -973,9 +986,9 @@ echo '<div  style="margin-left: 10px;">
 		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
 		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
 		    update_option('opt_AP_LivelloTitoloFiltri',$_POST['c_LTF'] );
-			update_option('opt_AP_ColoreAnnullati',$_POST['color'] );
-			update_option('opt_AP_ColorePari',$_POST['colorp'] );
-			update_option('opt_AP_ColoreDispari',$_POST['colord'] );
+			update_option('opt_AP_ColoreAnnullati',strip_tags($_POST['color']) );
+			update_option('opt_AP_ColorePari',strip_tags($_POST['colorp']) );
+			update_option('opt_AP_ColoreDispari',strip_tags($_POST['colord']) );
 			update_option('opt_AP_stileTableFE',$_POST['stileTableFE']);
 			update_option('opt_AP_LogOp', $_POST['LogOperazioni']);
 			update_option('opt_AP_LogAc', $_POST['LogAccessi']);
