@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.3
+* Version:3.4
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -364,6 +364,17 @@ function ap_typeFieldInTable($Tabella, $Campo){
 function ap_EstraiParametriCampo($Tabella,$Campo){
 	global $wpdb;
 //	echo "SHOW COLUMNS FROM $Tabella LIKE $Campo <br />";
+/*
+		Field ==> Nome Campo
+		Type  ==> Tipo Campo
+		Null  ==> Il campo contiene YES se il campo accetta valori NULL altrimenti contiene NO 
+		Key   ==> Contiene il tipo di Kiave:
+			Vuota se non è indice oppure è parte di indice multicolonna come campo secondario
+			PRI se è Kiave primaria o parte di essa
+			UNI se è il primo campo di una chiave Univoca
+			MUL se è la prima colonna di un indice non univoco
+		Extra  ==> contiene informazioni addizionali. Il valore auto_increment 
+*/
 	$ris=$wpdb->get_row("SHOW COLUMNS FROM $Tabella LIKE '$Campo'", ARRAY_A);
 	if(count($ris)>0 )
 		return($ris);
@@ -479,9 +490,32 @@ function ap_SeDate($test,$data1,$data2){
 			if ($data1<=$data2)
 				return true;
 			break;
-
+		case "!=": 
+			if ($data1!=$data2)
+				return true;
+			break;
 	}
 	return false;
+}
+
+function daGiorniaAnniMesiGiorni($nGiorni){
+	if ($nGiorni>365)
+		$nAnni=floor($nGiorni/365);
+	else
+		$nAnni=0;
+	$nGiorni=$nGiorni-($nAnni*365);
+	if ($nGiorni>31){
+		 $giorniM=array(31,30,31,30,31,30,31,30,31,30,31,30);
+		$TgiorniM=$giorniM[0];
+		$nMesi=0;
+		for ($nMesi=0;$nGiorni>$TgiorniM;$nMesi++){
+			$TgiorniM+=$giorniM[$nMesi];
+		}
+		$nGiorni=$nGiorni-($TgiorniM-$giorniM[$nMesi-1]);
+	}else{
+		$nMesi=0;
+	}
+	return "Anni: ".$nAnni." Mesi: ".$nMesi." Giorni: ".$nGiorni;
 }
 function ap_datediff($interval, $date1, $date2) {
     if(($date2==0) Or ($date2<$date1))
@@ -958,14 +992,31 @@ function ap_categorie_orfane(){
 ################################################################################
 // Funzioni Atti
 ################################################################################
-
-function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
+function ap_SetDefaultDataScadenza(){
+	global $wpdb;
+	$Sql="SELECT IdAtto, DataOblio,DataFine FROM $wpdb->table_name_Atti;";
+	$Atti = $wpdb->get_results($Sql);
+	foreach ($Atti as $Atto){
+		if ($Atto->DataOblio=="0000-00-00"){
+			$DataOblio=ap_DateAdd($Atto->DataFine ,1825);
+			if ( $wpdb->update($wpdb->table_name_Atti,
+						array('DataOblio' => $DataOblio),
+						array( 'IdAtto' => $Atto->IdAtto),
+						array( '%s'),
+						array( '%d'))){						
+				ap_insert_log(1,2,$Atto->IdAtto,"{DataOblio}==> ".$DataOblio);
+			}		
+		}			
+	}
+}
+function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$DataOblio,$Note,$Categoria,$Responsabile){
 	global $wpdb;
 	$Anno=date("Y");
 	$Numero=0;
 	$Data=ap_convertiData($Data);
 	$DataInizio=ap_convertiData($DataInizio);
 	$DataFine=ap_convertiData($DataFine);
+	$DataOblio=ap_convertiData($DataOblio);
 	if ( false === $wpdb->insert(
 		$wpdb->table_name_Atti,array(
 				'Ente' => $Ente,
@@ -976,6 +1027,7 @@ function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,
 				'Oggetto' => $Oggetto,
 				'DataInizio' => $DataInizio,
 				'DataFine' => $DataFine,
+				'DataOblio' => $DataOblio,
 				'Informazioni' => $Note,
 				'IdCategoria' => $Categoria,
 				'RespProc' => $Responsabile),
@@ -989,13 +1041,14 @@ function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,
 				'%s',
 				'%s',
 				'%s',
+				'%s',
 				'%d',
 				'%d')))	{
- 
 // echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
-        return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire il nuovo Atto'.$wpdb->last_error, $wpdb->last_error);}
-    else{
-    	$NomeCategoria=ap_get_categoria($Categoria);
+          return 'Non sono riuscito ad inserire il nuovo Atto Sql=='.$wpdb->last_query .' Ultimo errore=='.$wpdb->last_error;
+    }else{
+//    	echo "Sql==".$wpdb->last_query;exit;
+	  	$NomeCategoria=ap_get_categoria($Categoria);
     	$NomeCategoria=$NomeCategoria[0];
 		$NomeResponsabile=ap_get_responsabile($Responsabile);
 		$NomeResponsabile=$NomeResponsabile[0];
@@ -1011,6 +1064,7 @@ function ap_insert_atto($Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,
 											{IdOggetto}==> $wpdb->insert_id
 											{DataInizio}==> $DataInizio
 											{DataFine}==> $DataFine
+											{DataOblio}==> $DataOblio
 											{Note}=> $Note
 											{Categoria}==> $NomeCategoria->Nome
 											{IdCategoria}==> $Categoria
@@ -1033,7 +1087,7 @@ function ap_del_atto($id) {
 	}
 }
 
-function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$Note,$Categoria,$Responsabile){
+function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFine,$DataOblio,$Note,$Categoria,$Responsabile){
 	global $wpdb;
 	$Atto=ap_get_atto($id);
 	$Atto=$Atto[0];
@@ -1052,6 +1106,8 @@ function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFin
 		$Log.='{DataInizio}==> '.$DataInizio.' ';
 	if ($Atto->DataFine!=$DataFine)
 		$Log.='{DataFine}==> '.$DataFine.' ';
+	if ($Atto->DataOblio!=$DataOblio)
+		$Log.='{DataOblio}==> '.$DataOblio.' ';
 	if ($Atto->Informazioni!=$Note)
 		$Log.='{Informazioni}==> '.$Note.' ';
 	if ($Atto->IdCategoria!=$Categoria){
@@ -1069,6 +1125,7 @@ function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFin
 	$Data=ap_convertiData($Data);
 	$DataInizio=ap_convertiData($DataInizio);
 	$DataFine=ap_convertiData($DataFine);
+	$DataOblio=ap_convertiData($DataOblio);
 	if ( false === $wpdb->update($wpdb->table_name_Atti,
 					array('Ente' => $Ente,
 						  'Data' => $Data,
@@ -1076,6 +1133,7 @@ function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFin
 						  'Oggetto' => $Oggetto,
 						  'DataInizio' => $DataInizio,
 						  'DataFine' => $DataFine,
+						  'DataOblio' => $DataOblio,
 						  'Informazioni' => $Note,
 						  'IdCategoria' => $Categoria,
 						  'RespProc' => $Responsabile),
@@ -1085,6 +1143,7 @@ function ap_memo_atto($id,$Ente,$Data,$Riferimento,$Oggetto,$DataInizio,$DataFin
 								'%s',
 								'%s',
 								'%s',
+								'%s',							
 								'%s',
 								'%s',
 								'%d',
@@ -1208,6 +1267,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		 1 - in corso di validità
 		 2 - scaduti
 		 3 - da pubblicare
+		 4 - da cancellare
 		 9 - tutti tranne quelli da pubblicare
 	$Conteggio:
 		 false - Estrazione Dati	
@@ -1255,7 +1315,10 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		case 3:
 			$Selezione=' WHERE Numero=0'; 
 			break;
-	}
+		case 4:
+			$Selezione.=' WHERE DataOblio<="'.ap_oggi().'" ';
+			$Selezione.=' AND Numero>0'; 
+			break;	}
 	if (!$Annullati)
 		$Selezione.=' And DataAnnullamento="0000-00-00"';
 	if ($Anno!=0)

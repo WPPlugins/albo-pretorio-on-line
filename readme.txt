@@ -3,8 +3,8 @@ Contributors: Scimone Ignazio
 Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
-Tested up to: 4.2
-Stable tag: 3.3
+Tested up to: 4.4
+Stable tag: 3.4
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -32,8 +32,11 @@ Di seguito sono riportati i passi necessari per l'installazione del plugin. la p
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
+= 3.4 =
+- <strong>Riorganizzata</strong> l'interfaccia di amministrazione
+- <strong>Aggiunta</strong> la data oblio, data da cui l'atto può essere cancellato definitivamente. In una prossima release verr&agrave; implementato un sistema di cancellazione automatica degi atti da cancellare.
 = 3.3 =
-- <strong>Risolti</strong> vari problemi dii sicurezza
+- <strong>Risolti</strong> vari problemi di sicurezza
 = 3.2 =
 - <strong>Introdotta</strong> la possibilità di disattivare il tracciamento delle operazioni attraverso il log delle operazioni, tutte o solo quelle di gestione degli atti, con la possibilità di mantenere il tracciamento delle visite e dei download
 - <strong>Introdotta</strong> la possibilità di svuotare il file di log, tutte le registrazioni o solo squelle di gestione degli atti, con la possibilità di mantenere quelle relative al tracciamento delle visite e dei download

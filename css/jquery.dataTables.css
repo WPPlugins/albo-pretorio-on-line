@@ -6,7 +6,7 @@ table.dataTable {
   margin: 0 auto;
   clear: both;
   border-collapse: separate;
-  border-spacing: 1;
+  border-spacing: 0;
   /*
    * Header and footer styles
    */
@@ -215,16 +215,12 @@ table.dataTable td {
   -moz-box-sizing: content-box;
   box-sizing: content-box;
 }
-.dataTables_filter {
-  clear: both;
-  float: left;
-  text-align:  right;
-}
+
 /*
  * Control feature layout
  */
 .dataTables_wrapper {
-/*  position: relative;*/
+  position: relative;
   clear: both;
   *zoom: 1;
   zoom: 1;
@@ -232,11 +228,9 @@ table.dataTable td {
 .dataTables_wrapper .dataTables_length {
   float: left;
 }
-.dataTables_wrapper{
-/*  float: right;*/
+.dataTables_wrapper .dataTables_filter {
+  float: right;
   text-align: right;
-  border: 1px solid;
-  padding: 2px;
 }
 .dataTables_wrapper .dataTables_filter input {
   margin-left: 0.5em;

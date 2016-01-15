@@ -5,15 +5,17 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.3
+ * @since 3.4
  */
 
-require_once(ABSPATH . 'wp-includes/pluggable.php'); 
+// require_once(ABSPATH . 'wp-includes/pluggable.php'); 
+add_action( 'init', 'albo_post');
 
+function albo_post() {
 switch ( $_REQUEST['action'] ) {
 	case "elimina-atto":
 		$id=(int)$_GET['id'];
- 		$location = "?page=atti" ;
+ 		$location = "?page=atti&p=2" ;
 		$riga=ap_get_atto($id);
 		$riga=$riga[0];
 		if (ap_cvdate($riga->DataFine) < ap_cvdate(date("Y-m-d")) and $_GET['sgs']=="ok"){
@@ -50,7 +52,7 @@ switch ( $_REQUEST['action'] ) {
 			ap_annulla_atto((int)$_REQUEST['id'],$_REQUEST['motivo']);
 			$NumMsg=9;
 		}
- 		$location = "?page=atti" ;
+ 		$location = "?page=atti&p=1" ;
 		$location = add_query_arg( 'message', $NumMsg, $location );
 		wp_redirect( $location );
 		break;
@@ -409,7 +411,7 @@ switch ( $_REQUEST['action'] ) {
 			$NonValidato=true;
 			$message.="<br />Bisogna selezionare un Responsabile del Procedimento ";
 		}
-		$location = "?page=atti" ;
+		$location = "?page=atti&amp;p=1" ;
 		if ($NonValidato){
 			$location = add_query_arg( 'msg', $message, $location );
 			$location = add_query_arg( 'action', "new-atto", $location );	
@@ -420,6 +422,7 @@ switch ( $_REQUEST['action'] ) {
 			$location = add_query_arg( 'Oggetto', $_POST['Oggetto'], $location );	
 			$location = add_query_arg( 'DataInizio', $_POST['DataInizio'], $location );	
 			$location = add_query_arg( 'DataFine', $_POST['DataFine'], $location );	
+			$location = add_query_arg( 'DataOblio', $_POST['DataOblio'], $location );
 			$location = add_query_arg( 'Note', $_POST['Note'], $location );	
 			$location = add_query_arg( 'Categoria', $_POST['Categoria'], $location );	
 			$location = add_query_arg( 'Responsabile', $_POST['Responsabile'], $location );	
@@ -430,13 +433,15 @@ switch ( $_REQUEST['action'] ) {
 								$_POST['Oggetto'],
 								$_POST['DataInizio'],
 								$_POST['DataFine'],
+								$_POST['DataOblio'],
 								$_POST['Note'],
 								$_POST['Categoria'],
 								$_POST['Responsabile']);
-			if ( !$ret && !is_wp_error( $ret ) )
+			if ( !$ret)
 				$location = add_query_arg( 'message', 1, $location );
 			else
 				$location = add_query_arg( 'message', 4, $location );
+				$location = add_query_arg( 'errore', $ret , $location );
 		}
 		wp_redirect( $location );
 		break;
@@ -449,7 +454,7 @@ switch ( $_REQUEST['action'] ) {
 			Go_Atti();
 			break;
 		} 		
-		$location = "?page=atti" ;
+		$location = "?page=atti&amp;p=1" ;
 		$ret=ap_memo_atto((int)$_REQUEST['id'],
 						  $_REQUEST['Ente'],
 		                  $_POST['Data'],
@@ -457,6 +462,7 @@ switch ( $_REQUEST['action'] ) {
 						  $_POST['Oggetto'],
 						  $_POST['DataInizio'],
 						  $_POST['DataFine'],
+						  $_POST['DataOblio'],
 						  $_POST['Note'],
 						  $_POST['Categoria'], 
 						  $_POST['Responsabile']);
@@ -467,8 +473,7 @@ switch ( $_REQUEST['action'] ) {
 		wp_redirect( $location );
 		break;
 	case "memo-allegato-atto":
-	echo "Ci passo:1";
-		$location = "?page=atti" ;
+		$location = "?page=atti&amp;p=1" ;
 		if (!isset($_REQUEST['uploallegato'])) {
 			Go_Atti();
 			break;	
@@ -514,7 +519,7 @@ switch ( $_REQUEST['action'] ) {
 		}
 		break;
 }
-
+}
 
 
 function Memo_allegato_atto(){
@@ -568,7 +573,7 @@ function Memo_allegato_atto(){
 	return $messages;
 }
 function Go_Atti(){
-	$location = "?page=atti" ;
+	$location = "?page=atti&p=1" ;
 	$location = add_query_arg( 'message', 80, $location );
 	wp_redirect( $location );
 }

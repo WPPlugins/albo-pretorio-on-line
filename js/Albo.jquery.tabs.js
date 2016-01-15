@@ -4,6 +4,7 @@ jQuery(document).ready(function($){
 jQuery(document).ready(function($){
     $('#fe-tabs-container').tabs();
 });
+
 jQuery(document).ready(function($){
     $('#maxminfiltro').on('click', function(event) {
 		var pos=$('#maxminfiltro').attr("src");

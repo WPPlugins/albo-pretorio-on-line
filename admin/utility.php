@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.3
+ * @since 3.4
  */
 
 
@@ -267,9 +267,15 @@ echo '<div class="wrap">
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
       <meta http-equiv="refresh" content="5;url=admin.php?page=utilityAlboP"/>';
-echo '
-		<div class="postbox-container" style="margin-top:20px;">
-			<div class="widefat" style="padding:10px;">
+echo '<div id="utility-tabs-container"  style="margin-top:20px;">
+					<ul>
+						<li><a href="#utility-tab-1">Ripubblicazione Atti</a></li>
+						<li><a href="#utility-tab-2">Verifica procedura</a></li>
+						<li><a href="#utility-tab-3">Post trasferimento sito</a></li>
+						<li><a href="#utility-tab-4">Pulitura file di Log</a></li>
+						<li><a href="#utility-tab-5">Backup dei dati dell\'Albo Pretorio</a></li>
+					</ul>
+		<div id="utility-tab-1" style="margin-bottom:20px;">
 				<p style="text-align:center;font-size:1.5em;font-weight: bold;">Attenzione!!!!!<br />
 				Operazione di ripubblicazione degli atti in corso di validit&agrave; a causa di interruzione del servizio di pubblicazione</p>
 				<p>Questa operazione Annulla gli atti gi&agrave; pubblicati ed in corso di validit&agrave; con motivazione <span style="font-size:1.1em;font-weight: bold;font-style: italic;color:red;">Annullamento per interruzione del sevizio di pubblicazione</span><br />Ripubblica gli atti in corso di validit&agrave; annullati per un periodo di tempo (n. giorni) uguale a quello degli atti originali</p>
@@ -290,26 +296,19 @@ switch ($passo){
 			</p>';
 }
 echo '		</div> 
-		<p></p>
-		<div class="widefat" style="padding:10px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-				Verifica procedura
-				</p>
-				<p style="text-align:left;font-size:1em;font-style: italic;">
+		<div id="utility-tab-2" style="margin-bottom:20px;">
+				<p style="text-align:left;font-style: italic;">
 Questa procedura esegue un test generale della procedura e riporta eventuali anomalie nei dati e nelle impostazioni.</spam><br />Operazioni eseguite:</p>
 <p style="font-size:1em;font-style: italic;margin-left:10px;font-weight: bold;">
 	Verifica permessi cartella di Upload degli allegati
 	<br />Verifica dati del Data Base e viene riportata una breve statistica sui dati
 </p>
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utilityAlboP&action=verificaproc&amp;verproc='.wp_create_nonce('verificaprocedura').'">Verifica</a>
+				<p style="text-align:center;font-weight: bold;">
+ 					<button type="button" onclick="location.href=\'?page=utilityAlboP&action=verificaproc&amp;verproc='.wp_create_nonce('verificaprocedura').'\'"> Verifica </button>
 				</p>
 		</div>
-				<div class="widefat" style="padding:10px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-				Procedura post trasferimento sito
-				</p>
-				<p style="text-align:left;font-size:1em;font-style: italic;">
+		<div id="utility-tab-3" style="margin-bottom:20px;">
+				<p style="text-align:left;font-style: italic;">
 Questa procedura esegue le seguenti operazioni:
 					<ul style="list-style: circle inside;">
 						<li>Aggiornamento dei file 
@@ -320,28 +319,21 @@ Questa procedura esegue le seguenti operazioni:
 							 per il diritto all\'oblio</li>
 						<li>Aggiornamento del percorso nella tabella degli allegati nel Data Base</li>
 					</ul>
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
- 					<a href="?page=utilityAlboP&action=posttrasf&amp;posttrasf='.wp_create_nonce('posttrasferimento').'">Avvia operazione</a>
+				<p style="text-align:center;font-weight: bold;">
+ 					<button  type="button" onclick="location.href=\'?page=utilityAlboP&action=posttrasf&amp;posttrasf='.wp_create_nonce('posttrasferimento').'\'"> Avvia operazione </button>
 				</p>
 		</div>
-		
-		
-		<div class="widefat" style="padding:10px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-				Procedura pulitura file di Log
-				</p>
-				<p style="font-style: italic;font-weight: bold;">Queste procedure possono cancellare una grossa quantit&agrave; di dati, se non si vuole perderli si consiglia di fare un backup del DataBase o della tabella <span style="font-style: normal;">'.$wpdb->table_name_Log.'</span>
+		<div id="utility-tab-4" style="margin-bottom:20px;">
+			<p style="font-style: italic;font-weight: bold;">Queste procedure possono cancellare una grossa quantit&agrave; di dati, se non si vuole perderli si consiglia di fare un backup del DataBase o della tabella <span style="font-style: normal;">'.$wpdb->table_name_Log.'</span>
 				</p>
 					<ul style="list-style: none;">
 						<li>Questa procedura cancella tutte le registrazioni presenti nel file di log&nbsp;&nbsp;
-							<span style="font-size:1.5em;font-weight: bold;">
-								<a href="?page=utilityAlboP&action=svuotalog&amp;svuotalog='.wp_create_nonce('svuotafilelog').'">Svuota file di Log</a>
-							</span>
+							<button  type="button" onclick="location.href=\'?page=utilityAlboP&action=svuotalog&amp;svuotalog='.wp_create_nonce('svuotafilelog').'\'"> Svuota file di Log 
+							</button>
 						</li>
 						<li>Questa procedura cancella tutte le registrazioni di gestione dal file di log mantenendo le statistiche di accesso
-							<span style="font-size:1.5em;font-weight: bold;">
-								<a href="?page=utilityAlboP&action=puliscilog&amp;puliscilog='.wp_create_nonce('puliscifilelog').'">Pulisci file di Log</a>
-								  </span>
+							<button type="button" onclick="location.href=\'?page=utilityAlboP&action=puliscilog&amp;puliscilog='.wp_create_nonce('puliscifilelog').'\'"> Pulisci file di Log 
+							</button>
 						</li>
 					</ul>
 		</div>';
@@ -357,12 +349,7 @@ if (is_dir($Dir)){
 		}
 	}
 }
-echo '
-		<p></p>
-		<div class="widefat" style="margin-top:20px;padding:10px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">
-					Procedura di Backup dei dati dell\'Albo Pretorio
-				</p>
+echo '  <div id="utility-tab-5" style="margin-bottom:20px;">
 				<p>
 				<form action="?page=utilityAlboP" id="backup" method="post"  class="validate">
 					<input type="hidden" name="action" value="BackupData" />
@@ -381,9 +368,8 @@ echo '
 						<input type="submit" name="submitExpo" id="submitExpo" class="button" value="Esporta Backup"  />
 					</form>
 				</p>
-				
-			</div>
-	</div>';
+	</div>
+</div>';
 }
 	
 function TestCampiTabella($Tabella,$Ripara=false){
@@ -410,12 +396,12 @@ switch ($Tabella){
 									"Key" => "", 
 									"Default" => "0000-00-00", 
 									"Extra" =>""),
-					"Riferimento" => array("Tipo" => "varchar(100)", 
+					"Riferimento" => array("Tipo" => "varchar(255)", 
 										   "Null" =>"No", 
 										   "Key" => "", 
 										   "Default" => "", 
 										   "Extra" =>""),
-					"Oggetto" => array("Tipo" => "varchar(200)", 
+					"Oggetto" => array("Tipo" => "text", 
 									   "Null" =>"No", 
 									   "Key" => "", 
 									   "Default" => "", 
@@ -450,7 +436,7 @@ switch ($Tabella){
 												"Key" => "", 
 												"Default" => "0000-00-00", 
 												"Extra" =>""),
-					"MotivoAnnullamento" => array("Tipo" => "varchar(200)", 
+					"MotivoAnnullamento" => array("Tipo" => "varchar(255)", 
 												  "Null" =>"YES", 
 												  "Key" => "", 
 												  "Default" => "", 
@@ -459,7 +445,12 @@ switch ($Tabella){
 									"Null" =>"NO", 
 									"Key" => "", 
 									"Default" => "0", 
-									"Extra" =>""));
+									"Extra" =>""),
+					"DataOblio" => array("Tipo" => "date", 
+												"Null" =>"NO", 
+												"Key" => "", 
+												"Default" => "0000-00-00", 
+												"Extra" =>""));
 		break;
 	case $wpdb->table_name_Allegati:
 		$Par=array("IdAllegato" => array("Tipo" => "int(11)", 

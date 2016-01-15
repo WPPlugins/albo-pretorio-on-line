@@ -1,0 +1,13 @@
+.NessunAtto{
+	font-size:1.3em;
+	font-style: italic;
+	text-align: center;
+	color: Red;
+	margin-top:20px;
+	margin-bottom:20px;
+}
+#elenco-atti-scaduti a{
+	text-decoration: underline;
+	font-style: italic;
+	color:Blue;
+}

@@ -5,4 +5,5 @@ jQuery(document).ready(function($){
 	$( "#Calendario1" ).datepicker();
 	$( "#Calendario2" ).datepicker();
 	$( "#Calendario3" ).datepicker();
+	$( "#Calendario4" ).datepicker();
 });

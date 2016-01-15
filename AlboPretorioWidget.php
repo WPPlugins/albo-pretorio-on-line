@@ -2,7 +2,7 @@
 /*
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.3
+Version:3.4
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2

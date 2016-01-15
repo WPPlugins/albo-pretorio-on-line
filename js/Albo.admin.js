@@ -11,15 +11,6 @@ jQuery.noConflict();
 			}					
 		});
 		
-		$('a.ripubblica').click(function(){
-			var answer = confirm("Confermi la ripubblicazione dei " + $(this).attr('rel') + ' atti in corso di validita?')
-			if (answer){
-				return true;
-			}
-			else{
-				return false;
-			}					
-		});
 		$('a.annullaatto').click(function(){
 			var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
 			if (answer){
@@ -108,5 +99,199 @@ jQuery.noConflict();
 		$('#DatiLog').html(data);
 			}, "json");
 		});
+		var l = window.location;
+		var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf";
+		
+		$('#elenco-atti').dataTable( {
+          dom: 'T<"clear">lfrtip',
+          order: [],
+          tableTools: {
+         	"sSwfPath": url,
+          	"aButtons": [ 
+ 				{
+                    "sExtends":    "collection",
+                    "sButtonText": "Salva",
+                    "aButtons":    [ "csv",]
+                }
+			]
+         },
+        language:{
+		    "sEmptyTable":     "Nessun dato presente nella tabella",
+		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+		    "sInfoPostFix":    "",
+		    "sInfoThousands":  ",",
+		    "sLengthMenu":     "Visualizza _MENU_ elementi",
+		    "sLoadingRecords": "Caricamento...",
+		    "sProcessing":     "Elaborazione...",
+		    "sSearch":         "Cerca:",
+		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+		    "oPaginate": {
+		        "sFirst":      "Inizio",
+		        "sPrevious":   "Precedente",
+		        "sNext":       "Successivo",
+		        "sLast":       "Fine"
+		    },
+		    "oAria": {
+		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+		    }
+		}
+    } );
+    	$('#elenco-atti-daapp').dataTable( {
+          dom: 'T<"clear">lfrtip',
+          order: [],
+          tableTools: {
+         	"sSwfPath": url,
+          	"aButtons": [ 
+ 				{
+                    "sExtends":    "collection",
+                    "sButtonText": "Salva",
+                    "aButtons":    [ "csv",]
+                }
+			]
+         },
+        language:{
+		    "sEmptyTable":     "Nessun dato presente nella tabella",
+		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+		    "sInfoPostFix":    "",
+		    "sInfoThousands":  ",",
+		    "sLengthMenu":     "Visualizza _MENU_ elementi",
+		    "sLoadingRecords": "Caricamento...",
+		    "sProcessing":     "Elaborazione...",
+		    "sSearch":         "Cerca:",
+		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+		    "oPaginate": {
+		        "sFirst":      "Inizio",
+		        "sPrevious":   "Precedente",
+		        "sNext":       "Successivo",
+		        "sLast":       "Fine"
+		    },
+		    "oAria": {
+		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+		    }
+		}
+    } );  
+
+     	$('#elenco-atti-correnti').dataTable( {
+          dom: 'T<"clear">lfrtip',
+          order: [],
+          tableTools: {
+         	"sSwfPath": url,
+          	"aButtons": [ 
+ 				{
+                    "sExtends":    "collection",
+                    "sButtonText": "Salva",
+                    "aButtons":    [ "csv",]
+                }
+			]
+         },
+        language:{
+		    "sEmptyTable":     "Nessun dato presente nella tabella",
+		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+		    "sInfoPostFix":    "",
+		    "sInfoThousands":  ",",
+		    "sLengthMenu":     "Visualizza _MENU_ elementi",
+		    "sLoadingRecords": "Caricamento...",
+		    "sProcessing":     "Elaborazione...",
+		    "sSearch":         "Cerca:",
+		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+		    "oPaginate": {
+		        "sFirst":      "Inizio",
+		        "sPrevious":   "Precedente",
+		        "sNext":       "Successivo",
+		        "sLast":       "Fine"
+		    },
+		    "oAria": {
+		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+		    }
+		}
+    } );  
+
+     	$('#elenco-atti-scaduti').dataTable( {
+          dom: 'T<"clear">lfrtip',
+          order: [],
+          tableTools: {
+         	"sSwfPath": url,
+          	"aButtons": [ 
+ 				{
+                    "sExtends":    "collection",
+                    "sButtonText": "Salva",
+                    "aButtons":    [ "csv",]
+                }
+			]
+         },
+        language:{
+		    "sEmptyTable":     "Nessun dato presente nella tabella",
+		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+		    "sInfoPostFix":    "",
+		    "sInfoThousands":  ",",
+		    "sLengthMenu":     "Visualizza _MENU_ elementi",
+		    "sLoadingRecords": "Caricamento...",
+		    "sProcessing":     "Elaborazione...",
+		    "sSearch":         "Cerca:",
+		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+		    "oPaginate": {
+		        "sFirst":      "Inizio",
+		        "sPrevious":   "Precedente",
+		        "sNext":       "Successivo",
+		        "sLast":       "Fine"
+		    },
+		    "oAria": {
+		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+		    }
+		}
+    } );  
+
+      $('#elenco-atti-da-cancellare').dataTable( {
+          dom: 'T<"clear">lfrtip',
+          order: [],
+          tableTools: {
+         	"sSwfPath": url,
+          	"aButtons": [ 
+ 				{
+                    "sExtends":    "collection",
+                    "sButtonText": "Salva",
+                    "aButtons":    [ "csv",]
+                }
+			]
+         },
+        language:{
+		    "sEmptyTable":     "Nessun dato presente nella tabella",
+		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+		    "sInfoPostFix":    "",
+		    "sInfoThousands":  ",",
+		    "sLengthMenu":     "Visualizza _MENU_ elementi",
+		    "sLoadingRecords": "Caricamento...",
+		    "sProcessing":     "Elaborazione...",
+		    "sSearch":         "Cerca:",
+		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+		    "oPaginate": {
+		        "sFirst":      "Inizio",
+		        "sPrevious":   "Precedente",
+		        "sNext":       "Successivo",
+		        "sLast":       "Fine"
+		    },
+		    "oAria": {
+		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+		    }
+		}
+    } );  
+    var Pagina=$("#Pagina").val();
+    $('#atti-tabs-container').tabs({ active: Pagina });
+    $('#utility-tabs-container').tabs();	
  });
 })(jQuery);
