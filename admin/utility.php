@@ -201,7 +201,7 @@ echo '<div class="wrap">
 					<li>Tabelle del Data Base relative all\'Albo</li>
 					<li>Files allegati agli atti</li>
 				</ul>  
-			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utilityAlboP&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+			per proseguire ed attivare il diritto all\'oblio, clicca su <a href="?page=utilityAlboP&amp;action=imploblio" class="add-new-h2 tornaindietro">Prosegui</a> altrimenti <a href="'.site_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
 			</p>
 		</div>';	
 }
@@ -211,7 +211,7 @@ function ImplementaNINF(){
 	echo'<div id="message" class="updated"> 
 				<p><strong>File .htaccess e index.php necessari per il diritto all\'oblio sono stati ricreati.</strong></p>
 				<p>Operazione terminata&nbsp;&nbsp;
-				<a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+				<a href="'.site_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
 				</p>
 				</div>';
 }
@@ -244,14 +244,14 @@ function ImplementaOblio(){
 				<p><strong>Impostazioni salvate.</strong></p>
 				<p><strong>'.str_replace("%%br%%", "<br />", $contenuto).'</strong></p>
 				<p>Operazione terminata&nbsp;&nbsp;
-				<a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+				<a href="'.site_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
 				</p>
 				</div>';
 	}else{
 		echo'<div id="message" class="updated"> 
 				<p><strong>Impostazioni salvate.</strong></p>
 				<p>Operazione terminata&nbsp;&nbsp;
-				<a href="'.home_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
+				<a href="'.site_url().'/wp-admin/admin.php?page=Albo_Pretorio" class="add-new-h2 tornaindietro">Torna indietro</a>
 				</p>
 				</div>';
 	}

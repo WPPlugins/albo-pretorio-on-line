@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.4
+Version:3.4.1
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -80,6 +80,7 @@ if (!class_exists('AlboPretorio')) {
 	    if(strpos($hook_suffix,"albo-pretorio")===false)
 			return;
 	    wp_enqueue_script('jquery');
+	    wp_enqueue_script('jquery-ui-core');
 	    wp_enqueue_script('jquery-ui-tabs');
 	    wp_enqueue_script( 'my-admin-fields', plugins_url('js/Fields.js', __FILE__ ));
 		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
@@ -714,7 +715,7 @@ echo '<div  style="margin-left: 10px;">
 		}
 	$PData = get_plugin_data( __FILE__ );
 	$PVer = $PData['Version'];	
-	if (get_site_option( 'opt_AP_Versione' ) == $PVer) {
+	if (get_option( 'opt_AP_Versione' ) == $PVer) {
 		return;
 	} 
 	update_option('opt_AP_Versione', $PVer);
@@ -922,7 +923,7 @@ echo '<div  style="margin-left: 10px;">
 	}
 
 	function update_AlboPretorio_settings(){
-	    if($_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
+	    if(isset($_POST['AlboPretorio_submit_button']) And $_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
 	    	if (!isset($_POST['confAP'])) {
 	    		header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=false'); 		
 	    	}

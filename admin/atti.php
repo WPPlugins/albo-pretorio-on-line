@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.3
+ * @since 3.4.1
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -107,7 +107,7 @@ echo'
 <div class="wrap">
 <div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/approva32.png" alt="Icona Approvazione Atto"/></div>
 	<h2 style="display:inline;margin-left:10px;">Approvazione Atto</h2>
-	<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
+	<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 	if ( $ret!="" ) {
 		echo '<div id="message" class="updated"><p>'.$ret.'</p></div>';
 	}
@@ -203,7 +203,7 @@ echo'<br />
 		if($Passato){
   			$incrementoStandard=get_option('opt_AP_GiorniOblio');
  			$DataOblioStandard=ap_DateAdd($atto->DataInizio,$incrementoStandard);
- 			echo $atto->DataInizio."   -  ".$incrementoStandard;
+ 			//echo $atto->DataInizio."   -  ".$incrementoStandard;
 			echo '<tr>
 					<td>Data Oblio</td>
 					<td> Data Oblio impostata '.$atto->DataOblio.' - Data Oblio da impostazione standard '.$DataOblioStandard.'</td>';
@@ -380,7 +380,7 @@ function Nuovo_atto(){
 		<img src="<?php echo Albo_URL.'/img/atti32.png';?>" alt="Icona Nuovo Atto"/>
 	</div>
 	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
-	<a href="<?php echo home_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+	<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
 <?php 
 	if ( $_REQUEST['msg'] !="") {
 		?><div id="message" class="updated"><p><?php echo stripslashes($_REQUEST['msg']);?></p></div>
@@ -511,7 +511,7 @@ $atto=$atto[0];
 <div class="wrap">
 <div style="display:inline;float:left;"><img src="<?php echo Albo_URL.'/img/atti32.png';?>" alt="Icona Nuovo Atto" /></div>
 	<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2>
-	<a href="<?php echo home_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+	<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
 	<div id="col-container">
 		<form id="addatto" method="post" action="?page=atti" class="validate">
 			<input type="hidden" name="action" value="memo-atto" />
@@ -650,7 +650,7 @@ function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
 	<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto"/>
 </div>	
 	<h2  style="display:inline;margin-left:10px;">Atto</h2>
-	<a href="'.home_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
+	<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 	if ( $messaggio!="" ) {
 	 	$messaggio=str_replace("%%br%%", "<br />", $messaggio);
 		print('<div id="message" class="updated"><p>'.$messaggio.'</p></div>');
@@ -687,7 +687,7 @@ if ($IdAllegato!=0){
 		<tr>
 			<td>&nbsp;</td>
 			<td><input type="submit" name="submit" id="submit" class="button" value="Aggiorna Allegato"  />&nbsp;&nbsp;
-			    <input type="submit" name="annulla" id="annulla" class="button" value="Annulla"  />
+			    <input type="submit" name="annulla" id="annulla" class="button" value="Annulla Operazione"  />
 		    </td>
 		</tr>
 	    </tbody>
@@ -695,7 +695,7 @@ if ($IdAllegato!=0){
 	</form>';	
 }else{
 	echo'
-	<h3>Allegati <a href="?page=atti&amp;id='.$IdAtto.'&amp;action=UpAllegati" class="add-new-h2">Aggiungi nuovo</a> </h3>';
+	<h3>Allegati <a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;id='.$IdAtto.'&amp;action=UpAllegati" class="add-new-h2">Aggiungi nuovo</a> </h3>';
 	$righe=ap_get_all_allegati_atto($IdAtto);
 	echo'
 		<table class="widefat">
@@ -799,7 +799,7 @@ else
 	echo '
 <div class="wrap nosubsub">
 <img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atto<a href="'.home_url().'/wp-admin/admin.php?page=atti&amp;p='.$Pag.'" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
+<h2 style="margin-left:40px;">Atto<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;p='.$Pag.'" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
 
 <div id="col-container">
 	<div id="col-right">

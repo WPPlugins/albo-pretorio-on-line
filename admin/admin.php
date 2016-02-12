@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.4
+ * @since 3.4.1
  */
 
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -473,7 +473,7 @@ switch ( $_REQUEST['action'] ) {
 		wp_redirect( $location );
 		break;
 	case "memo-allegato-atto":
-		$location = "?page=atti&amp;p=1" ;
+		$location = site_url()."/wp-admin/admin.php?page=atti&amp;p=1" ;
 		if (!isset($_REQUEST['uploallegato'])) {
 			Go_Atti();
 			break;	
@@ -556,10 +556,10 @@ function Memo_allegato_atto(){
 			   		$result = 0;
 				   	$target_path = ap_UniqueFileName($destination_path . basename( $_FILES['file']['name']));
 					if(@move_uploaded_file($_FILES['file']['tmp_name'], $target_path)) {
-	    				$messages= "File caricato%%br%%Nome: " . basename( $target_path)." %%br%%Percorso completo : ".str_replace("\\","/",$target_path);
+	    				$messages= "File caricato%25%25br%25%25Nome: " . basename( $target_path)." %25%25br%25%25Percorso completo : ".str_replace("\\","/",$target_path);
 	    				ap_insert_allegato($_REQUEST['Descrizione'],str_replace("\\","/",$target_path),$_REQUEST['id']);
 			   		}else{
-						$messages= "Il File non caricato: " .str_replace("\\","/",$target_path)."%%b%% Errore:".$_FILES['file']['error'];
+						$messages= "Il File non caricato: " .str_replace("\\","/",$target_path)."%25%25br%25%25 Errore:".$_FILES['file']['error'];
 						//print($messages);exit;
 					}
 				}
@@ -567,7 +567,7 @@ function Memo_allegato_atto(){
 		  }
 		}
 		$msg=($messages!="") ? ($messages): ""; 
-		$msg.=($dime!="") ?   "%%br%%" .($dime): "";
+		$msg.=($dime!="") ?   "%25%25br%25%25" .($dime): "";
 		$messages=$msg;
 	}
 	return $messages;

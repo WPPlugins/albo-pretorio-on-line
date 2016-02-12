@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.4
+ * @since 3.4.1
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -42,7 +42,9 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 			<td><input name="file" type="file" size="80" /></td>
 		</tr>
 		<tr>
-			<td colspan="2"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Allegato"  /></td>
+			<td colspan="2"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Allegato"  />
+			<input type="submit" name="annulla" id="annulla" class="button" value="Annulla Operazione"  />
+			</td>
 		</tr>
 	    </tbody>
 	</table>
