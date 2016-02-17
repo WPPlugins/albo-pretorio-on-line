@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.4.1
+ * @since 3.4.2
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -17,6 +17,9 @@ switch ($_REQUEST['action']){
 		break;
 	case "view-atto" :
 		View_atto((int)$_REQUEST['id']);
+		break;
+	case "annullamento-atto" :
+		Annulla_Atto((int)$_REQUEST['id']);
 		break;
 	case "new-atto" :
 		Nuovo_atto();
@@ -915,6 +918,154 @@ echo '	</div>
 </div>';	
 }
 
+function Annulla_Atto($IdAtto){
+	global $AP_OnLine;
+if (isset($_REQUEST['p']))
+	$Pag=$_REQUEST['p'];
+else
+	$Pag=1;
+?>
+<style type='text/css'>
+#loading { clear:both; background:url(images/loading.gif) center top no-repeat; text-align:center;padding:33px 0px 0px 0px; font-size:12px;display:none; font-family:Verdana, Arial, Helvetica, sans-serif; }
+</style>
+<?php
+	$risultato=ap_get_atto($IdAtto);
+	$risultato=$risultato[0];
+	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
+	$risultatocategoria=$risultatocategoria[0];
+	$responsabile=ap_get_responsabile($risultato->RespProc);
+	$responsabile=$responsabile[0];
+	$NomeEnte=ap_get_ente($risultato->Ente);
+	$NomeEnte=stripslashes($NomeEnte->Nome);
+	echo '
+<div class="wrap nosubsub">
+<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
+<h2 style="margin-left:40px;">Atto<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;p='.$Pag.'" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
+
+<div id="col-container">
+		<form id="annullaatto" method="post" action="?page=atti" class="validate">
+		<input type="hidden" name="action" value="annulla-atto" />
+		<input type="hidden" name="id" value="'.(int)$_REQUEST['id'].'" />
+		<input type="hidden" name="annatto" value="'.wp_create_nonce('annatto').'" />
+		<table class="widefat">
+		    <thead>
+		    <tr>
+				<th style="text-align:center;font-size:1.2em;width:50%;">Dati atto</th>
+				<th style="font-size:1.2em;">Allegati atto</th>
+			</tr>
+		    </thead>
+		    <tbody>
+		    <tr>
+		    <td style="border-right-style: groove;border-right-width: thin;">
+		    	<table>
+				<tr>
+					<th style="width:20%;">Ente emittente</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$NomeEnte.'</td>
+				</tr>
+				<tr>
+					<th style="width:20%;">Numero Albo</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
+				</tr>
+				<tr>
+					<th>Data</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->Data).'</td>
+				</tr>
+				<tr>
+					<th>Codice di Riferimento</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Riferimento).'</td>
+				</tr>
+				<tr>
+					<th>Oggetto</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Oggetto).'</td>
+				</tr>
+				<tr>
+					<th>Data inizio Pubblicazione</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataInizio).'</td>
+				</tr>
+				<tr>
+					<th>Data fine Pubblicazione</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataFine).'</td>
+				</tr>
+				<tr>
+					<th>Data Oblio</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataOblio).'</td>
+				</tr>
+				<tr>
+					<th>Note</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
+				</tr>
+				<tr>
+					<th>Categoria</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
+				</tr>
+				<tr>
+					<th>Responsabile procedimento</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($responsabile->Cognome.' '.$responsabile->Nome.' '.$responsabile->Email).'</td>
+				</tr>
+				</table>	    
+			</td>
+			<td>
+			<p style="color:red;font-weight: bold;">Selezionare gli allegati che devono essere cancellati per violazione di legge<br />NB: verrà cancellato solo il file, mentre sarà mantenuto il nome del file nell\'elenco degli allegati</p>';
+$allegati=ap_get_all_allegati_atto($IdAtto);
+foreach ($allegati as $allegato) {
+ 	switch (ap_ExtensionType($allegato->Allegato)){
+		case 'pdf':
+			$Estensione="Pdf.png";
+			$Verifica="";
+			break;
+		case "p7m":
+			$Estensione="firmato.png";
+			$Verifica='<br /><a href="http://vol.ca.notariato.it/" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>';
+			break;
+	}
+	echo '<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+			<input type="checkbox" name="Alle:'.$allegato->IdAllegato.'" value="'.$allegato->IdAllegato.'">
+		  </div>
+			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
+			</div>
+			<div style="margin-top:0;">
+				<p style="margin-top:0;">'.strip_tags($allegato->TitoloAllegato).' <br />';
+			if (is_file($allegato->Allegato))
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+			else
+				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
+echo'				</p>
+			</div>';
+	}			
+echo'			</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="text-align:center;border-top-style: groove;border-top-width: thin;">
+				<span style="color:red;font-size:2em;font-weight: bold;">Motivo Annullamento</span><br />
+					<textarea rows="4" cols="100" id="Motivo" name="Motivo" ></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="text-align:center;">
+					<input type="submit" name="submit" id="submit" class="button" value="Annulla Pubblicazione Atto"  />
+					<input type="submit" name="submit" id="submit" class="button" value="Annulla Operazione"  />
+				<td>
+			</tr>
+			</tbody>
+		</table>
+		</form>
+		</div>
+		<div class="col-wrap">
+			<h3>Log</h3>
+			<form action="" method="POST" id="formlog">
+			<input type="submit" name="action" id="LogAtti" value="Atti" class="infolog"/>
+			<input type="submit" name="action" id="LogAllegati" value="Allegati" class="infolog"/>
+			<input type="submit" name="action" id="LogStatisticheVisite" value="Statistiche Visite" class="infolog"/>
+			<input type="submit" name="action" id="LogStatisticheDownload" value="Statistiche Download" class="infolog"/>
+			</form>
+			<div id="loading">LOADING!</div>
+				<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div> 
+		</div>
+</div>';	
+}
+
+
 function Lista_Atti($Msg_op=""){
 if (isset($_REQUEST['p']))
 	$Pag=$_REQUEST['p'];
@@ -1120,7 +1271,7 @@ echo'		<table class="widefat" id="elenco-atti-correnti">
 			if (current_user_can('admin_albo')){
 				 if( !$Scaduto and $Annullato==''){
 				 	
-					echo ' <a class="annullaatto" href="?page=atti&amp;action=annulla-atto&amp;id='.$riga->IdAtto.'&amp;annullaatto='.wp_create_nonce('annullamento-atto').'"  rel="'.$riga->Oggetto.'">
+					echo ' <a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
 							<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
 						</a>';
 				}

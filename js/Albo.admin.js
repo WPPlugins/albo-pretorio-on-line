@@ -11,7 +11,7 @@ jQuery.noConflict();
 			}					
 		});
 		
-		$('a.annullaatto').click(function(){
+		$('a.annullaattox').click(function(){
 			var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
 			if (answer){
 				var Testoannullamento;

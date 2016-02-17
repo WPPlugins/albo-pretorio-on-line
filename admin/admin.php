@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.4.1
+ * @since 3.4.2
  */
 
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -37,7 +37,7 @@ switch ( $_REQUEST['action'] ) {
 		}
 		wp_redirect( $location );
 		break;
-	case "annulla-atto":
+/*	case "annulla-atto":
 		if (!isset($_GET['annullaatto'])) {
 			Go_Atti();
 			break;	
@@ -55,6 +55,9 @@ switch ( $_REQUEST['action'] ) {
  		$location = "?page=atti&p=1" ;
 		$location = add_query_arg( 'message', $NumMsg, $location );
 		wp_redirect( $location );
+		break;*/
+	case "annulla-atto":
+			print_r($_REQUEST);
 		break;
 	case "ExportBackupData":
 		if (!isset($_REQUEST['exportbckdata'])) {

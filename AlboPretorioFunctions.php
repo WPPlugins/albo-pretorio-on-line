@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.4.1
+* Version:3.4.2
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -124,13 +124,17 @@ function ap_crearobots(){
 function ap_NoIndexNoDirectLink($dir){
     $sito=$_SERVER[HTTP_HOST];
 	$Stato="";
+	if (is_ssl())
+		$Prot="https";
+	else
+		$Prot="http";
 	if (substr($sito,0,4)=="www.")
 		$sito=substr($sito,4);
 	$htaccess="#Blocco Accesso diretto Allegati Albo Pretorio
 <IfModule mod_rewrite.c>
 	RewriteEngine On
-	RewriteCond %{HTTP_REFERER} !^http://www.".$sito.".* [NC]
-	RewriteCond %{HTTP_REFERER} !^http://".$sito.".* [NC]
+	RewriteCond %{HTTP_REFERER} !^$Prot://www.".$sito.".* [NC]
+	RewriteCond %{HTTP_REFERER} !^$Prot://".$sito.".* [NC]
 	RewriteRule \. ".home_url()."/index.php [R,L]
 </IfModule>";
 $index="<?php
