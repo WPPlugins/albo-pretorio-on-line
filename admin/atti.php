@@ -1018,10 +1018,10 @@ foreach ($allegati as $allegato) {
 			$Verifica='<br /><a href="http://vol.ca.notariato.it/" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>';
 			break;
 	}
-	echo '<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+/*	echo '<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
 			<input type="checkbox" name="Alle:'.$allegato->IdAllegato.'" value="'.$allegato->IdAllegato.'">
-		  </div>
-			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+		  </div>*/
+echo '			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
 				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
 			</div>
 			<div style="margin-top:0;">
