@@ -290,8 +290,74 @@ jQuery.noConflict();
 		    }
 		}
     } );  
+   $('#Repertorio-anno').dataTable( {
+          dom: 'T<"clear">lfrtip',
+          order: [],
+          pageLength: 250,
+          tableTools: {
+         	"sSwfPath": url,
+         	"aButtons": [ 
+          		{
+					"sExtends": "copy",
+					"sButtonText": "Copia negli Appunti"
+				},
+          		{
+					"sExtends": "print",
+					"sButtonText": "Stampa"
+				},
+				{
+                    "sExtends":    "collection",
+                    "sButtonText": "Salva",
+                    "aButtons":    [ "csv",]
+                }
+			]
+         },
+        language:{
+		    "sEmptyTable":     "Nessun dato presente nella tabella",
+		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+		    "sInfoPostFix":    "",
+		    "sInfoThousands":  ",",
+		    "sLengthMenu":     "Visualizza _MENU_ elementi",
+		    "sLoadingRecords": "Caricamento...",
+		    "sProcessing":     "Elaborazione...",
+		    "sSearch":         "Cerca:",
+		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+		    "oPaginate": {
+		        "sFirst":      "Inizio",
+		        "sPrevious":   "Precedente",
+		        "sNext":       "Successivo",
+		        "sLast":       "Fine"
+		    },
+		    "oAria": {
+		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+		    }
+		}
+    } );  
     var Pagina=$("#Pagina").val();
     $('#atti-tabs-container').tabs({ active: Pagina });
+    $('#repertori-tabs-container').tabs();
     $('#utility-tabs-container').tabs();	
  });
 })(jQuery);
+
+
+function Stampa(Testo){
+     // Prelevo dalla pagina solo i blocchi che interessano
+     // Ad esempio il titolo e il corpo di un articolo
+
+     // Apro una finestra pop-up nella quale inserisco i blocchi
+     var a = window.open('','','width=640,height=480');
+     a.document.open("text/html");
+     a.document.write("<html><head></head><body>");
+
+     // Scrivo il titolo e il corpo con un pò di stile in CSS
+     a.document.write("<div style='border: 1px solid #CCCCCC'>"+titolo+"</div><br/>"+corpo);
+     a.document.write("</body></html>");
+     a.document.close();
+
+     // Invio il documento alla stampante
+     a.print(); 
+}

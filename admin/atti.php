@@ -1018,10 +1018,10 @@ foreach ($allegati as $allegato) {
 			$Verifica='<br /><a href="http://vol.ca.notariato.it/" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>';
 			break;
 	}
-/*	echo '<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+	echo '<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
 			<input type="checkbox" name="Alle:'.$allegato->IdAllegato.'" value="'.$allegato->IdAllegato.'">
-		  </div>*/
-echo '			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
+		  </div>
+			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
 				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
 			</div>
 			<div style="margin-top:0;">
@@ -1161,6 +1161,7 @@ echo'<br class="clear" />
 						<li><a href="#atti-tab-2">Elenco Atti <em>Correnti</em></a></li>
 						<li><a href="#atti-tab-3">Elenco Atti <em>Scaduti</em></a></li>
 						<li><a href="#atti-tab-4">Elenco Atti <em>Da Cancellare</em></a></li>
+						<li><a href="#atti-tab-5">Repertori Atti</em></a></li>
 					</ul>
 		<div id="atti-tab-1">';
 	$lista=ap_get_all_atti(3,0,0,"",0,0,"Data DESC",0,0); 
@@ -1478,6 +1479,42 @@ echo'</div>
 		echo '<p class="NessunAtto">Nessun Atto da Cancellare</p>';
 	}
 echo'</div>
+<div id="atti-tab-5">';
+
+		if (isset($_GET[Anno]))
+			$AnnoRepertorio=$_GET[Anno];
+		else
+			$AnnoRepertorio=date("Y");
+		if (($Anni=AnniAtti())!=FALSE){
+			echo 'Repertorio <select id="Anno" onchange="document.location.href=this.options[this.selectedIndex].value;">
+				<option value="">Anno</option>';
+			foreach($Anni as $Anno){
+				echo '<option value="'.admin_url().'/admin.php?page=atti&amp;p=4&amp;Anno='.$Anno->Anno.'">'.$Anno->Anno.'</option>';
+			}
+			echo '
+			</select>
+			<h3 style="text-align:center">Repertorio Anno '.$AnnoRepertorio.'</h3>
+			<table class="widefat" id="Repertorio-anno">
+				<thead>
+					<th>Ente titolare dell\'Atto</th>
+					<th>Numero progressivo</th>
+					<th>Codice di Riferimento</th>
+					<th>Oggetto</th>
+					<th>Data inizio Pubblicazione</th>
+					<th>Data fine Pubblicazione</th>
+					<th>Note</th>
+					<th>Categoria</th>
+					<th>Data Annullamento</th>
+					<th>Motivo Annullamento</th>
+				</thead>
+				<tbody>';
+				echo Repertorio($AnnoRepertorio);
+				echo '</tbody>
+			</table>
+		</div>';
+		}
+echo'		
+</div>	
 <script language="JavaScript">
 var i = setInterval(function () {
     clearInterval(i);

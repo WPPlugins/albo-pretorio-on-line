@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.4.3
+Version:3.5
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -400,7 +400,8 @@ function add_albo_plugin($plugin_array) {
 		'Stato' => '1',
 		'Cat' => 'All',
 		'Filtri' => 'si',
-		'MinFiltri' =>'si'
+		'MinFiltri' =>'si',
+		'per_page' =>'10'
 	), $Parametri));
 	if(get_option('opt_AP_stileTableFE')=="Table")
 		require_once ( dirname (__FILE__) . '/admin/frontend.php' );
@@ -623,7 +624,13 @@ echo '<div  style="margin-left: 10px;">
 		</tr>		
 		<tr valign="top">
 			<th scope="row">Numero Progressivo</th>
-			<td><strong> '.$nprog. ' / '.$nanno.'</strong></td>
+			<td><strong> ';
+			if(ap_get_all_atti(0,0,0,'',0,0,"",0,0,TRUE,TRUE)==0)
+				echo '<input type="text" id="progressivo" name="progressivo" value="0" size="5"/>';
+			else
+				echo $nprog;
+		echo ' / '.$nanno.'</strong>	
+			</td>
 		</tr>
 		<tr valign="top">
 			<th scope="row"><label for="dirUpload">Cartella Upload</label></th>
@@ -941,6 +948,8 @@ echo '<div  style="margin-left: 10px;">
 			    update_option('opt_AP_VisualizzaEnte','Si' );
 			else
 				update_option('opt_AP_VisualizzaEnte','No' );
+			if (isset($_POST['progressivo']))
+			    update_option('opt_AP_NumeroProgressivo',(int)$_POST['progressivo'] );
 		    update_option('opt_AP_AnnoProgressivo',$_POST['c_AnnoProgressivo'] );
 		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
 		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
@@ -968,16 +977,16 @@ echo '<div  style="margin-left: 10px;">
 	global $AP_OnLine;
 	$AP_OnLine = new AlboPretorio();
 	
-	function InserisciAlboPretorio($Stato=1,$Per_Page=10,$Cat=0){
+/*	function InserisciAlboPretorio($Stato=1,$Per_Page=10,$Cat=0){
 	 global $AP_OnLine;
 	 $Parametri=array("Stato" => $Stato,
                   "Per_Page" => $Per_Page,
 				  "Cat" => $Cat);
-/*	require_once ( dirname (__FILE__) . '/admin/frontend.php' );
+	require_once ( dirname (__FILE__) . '/admin/frontend.php' );
 	echo $ret;
-*/
+
 	echo $AP_OnLine->VisualizzaAtti($Parametri);
 	
-}
+}*/
 }
 ?>

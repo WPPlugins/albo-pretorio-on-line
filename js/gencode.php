@@ -40,6 +40,7 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 			var categoria 		 = document.getElementById('Categoria').value;
 			var filtri  		 = document.getElementById('Filtri');
 			var minfiltri  		 = document.getElementById('MinFiltri');
+			var per_page  		 = document.getElementById('Per_page').value;
 			
 			var tagtext = "[Albo ";
 			tagtext = tagtext + " stato=\"" + stato+ "\"";
@@ -53,7 +54,8 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 			if (minfiltri.checked)
 				tagtext = tagtext + " minfiltri=\"no\"";
 			else
-				tagtext = tagtext + " minfiltri=\"si\"";
+			tagtext = tagtext + " minfiltri=\"si\"";
+			tagtext = tagtext + " per_page=\""+per_page+"\"";
 			tagtext = tagtext + "]";
 			if(window.tinyMCE) {
 				window.tinyMCE.activeEditor.execCommand('mceInsertContent', 0, tagtext);
@@ -87,6 +89,10 @@ $Ele_Cate=ap_get_dropdown_categorie("Categoria","Categoria","","")
 				<p>
 					<label for="MinFiltri"><strong>Finestra Filtri sempre visibile</strong></label>
 					<input type="checkbox" name="MinFiltri" id="MinFiltri" value="si"/>
+				</p>
+				<p>
+					<label for="MinFiltri"><strong>Numero atti da visualizzare</strong></label>
+					<input type="number" name="Per_page" id="Per_page" value="10" style="width:40px;" />
 				</p>
 		</form>
 	</div>

@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.4.3
+ * @since 3.5
  */
 
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -49,8 +49,12 @@ switch ( $_REQUEST['action'] ) {
 		if ($_REQUEST['Motivo']=="null") {
 			$NumMsg=8;
 		}else{
-			
-			ap_annulla_atto((int)$_REQUEST['id'],$_REQUEST['Motivo']);
+			$Allegati=array();
+			foreach($_REQUEST as $Parametro=>$ValoreParametro){
+				if(substr($Parametro,0,5)=="Alle:")
+					$Allegati[]=$ValoreParametro;
+			}
+			ap_annulla_atto((int)$_REQUEST['id'],$_REQUEST['Motivo'],$Allegati);
 			$NumMsg=9;
 		}
  		$location = "?page=atti&p=1" ;

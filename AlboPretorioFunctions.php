@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.4.3
+* Version:3.5
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -996,6 +996,48 @@ function ap_categorie_orfane(){
 ################################################################################
 // Funzioni Atti
 ################################################################################
+
+function AnniAtti(){
+	global $wpdb;
+	$Sql="SELECT Anno FROM $wpdb->table_name_Atti where Numero<>0 Group by Anno;";
+	$Anni = $wpdb->get_results($Sql);
+	if (count($Anni)==0)
+		return FALSE;
+	else
+		return $Anni;
+}
+
+function Repertorio($Anno){
+	global $wpdb;
+	$Sql="SELECT $wpdb->table_name_Enti.Nome as NomeEnte,Numero,Anno,Riferimento,Oggetto,DataInizio,DataFine,$wpdb->table_name_Categorie.Nome as Categoria, DataAnnullamento, MotivoAnnullamento,Informazioni
+		FROM $wpdb->table_name_Atti inner join $wpdb->table_name_Categorie on ($wpdb->table_name_Atti.IdCategoria =$wpdb->table_name_Categorie.IdCategoria) inner join $wpdb->table_name_Enti on ($wpdb->table_name_Atti.Ente=$wpdb->table_name_Enti.IdEnte) 
+		WHERE Anno=$Anno And Numero>0
+		ORDER By Numero";
+	$Atti = $wpdb->get_results($Sql);
+	if (count($Atti)!=0){
+		foreach($Atti as $Atto){
+			if($Atto->DataAnnullamento!='0000-00-00')
+				$Annullato='style="background-color: '.get_option('opt_AP_ColoreAnnullati').';"';
+			else
+				$Annullato='';
+			$Docu.= "
+			<tr>
+				<td $Annullato>".stripcslashes($Atto->NomeEnte)."</td>
+				<td $Annullato>$Atto->Numero</td>
+				<td $Annullato>".stripcslashes($Atto->Riferimento)."</td>
+				<td $Annullato>".stripcslashes($Atto->Oggetto)."</td>
+				<td $Annullato>$Atto->DataInizio</td>
+				<td $Annullato>$Atto->DataFine</td>
+				<td $Annullato>".stripcslashes($Atto->Informazioni)."</td>
+				<td $Annullato>$Atto->Categoria</td>
+				<td $Annullato>$Atto->DataAnnullamento</td>
+				<td $Annullato>".stripcslashes($Atto->MotivoAnnullamento)."</td>
+			</tr>";
+		}
+
+	}
+return $Docu;
+}
 function ap_SetDefaultDataScadenza(){
 	global $wpdb;
 	$Sql="SELECT IdAtto, DataOblio,DataFine FROM $wpdb->table_name_Atti;";
@@ -1201,7 +1243,7 @@ function ap_approva_atto($IdAtto){
 	}
 }
 
-function ap_annulla_atto($IdAtto,$Motivo){
+function ap_annulla_atto($IdAtto,$Motivo,$Allegati=array()){
 	global $wpdb;
 	$IdAtto=(int)$IdAtto;
 	$risultato=ap_get_atto($IdAtto);
@@ -1211,6 +1253,9 @@ function ap_annulla_atto($IdAtto,$Motivo){
 									 array('%s','%s'),
 									 array('%d'))){
 		ap_insert_log(1,6,$IdAtto,"{Stato Atto}==> Annullato");
+		if (!empty($Allegati))
+			foreach($Allegati as $Allegato)
+				ap_del_allegato_atto($Allegato,$IdAtto,"","S");
 		return 'Atto ANNULLATO';
 	}else
 		return "Atto non annullato errore: ".$wpdb->last_error;exit;		
@@ -1499,15 +1544,19 @@ global $wpdb;
 											{IdAtto}==> $IdAtto", $IdAtto);
 }
 
-function ap_del_allegato_atto($idAllegato,$idAtto=0,$nomeAllegato=''){
+function ap_del_allegato_atto($idAllegato,$idAtto=0,$nomeAllegato='',$SoloFile="N"){
 global $wpdb;
 	$idAllegato=(int)$idAllegato;
 	$idAtto=(int)$idAtto;
 	$allegato=ap_get_allegato_atto($idAllegato);
 	if (file_exists($allegato[0]->Allegato) && is_file($allegato[0]->Allegato))
 		if (unlink($allegato[0]->Allegato)){
-			$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati WHERE IdAllegato=%d",$idAllegato));
-			ap_insert_log(3,3,$allegato[0]->IdAllegato,"{Nome Allegato}==> $nomeAllegato ",$idAtto);
+			if($SoloFile=="N"){
+				$wpdb->query($wpdb->prepare( "DELETE FROM $wpdb->table_name_Allegati WHERE IdAllegato=%d",$idAllegato));
+				ap_insert_log(3,3,$allegato[0]->IdAllegato,"{Nome Allegato}==> ".$allegato[0]->TitoloAllegato." ",$idAtto);
+			}else{
+				ap_insert_log(3,3,$allegato[0]->IdAllegato,"{Nome Allegato}==> ".$allegato[0]->TitoloAllegato." ancellato solo il file per VIOLAZIONE di LEGGE",$idAtto);
+			}
 			return True;
 		}else{
 			return FALSE;
