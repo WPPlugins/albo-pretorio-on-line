@@ -176,3 +176,8 @@ ul.lista{
 	font-weight: bold;
 	font-style: italic;
 }
+.dataAtto {
+text-align: center;
+padding:2px;
+font-weight: bold;
+}
