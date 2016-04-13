@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6
+ * @since 3.6.1
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -154,7 +154,7 @@ foreach ($allegati as $allegato) {
 			else
 				$sep="?";
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" download>'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica.' <a href="'.get_permalink().$sep.'action=dwnalle&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >Scarica allegato</a>';
 			else
 				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
 echo'				</p>
@@ -367,10 +367,10 @@ if (!$lista){
 							'.stripcslashes(ap_get_ente($riga->Ente)->Nome) .'
 						</td>
 						<td '.$classeNV.'>
-							'.$riga->Riferimento .'
+							'.stripcslashes($riga->Riferimento) .'
 						</td>
 						<td '.$classe.'>
-							<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.$riga->Oggetto .'</a>  
+							<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  >'.stripcslashes($riga->Oggetto) .'</a>  
 						</td>
 						<td '.$classe.'>
 							'.ap_VisualizzaData($riga->DataInizio) .'<br />'.ap_VisualizzaData($riga->DataFine) .'  

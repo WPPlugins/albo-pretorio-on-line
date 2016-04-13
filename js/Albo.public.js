@@ -16,7 +16,8 @@ function format ( d ) {
 }
 jQuery.noConflict();
 (function($) {
-	$(function() {		 
+	$(function() {	
+		 
 		$('#paginazione').change(function(){
 				location.href=$(this).attr('rel')+$("#paginazione option:selected" ).text();
 		});
@@ -79,3 +80,4 @@ jQuery.noConflict();
 		});
 	});
 })(jQuery);
+ 

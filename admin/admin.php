@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.5
+ * @since 3.6.1
  */
 
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
@@ -13,7 +13,8 @@ add_action( 'init', 'albo_post');
 
 function albo_post() {
 switch ( $_REQUEST['action'] ) {
-	case "elimina-atto":
+
+		case "elimina-atto":
 		$id=(int)$_GET['id'];
  		$location = "?page=atti&p=2" ;
 		$riga=ap_get_atto($id);

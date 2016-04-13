@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.6
+Version:3.6.1
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -73,9 +73,54 @@ if (!class_exists('AlboPretorio')) {
 		add_action('wp_head', array('AlboPretorio','head_Front_End'));
 		add_action( 'admin_menu', array (&$this, 'add_menu') ); 
 		add_action( 'wp_ajax_logdati', array('AlboPretorio','get_crealog'));
+		add_action('template_redirect', array('AlboPretorio', 'Gestione_Link'));
 		$role =& get_role( 'amministratore_albo' );
 	}
 	
+	function Gestione_Link(){
+		switch ($_REQUEST['action']){
+		case "dwnalle":
+			$chunksize	= 2*(1024*1024);
+			$file_path	= ap_get_allegato_atto($_REQUEST['id']);
+			$file_path	=$file_path[0]->Allegato;
+			$stat 		= @stat($file_path);
+			$etag		= sprintf('%x-%x-%x', $stat['ino'], $stat['size'], $stat['mtime'] * 1000000);
+			$path 		= pathinfo($file_path);
+			header('Pragma: public');
+			header('Expires: 0');
+			header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+			header('Cache-Control: private', FALSE);
+			header('Content-Type: application/force-download', FALSE);
+			header('Content-Type: application/octet-stream', FALSE);
+			header('Content-Type: application/download', FALSE);
+			header('Content-Disposition: attachment; filename="'.basename($file_path).'";');
+			header('Content-Transfer-Encoding: binary');
+			header('Last-Modified: ' . date('r', $stat['mtime']));
+			header('Etag: "' . $etag . '"');
+			header('Content-Length: '.$stat['size']);
+			header('Accept-Ranges: bytes');
+			ob_flush();
+			flush();
+			if ($stat['size'] < $chunksize) {
+				@readfile($file_path);
+			}
+			else {
+				$handle = fopen($file_path, 'rb');
+				while (!feof($handle)) {
+					echo fread($handle, $chunksize);
+					ob_flush();
+					flush();
+				}
+				fclose($handle);
+			}
+			if(is_numeric($_REQUEST['id']) and is_numeric($_REQUEST['idAtto']))
+				ap_insert_log(6,5,(int)$_REQUEST['id'],"Download",(int)$_REQUEST['idAtto']);
+		break;
+
+			exit();
+			break;
+		}
+	}
 	function Albo_Admin_Enqueue_Scripts( $hook_suffix ) {
 	    if(strpos($hook_suffix,"albo-pretorio")===false)
 			return;
