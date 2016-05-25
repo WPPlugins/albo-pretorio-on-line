@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.6.1
+* Version:3.6.2
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -615,14 +615,14 @@ TipoOperazione int(1)
 */
 				  
 function ap_insert_log($Oggetto,$TipoOperazione,$IdOggetto,$Operazione,$IdAtto=0){
-global $wpdb, $current_user;
+global $wpdb;
 	if(get_option('opt_AP_LogOp')=="No" And ($Oggetto!=5 And $Oggetto!=6)){
 	  		return;
     }	  
 	if(get_option('opt_AP_LogAc')=="No" And ($Oggetto==5 Or $Oggetto==6)){
 	  		return;
     }	    
-    get_currentuserinfo();
+    $current_user = wp_get_current_user();
 	$wpdb->insert($wpdb->table_name_Log,array('IPAddress' => $_SERVER['REMOTE_ADDR'],
 	                                          'Utente' => $current_user->user_login,
 											  'Oggetto' => $Oggetto,

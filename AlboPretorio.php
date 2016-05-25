@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.6.1
+Version:3.6.2
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -559,7 +559,6 @@ echo '<div  style="margin-left: 10px;">
 	}	
 
 	function AP_config(){
-	  global $current_user;
 	  if ($_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
 		update_option('opt_AP_NumeroProgressivo',1 );
@@ -573,7 +572,7 @@ echo '<div  style="margin-left: 10px;">
 		  else
 			$stato="<div id='setting-error-settings_updated' class='updated settings-error'> 
 				<p><strong>ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata.</strong></p></div>";
-	  get_currentuserinfo();
+	  $current_user = wp_get_current_user();
 	  $ente   = stripslashes(ap_get_ente_me());
 	  $nprog  =  get_option('opt_AP_NumeroProgressivo');
 	  $nanno=get_option('opt_AP_AnnoProgressivo');
