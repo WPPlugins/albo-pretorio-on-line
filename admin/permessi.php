@@ -5,11 +5,11 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
-if ($_REQUEST['action']=="memoPermessi"){
+if (isset($_REQUEST['action']) And $_REQUEST['action']=="memoPermessi"){
 	if (isset($_REQUEST['permessi'])){
 		if (wp_verify_nonce($_REQUEST['permessi'],'gestpermessi')){
 			$lista=ap_get_users(); 

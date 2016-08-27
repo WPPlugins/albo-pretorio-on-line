@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -31,7 +31,7 @@ if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
 	echo '</p></div>';
 	$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 }
-if ($_REQUEST['action']=="edit"){
+if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit"){
 	$risultato=ap_get_ente((int)$_REQUEST['id']);
 //	print_r($risultato);exit;
 	$edit=True;
@@ -120,7 +120,6 @@ echo '    </tbody>
 
 <div id="col-left">
 <div class="form-wrap">
-<h3><?php echo $tax->labels->add_new_item; ?></h3>
 <form id="addtag" method="post" action="?page=enti" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
 <input type="hidden" name="action" value="<?php if($edit || $_REQUEST['action']=="edit_err") echo "memo-ente"; else echo "add-ente"; ?>"/>
 <input type="hidden" name="action2" value="<?php echo htmlentities($_REQUEST['action']); ?>"/>
@@ -129,35 +128,35 @@ echo '    </tbody>
 
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-nome">Nome Ente</label>
-	<input name="ente-nome" id="ente-nome" type="text" value='<?php if($edit) echo stripslashes($risultato->Nome); else echo htmlentities($_REQUEST['ente-nome']); ?>' size="30" aria-required="true" />
+	<input name="ente-nome" id="ente-nome" type="text" value='<?php if($edit) echo stripslashes($risultato->Nome); else echo htmlentities((isset($_REQUEST['ente-nome'])?$_REQUEST['ente-nome']:"")); ?>' size="30" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-indirizzo">Indirizzo</label>
-	<input name="ente-indirizzo" id="ente-indirizzo" type="text" value='<?php if($edit) echo stripslashes($risultato->Indirizzo); else echo htmlentities($_REQUEST['ente-indirizzo']); ?>' size="150" aria-required="true" />
+	<input name="ente-indirizzo" id="ente-indirizzo" type="text" value='<?php if($edit) echo stripslashes($risultato->Indirizzo); else echo htmlentities((isset($_REQUEST['ente-indirizzo'])?$_REQUEST['ente-indirizzo']:"")); ?>' size="150" aria-required="true" />
 </div>
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-url">Url</label>
-	<input name="ente-url" id="ente-url" type="text" value='<?php if($edit) echo stripslashes($risultato->Url); else echo htmlentities($_REQUEST['ente-url']);?>' size="100" aria-required="true" />
+	<input name="ente-url" id="ente-url" type="text" value='<?php if($edit) echo stripslashes($risultato->Url); else echo htmlentities((isset($_REQUEST['ente-url'])?$_REQUEST['ente-url']:""));?>' size="100" aria-required="true" />
 </div>
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-email">Email</label>
-	<input name="ente-email" id="ente-email" type="text" value='<?php if($edit) echo stripslashes($risultato->Email); else echo htmlentities($_REQUEST['ente-email']);?>' size="100" aria-required="true" />
+	<input name="ente-email" id="ente-email" type="text" value='<?php if($edit) echo stripslashes($risultato->Email); else echo htmlentities((isset($_REQUEST['ente-email'])?$_REQUEST['ente-email']:""));?>' size="100" aria-required="true" />
 </div>
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-pec">Pec</label>
-	<input name="ente-pec" id="ente-pec" type="text" value='<?php if($edit) echo stripslashes($risultato->Pec); else echo htmlentities($_REQUEST['ente-pec']);?>' size="100" aria-required="true" />
+	<input name="ente-pec" id="ente-pec" type="text" value='<?php if($edit) echo stripslashes($risultato->Pec); else echo htmlentities((isset($_REQUEST['ente-pec'])?$_REQUEST['ente-pec']:""));?>' size="100" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-telefono">Telefono</label>
-	<input name="ente-telefono" id="ente-telefono" type="text" value='<?php if($edit) echo stripslashes($risultato->Telefono); else echo htmlentities($_REQUEST['ente-telefono']); ?>' size="30" aria-required="true" />
+	<input name="ente-telefono" id="ente-telefono" type="text" value='<?php if($edit) echo stripslashes($risultato->Telefono); else echo htmlentities((isset($_REQUEST['ente-telefono'])?$_REQUEST['ente-telefono']:"")); ?>' size="30" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="ente-fax">Fax</label>
-	<input name="ente-fax" id="ente-fax" type="text" value='<?php if($edit) echo stripslashes($risultato->Fax); else echo htmlentities($_REQUEST['ente-fax']); ?>' size="30" aria-required="true" />
+	<input name="ente-fax" id="ente-fax" type="text" value='<?php if($edit) echo stripslashes($risultato->Fax); else echo htmlentities((isset($_REQUEST['ente-fax'])?$_REQUEST['ente-fax']:"")); ?>' size="30" aria-required="true" />
 </div>
 <div class="form-field"  style="margin-bottom:0px;margin-top:0px;">
 	<label for="tag-description">Note</label>
-	<textarea name="ente-note" id="ente-note" rows="5" cols="40"><?php if($edit) echo stripslashes($risultato->Note); else echo htmlentities($_REQUEST['ente-note']); ?></textarea>
+	<textarea name="ente-note" id="ente-note" rows="5" cols="40"><?php if($edit) echo stripslashes($risultato->Note); else echo htmlentities((isset($_REQUEST['ente-note'])?$_REQUEST['ente-note']:"")); ?></textarea>
 	<p>inserire eventuali informazioni aggiuntive</p>
 </div>
 
@@ -165,7 +164,7 @@ echo '    </tbody>
 if($edit) {
 	echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche" rel="'.stripslashes($risultato->Nome).'" />';
 }else{
- 	if ($_REQUEST['action']=="edit_err")
+ 	if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit_err")
 		echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche" rel="'.htmlentities($_REQUEST['ente-nome']).'" />';
 	else
 		echo '<input type="submit" name="submit" id="submit" class="button" value="Aggiungi nuovo Ente"  />';	

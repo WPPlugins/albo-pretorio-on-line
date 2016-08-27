@@ -5,38 +5,60 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
-switch ($_REQUEST['action']){
-	case 'visatto':
-		if(is_numeric($_REQUEST['id']))
-			VisualizzaAtto($_REQUEST['id']);
-		else{
-			$ret=Lista_Atti($Parametri);
-		}
-			
-		break;
-	case 'addstatall':
-		if(is_numeric($_GET['id']) and is_numeric($_GET['idAtto']))
-			ap_insert_log(6,5,(int)$_GET['id'],"Download",(int)$_GET['idAtto']);
-		break;
-	default: 
-		if (isset($_REQUEST['filtra']))
-		 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
-		else if(isset($_REQUEST['annullafiltro'])){
-				 unset($_REQUEST['categoria']);
-				 unset($_REQUEST['anno']);
-				 unset($_REQUEST['oggetto']);
-				 unset($_REQUEST['DataInizio']);
-				 unset($_REQUEST['DataFine']);
-				 $ret=Lista_Atti($Parametri);
-			}else{
+
+if(isset($_REQUEST['action'])){
+	switch ($_REQUEST['action']){
+		case 'visatto':
+			if(is_numeric($_REQUEST['id']))
+				VisualizzaAtto($_REQUEST['id']);
+			else{
 				$ret=Lista_Atti($Parametri);
 			}
+				
+			break;
+		case 'addstatall':
+			if(is_numeric($_GET['id']) and is_numeric($_GET['idAtto']))
+				ap_insert_log(6,5,(int)$_GET['id'],"Download",(int)$_GET['idAtto']);
+			break;
+		default: 
+			if (isset($_REQUEST['filtra']))
+			 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
+			else if(isset($_REQUEST['annullafiltro'])){
+					 unset($_REQUEST['categoria']);
+					 unset($_REQUEST['anno']);
+					 unset($_REQUEST['oggetto']);
+					 unset($_REQUEST['DataInizio']);
+					 unset($_REQUEST['DataFine']);
+					 $ret=Lista_Atti($Parametri);
+				}else{
+					$ret=Lista_Atti($Parametri);
+				}
+	}
+}else{
+	if (isset($_REQUEST['filtra']))
+		$ret=Lista_Atti($Parametri,
+		(isset($_REQUEST['categoria'])?(int)$_REQUEST['categoria']:''),
+		(isset($_REQUEST['anno'])?(int)$_REQUEST['anno']:''), 
+		(isset($_REQUEST['oggetto'])?htmlentities($_REQUEST['oggetto']):''),
+		(isset($_REQUEST['DataInizio'])?htmlentities($_REQUEST['DataInizio']):''),
+		(isset($_REQUEST['DataFine'])?htmlentities($_REQUEST['DataFine']):''));
+	else if(isset($_REQUEST['annullafiltro'])){
+			 unset($_REQUEST['categoria']);
+			 unset($_REQUEST['anno']);
+			 unset($_REQUEST['oggetto']);
+			 unset($_REQUEST['DataInizio']);
+			 unset($_REQUEST['DataFine']);
+			 $ret=Lista_Atti($Parametri);
+		}else{
+			$ret=Lista_Atti($Parametri);
+		}
 }
+
 
 function VisualizzaAtto($id){
 	$risultato=ap_get_atto($id);
@@ -51,7 +73,7 @@ function VisualizzaAtto($id){
 	if($risultato->DataAnnullamento!='0000-00-00')
 		$Annullato='<p style="background-color: '.$coloreAnnullati.';text-align:center;font-size:1.5em;padding:5px;">
 			Atto Annullato dal Responsabile del Procedimento<br /><br />
-			Motivo: <span style="font-size:1;font-style: italic;">'.$risultato->MotivoAnnullamento.'</span>
+			Motivo: <span style="font-size:1;font-style: italic;">'.stripslashes($risultato->MotivoAnnullamento).'</span>
 			</p>';
 	else
 		$Annullato='';
@@ -154,7 +176,7 @@ foreach ($allegati as $allegato) {
 			else
 				$sep="?";
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" download>'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica.' <a href="'.get_permalink().$sep.'action=dwnalle&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >Scarica allegato</a>';
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'">'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica.' <a href="'.get_permalink().$sep.'action=dwnalle&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >Scarica allegato</a>';
 			else
 				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
 echo'				</p>
@@ -169,8 +191,8 @@ echo '
 }
 
 function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
-	$anni=ap_get_dropdown_anni_atti('anno','anno','postform','',$_REQUEST['anno'],$Stato); 
-	$categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',$_REQUEST['categoria'],$Stato); 
+	$anni=ap_get_dropdown_anni_atti('anno','anno','postform','',(isset($_REQUEST['anno'])?$_REQUEST['anno']:0),$Stato); 
+	$categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',(isset($_REQUEST['categoria'])?$_REQUEST['anno']:0),$Stato); 
 	ap_Bonifica_Url();
 	if (strpos($_SERVER['REQUEST_URI'],"?")>0)
 		$sep="&amp;";
@@ -195,15 +217,15 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 					</tr>
 					<tr>
 						<th scope="row"><label for="oggetto">Oggetto</label></th>
-						<td><input type="text" size="40" maxlength="150" name="oggetto" id ="oggetto" value="'.htmlentities($_REQUEST['oggetto']).'"/></td>
+						<td><input type="text" size="40" maxlength="150" name="oggetto" id ="oggetto" value="'.htmlentities((isset($_REQUEST['oggetto'])?$_REQUEST['oggetto']:"")).'"/></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="Calendario1">da Data</label></th>
-						<td><input name="DataInizio" id="Calendario1" type="text" value="'.htmlentities($_REQUEST['DataInizio']).'" size="10" /></td>
+						<td><input name="DataInizio" id="Calendario1" type="text" value="'.htmlentities((isset($_REQUEST['DataInizio'])?$_REQUEST['DataInizio']:"")).'" size="10" /></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="Calendario2">a Data</label></th>
-						<td><input name="DataFine" id="Calendario2" type="text" value="'.htmlentities($_REQUEST['DataFine']).'" size="10" /></td>
+						<td><input name="DataFine" id="Calendario2" type="text" value="'.htmlentities((isset($_REQUEST['DataFine'])?$_REQUEST['DataFine']:"")).'" size="10" /></td>
 					</tr>
 					<tr>
 						<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
@@ -261,6 +283,8 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 }
 
 function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata=0){
+	$VisFiltro="";
+	$minfiltri="";
 	switch ($Parametri['stato']){
 		case 0:
 			$TitoloAtti="Tutti gli Atti";
@@ -293,10 +317,12 @@ function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	$colorePari=get_option('opt_AP_ColorePari');
 	$coloreDispari=get_option('opt_AP_ColoreDispari');
-	if($Parametri['minfiltri']=="si"){
+	if(isset($Parametri['minfiltri']) And $Parametri['minfiltri']=="si"){
 		if(isset($_REQUEST['vf']) and  $_REQUEST['vf']=="s"){
+			$minfiltri="si";
 			$VisFiltro='<img src="'.Albo_URL.'img/minimize.png" id="maxminfiltro" class="s" alt="icona minimizza finestra filtri"/>';
 		}else{
+			$minfiltri="no";
 			$VisFiltro='<img src="'.Albo_URL.'img/maximize.png" id="maxminfiltro" class="h" alt="icona massimizza finestra filtri"/>';
 		}
 	}
@@ -308,7 +334,7 @@ if (get_option('opt_AP_VisualizzaEnte')=='Si')
 		$Contenuto.= '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
 $Contenuto.='<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>';
 if (!isset($Parametri['filtri']) Or $Parametri['filtri']=="si")
-	$Contenuto.='<h4>Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$cat,$Parametri['minfiltri']);
+	$Contenuto.='<h4>Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$cat,$minfiltri);
 if (!$lista){
 	if(!$_REQUEST)
 		$Contenuto="";

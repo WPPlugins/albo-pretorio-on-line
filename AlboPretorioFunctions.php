@@ -2,7 +2,7 @@
 /*
 * Plugin URI: http://www.sisviluppo.info
 * Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-* Version:3.6.2
+* Version:3.7
 * Author: Scimone Ignazio
 * Author URI: http://www.sisviluppo.info
 */
@@ -108,6 +108,7 @@ function ap_get_fileperm_Gruppo($dir,$Gruppo){
 }
 
 function ap_crearobots(){
+	$Stato="";
 	$cartellabase=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
 	$cartella=substr($cartellabase,strlen(APHomePath));
 	$robot="User-agent: *
@@ -122,7 +123,7 @@ function ap_crearobots(){
 	return $Stato;
 }
 function ap_NoIndexNoDirectLink($dir){
-    $sito=$_SERVER[HTTP_HOST];
+    $sito=$_SERVER['HTTP_HOST'];
 	$Stato="";
 	if (is_ssl())
 		$Prot="https";
@@ -428,7 +429,9 @@ function ap_isAllowedExtension($fileName) {
   return in_array(end(explode(".", $fileName)), $EstensioniValide);
 }
 function ap_ExtensionType($fileName) {
-  return strtolower(end(explode(".", $fileName)));
+	$NomeFile=explode(".", $fileName);
+	$ext=strtolower($NomeFile[count($NomeFile)-1]);
+  return $ext;
 }
 
 function ap_Bonifica_Url(){
@@ -449,6 +452,7 @@ function ap_Estrai_PageID_Url(){
 	return 0;
 }
 function ap_ListaElementiArray($var) {
+	 $output ="";
      foreach($var as $key => $value) {
             $output .= $key . "==>".$value . "\n";
      }
@@ -456,6 +460,7 @@ function ap_ListaElementiArray($var) {
 }
 
 function ap_cvdate($data){
+//	echo $data." - <br />";
 	$rsl = explode ('-',$data);
 //print("mm=".$rsl[1]." gg=". $rsl[2]."  aaaa=".$rsl[0]);
 	return mktime(0,0,0,$rsl[1], $rsl[2],$rsl[0]);
@@ -1009,6 +1014,7 @@ function AnniAtti(){
 
 function Repertorio($Anno){
 	global $wpdb;
+	$Docu="";
 	$Sql="SELECT $wpdb->table_name_Enti.Nome as NomeEnte,Numero,Anno,Riferimento,Oggetto,DataInizio,DataFine,$wpdb->table_name_Categorie.Nome as Categoria, DataAnnullamento, MotivoAnnullamento,Informazioni
 		FROM $wpdb->table_name_Atti inner join $wpdb->table_name_Categorie on ($wpdb->table_name_Atti.IdCategoria =$wpdb->table_name_Categorie.IdCategoria) inner join $wpdb->table_name_Enti on ($wpdb->table_name_Atti.Ente=$wpdb->table_name_Enti.IdEnte) 
 		WHERE Anno=$Anno And Numero>0
@@ -1221,7 +1227,7 @@ function ap_approva_atto($IdAtto){
 	$NumeroOpzione=get_option('opt_AP_NumeroProgressivo');
 	if($risultato->Numero!=0)
 		return "Atto gia' PUBBLICATO con Numero Progressivo ".$risultato->Numero;
-	if ($NumeroDaDb!=$NumeroOpzione){
+	if (($NumeroDaDb!=$NumeroOpzione) And ap_get_all_atti(9,0,0,"",0,0,"",0,0,TRUE)>0){
 		return "Atto non PUBBLICATO:%%br%%Progressivo da ultima pubblicazione=$NumeroDaDb%%br%% Progressivo da parametri=$NumeroOpzione";
 	}else{
 		$x=$wpdb->update($wpdb->table_name_Atti,
@@ -1246,19 +1252,21 @@ function ap_approva_atto($IdAtto){
 function ap_annulla_atto($IdAtto,$Motivo,$Allegati=array()){
 	global $wpdb;
 	$IdAtto=(int)$IdAtto;
-	$risultato=ap_get_atto($IdAtto);
-	$risultato=$risultato[0];
-	if($x=$wpdb->update($wpdb->table_name_Atti,array('DataAnnullamento' => date('Y-m-d'),'MotivoAnnullamento' =>$Motivo),
-									 array( 'IdAtto' => $IdAtto ),
-									 array('%s','%s'),
-									 array('%d'))){
+//	$risultato=ap_get_atto($IdAtto);
+//	$risultato=$risultato[0];
+	$Sql = "UPDATE `$wpdb->table_name_Atti` SET DataAnnullamento='".date('Y-m-d')."', MotivoAnnullamento=%s  WHERE IdAtto=%d";
+	$Sql=$wpdb->prepare($Sql,array($Motivo,$IdAtto));
+	$Result=$wpdb->query($Sql);
+//	echo "Sql==".$wpdb->last_query ."    Ultimo errore==".$wpdb->last_error;exit;
+	if($Result){
 		ap_insert_log(1,6,$IdAtto,"{Stato Atto}==> Annullato");
 		if (!empty($Allegati))
 			foreach($Allegati as $Allegato)
 				ap_del_allegato_atto($Allegato,$IdAtto,"","S");
-		return 'Atto ANNULLATO';
-	}else
-		return "Atto non annullato errore: ".$wpdb->last_error;exit;		
+		return 9;
+	}else{
+	return 8;				
+	}
 }
 
 function ap_get_dropdown_anni_atti($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuno",$Stato=0) {
@@ -1323,6 +1331,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		 true - Conteggio
 */	
 	global $wpdb;
+	$Selezione="";
 	if ($OrderBy!=""){
 		$OrderBy=" Order By ".$OrderBy;
 	}
@@ -2065,7 +2074,7 @@ function ap_backup_table($table,$fp) {
 			(0 === strpos(strtolower($struct->Type), 'int')) ||
 			(0 === strpos(strtolower($struct->Type), 'bigint')) ) {
 				$defs[strtolower($struct->Field)] = ( null === $struct->Default ) ? 'NULL' : $struct->Default;
-				$ints[strtolower($struct->Field)] = "1";
+				$ints[($struct->Field)] = "1";
 		}
 	}
 	@fwrite($fp,"Delete From $table ;"."\r\n");
@@ -2078,7 +2087,8 @@ function ap_backup_table($table,$fp) {
 		foreach ($table_data as $row) {
 			$values = array();
 			foreach ($row as $key => $value) {
-				if ($ints[strtolower($key)]) {
+				//echo $key." <br />";
+				if (isset($ints[$key])) {
 					// make sure there are no blank spots in the insert syntax,
 					// yet try to avoid quotation marks around integers
 					$value = ( null === $value || '' === $value) ? $defs[strtolower($key)] : $value;

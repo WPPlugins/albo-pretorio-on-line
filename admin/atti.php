@@ -5,91 +5,104 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
-switch ($_REQUEST['action']){
-	case "logatto" :
-		echo json_encode(CreaLog(1,$IdAtto,0));
-		die();
-		break;
-	case "view-atto" :
-		View_atto((int)$_REQUEST['id']);
-		break;
-	case "annullamento-atto" :
-		Annulla_Atto((int)$_REQUEST['id']);
-		break;
-	case "new-atto" :
-		Nuovo_atto();
-		break;
-	case "edit-atto" :
-		if (!isset($_REQUEST['modificaatto'])) {
-			Go_Atti();
-			break;	
-		}
-		if (!wp_verify_nonce($_REQUEST['modificaatto'],'editatto')){
-			Go_Atti();
+if(isset($_REQUEST['action'])){
+	switch ($_REQUEST['action']){
+		case "logatto" :
+			echo json_encode(CreaLog(1,$IdAtto,0));
+			die();
 			break;
-		} 		
-		Edit_atto((int)$_REQUEST['id']);
-		break;
-	case "pubblica-atto":
-		Lista_Atti(ap_approva_atto((int)$_REQUEST['id']));
-		break;
-	case "setta-anno":
-		update_option('opt_AP_AnnoProgressivo',date("Y") );
-	  	update_option('opt_AP_NumeroProgressivo',1 );
-		PreApprovazione((int)$_REQUEST['id'],"Anno Albo settato a ".date("Y")." Numero prograssivo settato a 0");
-		break;
-	case "approva-atto" :
-		if ($_REQUEST['apa']){
-			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('Anno' => $_REQUEST['apa']),array('%s'),"Modifica in Approvazione\n");
-		}
-		if ($_REQUEST['pnp']){
-			update_option( 'opt_AP_NumeroProgressivo', (int)$_REQUEST['pnp']);
-		}
-		if ($_REQUEST['udi']){
-			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataInizio' => $_REQUEST['udi']),array('%s'),"Modifica in Approvazione\n");	
-		}
-		if ($_REQUEST['udf']){
-			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataFine' => $_REQUEST['udf']),array('%s'),"Modifica in Approvazione\n");	
-		}
-		if ($_REQUEST['udo']){
-			$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataOblio' => $_REQUEST['udo']),array('%s'),"Modifica in Approvazione\n");	
-		}
-		PreApprovazione((int)$_REQUEST['id'],$ret);
-		break;
-	case "allegati-atto" :
-		if (!isset($_REQUEST['allegatoatto'])) {
-			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
-			break;	
-		}
-		if (!wp_verify_nonce($_REQUEST['allegatoatto'],'gestallegatiatto')){
-			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+		case "view-atto" :
+			View_atto((int)$_REQUEST['id']);
 			break;
-		} 		
-		Allegati_atto((int)$_REQUEST['id'],$_REQUEST['messaggio']);
-		break;
-	case "edit-allegato-atto" :
-		if (!isset($_REQUEST['modificaallegatoatto'])) {
-			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
-			break;	
-		}
-		if (!wp_verify_nonce($_REQUEST['modificaallegatoatto'],'editallegatoatto')){
-			Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+		case "annullamento-atto" :
+			Annulla_Atto((int)$_REQUEST['id']);
 			break;
-		} 				
-		Allegati_atto((int)$_REQUEST['id'],$_REQUEST['messaggio'],(int)$_REQUEST['idAlle']);
-		break;
-	case "UpAllegati":
-		include_once ( dirname (__FILE__) . '/allegati.php' );
-		break;
-	default:
-		Lista_Atti();
-		break;
-}
+		case "new-atto" :
+			Nuovo_atto();
+			break;
+		case "edit-atto" :
+			if (!isset($_REQUEST['modificaatto'])) {
+				Go_Atti();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['modificaatto'],'editatto')){
+				Go_Atti();
+				break;
+			} 		
+			Edit_atto((int)$_REQUEST['id']);
+			break;
+		case "pubblica-atto":
+			Lista_Atti(ap_approva_atto((int)$_REQUEST['id']));
+			break;
+		case "setta-anno":
+			update_option('opt_AP_AnnoProgressivo',date("Y") );
+		  	update_option('opt_AP_NumeroProgressivo',1 );
+			PreApprovazione((int)$_REQUEST['id'],"Anno Albo settato a ".date("Y")." Numero prograssivo settato a 0");
+			break;
+		case "approva-atto" :
+			$ret="";
+			if (isset($_REQUEST['apa'])){
+				$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('Anno' => $_REQUEST['apa']),array('%s'),"Modifica in Approvazione\n");
+			}
+			if (isset($_REQUEST['pnp'])){
+				update_option( 'opt_AP_NumeroProgressivo', (int)$_REQUEST['pnp']);
+			}
+			if (isset($_REQUEST['udi'])){
+				$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataInizio' => $_REQUEST['udi']),array('%s'),"Modifica in Approvazione\n");	
+			}
+			if (isset($_REQUEST['udf'])){
+				$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataFine' => $_REQUEST['udf']),array('%s'),"Modifica in Approvazione\n");	
+			}
+			if (isset($_REQUEST['udo'])){
+				$ret=ap_update_selettivo_atto((int)$_REQUEST['id'],array('DataOblio' => $_REQUEST['udo']),array('%s'),"Modifica in Approvazione\n");	
+			}
+			if(isset($_REQUEST['id']))
+				$id=(int)$_REQUEST['id'];
+			else
+				$id=0;
+			PreApprovazione($id,$ret);
+			break;
+		case "allegati-atto" :
+			if (!isset($_REQUEST['allegatoatto'])) {
+				Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['allegatoatto'],'gestallegatiatto')){
+				Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+				break;
+			} 		
+			Allegati_atto((int)$_REQUEST['id'],(isset($_REQUEST['messaggio'])?$_REQUEST['messaggio']:""));
+			break;
+		case "edit-allegato-atto" :
+			if (!isset($_REQUEST['modificaallegatoatto'])) {
+				Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['modificaallegatoatto'],'editallegatoatto')){
+				Lista_Atti("ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata");
+				break;
+			} 				
+			Allegati_atto((int)$_REQUEST['id'],(isset($_REQUEST['messaggio'])?$_REQUEST['messaggio']:""),(int)$_REQUEST['idAlle']);
+			break;
+		case "UpAllegati":
+			include_once ( dirname (__FILE__) . '/allegati.php' );
+			break;
+		default:
+			if(isset($_REQUEST['message']))
+				$message=$_REQUEST['message'];
+			else
+				$message="";
+			Lista_Atti($message);
+			break;
+	}	
+}else
+	Lista_Atti();
+
 unset($_REQUEST['action']);
 
 function PreApprovazione($id,$ret=''){
@@ -104,8 +117,12 @@ if ($ret!=""){
 	$NumeroDaDb=ap_get_last_num_anno(date("Y"));
 	$atto=ap_get_atto($id);
 	$atto=$atto[0];
-	$dif=ap_datediff("d",ap_cvdate($atto->DataInizio),ap_cvdate($atto->DataFine));
+	//$dif=ap_datediff("d",ap_cvdate($atto->DataInizio),ap_cvdate($atto->DataFine));
 	$NumeroOpzione=get_option('opt_AP_NumeroProgressivo');
+	$NumAttiPubblicati=ap_get_all_atti(9,0,0,"",0,0,"",0,0,TRUE);
+	if($NumAttiPubblicati==0) 
+		$AppPostMigrazione=" <span style='color:red;'>Validato perchè primo atto dopo la MIGRAZIONE </span>";	 else
+		$AppPostMigrazione="";
 echo'
 <div class="wrap">
 <div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/approva32.png" alt="Icona Approvazione Atto"/></div>
@@ -152,8 +169,8 @@ echo'<br />
 		if($Passato){
 			echo '<tr>
 			<td>Numero Atto</td>
-			<td>da Parametri '.get_option('opt_AP_NumeroProgressivo').' Progressivo da ultima pubblicazione '.$NumeroDaDb.'</td>';
-			if ($NumeroDaDb==$NumeroOpzione){
+			<td>da Parametri '.get_option('opt_AP_NumeroProgressivo').' Progressivo da ultima pubblicazione '.$NumeroDaDb.$AppPostMigrazione.'</td>';
+			if (($NumeroDaDb==$NumeroOpzione) Or $NumAttiPubblicati==0){
 			 	$Passato=true;
 				echo '<td colspan="2">Ok</td>';
 			}else{
@@ -329,21 +346,21 @@ echo '</div>';
 
 
 function Nuovo_atto(){
-	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
-	$risultatocategoria=$risultatocategoria[0];
-	if ($_REQUEST['Data']=="")
-		$dataCorrente=date("d/m/Y");
-	else
+/*	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
+	$risultatocategoria=$risultatocategoria[0];*/
+	if (isset($_REQUEST['Data']) And $_REQUEST['Data']!="")
 		$dataCorrente=$_REQUEST['Data'];
-	if ($_REQUEST['Ente'])
+	else
+		$dataCorrente=date("d/m/Y");
+	if (isset($_REQUEST['Ente']))
 		$defEnte=$_REQUEST['Ente'];
 	else
 		$defEnte=get_option('opt_AP_Ente');
-	if ($_REQUEST['Riferimento'])
+	if (isset($_REQUEST['Riferimento']) )
 		$Riferimento=htmlentities($_REQUEST['Riferimento']);
 	else
 		$Riferimento="";
-	if ($_REQUEST['Oggetto'])
+	if (isset($_REQUEST['Oggetto']))
 		$Oggetto=htmlentities($_REQUEST['Oggetto']);
 	else
 		$Oggetto="";
@@ -351,23 +368,23 @@ function Nuovo_atto(){
 		$DataI=$_REQUEST['DataInizio'];
 	else*/
 	$DataI=date("d/m/Y");
-	if ($_REQUEST['DataFine'])
+	if (isset($_REQUEST['DataFine']))
 		$DataF=htmlentities($_REQUEST['DataFine']);
 	else
 		$DataF=date("d/m/Y");
-	if ($_REQUEST['DataOblio'])
+	if (isset($_REQUEST['DataOblio']))
 		$DataO=htmlentities($_REQUEST['DataOblio']);
 	else
 		$DataO=ap_VisualizzaData(ap_DateAdd(ap_oggi(),get_option('opt_AP_GiorniOblio')));
-	if ($_REQUEST['Note'])
+	if (isset($_REQUEST['Note']))
 		$Note=$_REQUEST['Note'];
 	else	
 		$Note="";
-	if ($_REQUEST['Categoria'])
+	if (isset($_REQUEST['Categoria']))
 		$Categoria=$_REQUEST['Categoria'];
 	else
 		$Categoria="";
-	if ($_REQUEST['Responsabile'])
+	if (isset($_REQUEST['Responsabile']))
 		$Responsabile=$_REQUEST['Responsabile'];
 	else{
 		$Resp=ap_get_responsabili();
@@ -385,7 +402,7 @@ function Nuovo_atto(){
 	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
 	<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
 <?php 
-	if ( $_REQUEST['msg'] !="") {
+	if ( isset($_REQUEST['msg']) And $_REQUEST['msg'] !="") {
 		?><div id="message" class="updated"><p><?php echo stripslashes($_REQUEST['msg']);?></p></div>
 <?php	}?>
 	<div style="margin-top: 30px;">
@@ -713,10 +730,10 @@ if ($IdAllegato!=0){
 	foreach ($righe as $riga) {
 		echo '<tr>
 				<td>	
-					<a href="?page=atti&amp;action=delete-allegato-atto&amp;idAllegato='.$riga->IdAllegato.'&amp;idAtto='.$IdAtto.'&amp;Allegato='.$riga->TitoloAllegato.'&amp;cancellaallegatoatto='.wp_create_nonce('deleteallegatoatto').'" rel="'.$riga->TitoloAllegato.'" class="da">
+					<a href="?page=atti&amp;action=delete-allegato-atto&amp;idAllegato='.$riga->IdAllegato.'&amp;idAtto='.$IdAtto.'&amp;Allegato='.$riga->TitoloAllegato.'&amp;cancellaallegatoatto='.wp_create_nonce('deleteallegatoatto').'" rel="'.strip_tags($riga->TitoloAllegato).'" class="da">
 						<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
-					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'&amp;modificaallegatoatto='.wp_create_nonce('editallegatoatto').'" rel="'.$riga->TitoloAllegato.'">
+					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'&amp;modificaallegatoatto='.wp_create_nonce('editallegatoatto').'" rel="'.strip_tags($riga->TitoloAllegato).'">
 						<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
 					</a>
 					<a href="'.ap_DaPath_a_URL($riga->Allegato).'" target="_parent">
@@ -839,7 +856,7 @@ else
 			</tr>
 	    	<tr>
 				<th style="width:20%;">Motivo Annullamento</th>
-				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:top;">'.$risultato->MotivoAnnullamento.'</td>
+				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:top;">'.stripslashes($risultato->MotivoAnnullamento).'</td>
 			</tr>';
 		echo '		<tr>
 				<th style="width:20%;">Numero Albo</th>
@@ -1038,7 +1055,7 @@ echo'			</td>
 			<tr>
 				<td colspan="2" style="text-align:center;border-top-style: groove;border-top-width: thin;">
 				<span style="color:red;font-size:2em;font-weight: bold;">Motivo Annullamento</span><br />
-					<textarea rows="4" cols="100" id="Motivo" name="Motivo" ></textarea>
+					<textarea rows="4" cols="100"  maxlength="255" placeholder="Inserisci il motivo, massimo 255 caratteri" id="Motivo" name="Motivo" ></textarea>
 				</td>
 			</tr>
 			<tr>
@@ -1138,15 +1155,15 @@ if ($HtmlNP!=""){
 }
 echo'
 	<a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a></h2>';
-	if ( $msg or $msg2 or $Errore) {
-		echo '<div id="message" class="updated"><p>'.$messages[$msg].'<br />'.$messages[$msg2].'<br />'.$Errore.'</p></div>';
+	if ( isset($msg) or isset($msg2) or isset($Errore) ){
+		echo '<div id="message" class="updated"><p>'.(isset($msg)?$messages[$msg]:"").'<br />'.(isset($msg2)?$messages[$msg2]:"").'<br />'.(isset($Errore)?$Errore:"").'</p></div>';
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message2'), $_SERVER['REQUEST_URI']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('errore'), $_SERVER['REQUEST_URI']);
 	}
-	if ($_REQUEST['action']=="edit"){
-		$risultato=ap_get_categoria($_REQUEST['id']);
+	if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit"){
+		$risultato=ap_get_categoria((isset($_REQUEST['id'])?$_REQUEST['id']:0));
 		$edit=True;
 	}else{
 		$edit=False;
@@ -1186,7 +1203,7 @@ echo'		<table class="widefat" id="elenco-atti-daapp">
 		$Ente=$Ente->Nome; 
 		echo '<tr>
 	        	<td>
-				    <a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'&amp;cancellaatto='.wp_create_nonce('deleteatto').'" rel="'.$riga->Oggetto.'" tag="" class="ac">
+				    <a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'&amp;cancellaatto='.wp_create_nonce('deleteatto').'" rel="'.strip_tags($riga->Oggetto).'" tag="" class="ac">
 						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>
 					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'&amp;modificaatto='.wp_create_nonce('editatto').'">
@@ -1272,12 +1289,12 @@ echo'		<table class="widefat" id="elenco-atti-correnti">
 			if (current_user_can('admin_albo')){
 				 if( !$Scaduto and $Annullato==''){
 				 	
-					echo ' <a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+					echo ' <a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$riga->IdAtto.'">
 							<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
 						</a>';
 				}
 				if ($Scaduto){
-					echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+					echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'">
 							<img src="'.Albo_URL.'/img/cestino.png" alt="Elimina atto" title="Elimina atto" />
 						</a>';
 				}
@@ -1439,7 +1456,7 @@ echo'</div>
 						<img src="'.Albo_URL.'/img/view24.png" alt="View" title="View" />
 					</a>';
 			if (current_user_can('admin_albo')){
-				echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'"  rel="'.$riga->Oggetto.'">
+				echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'"  rel="'.strip_tags($riga->Oggetto).'">
 							<img src="'.Albo_URL.'/img/cestino.png" alt="Elimina atto" title="Elimina atto" />
 						</a>';
 				}
@@ -1481,8 +1498,8 @@ echo'</div>
 echo'</div>
 <div id="atti-tab-5">';
 
-		if (isset($_GET[Anno]))
-			$AnnoRepertorio=$_GET[Anno];
+		if (isset($_GET['Anno']))
+			$AnnoRepertorio=$_GET['Anno'];
 		else
 			$AnnoRepertorio=date("Y");
 		if (($Anni=AnniAtti())!=FALSE){

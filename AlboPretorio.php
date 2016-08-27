@@ -3,7 +3,7 @@
 Plugin Name:Albo Pretorio On line
 Plugin URI: http://plugin.sisviluppo.info
 Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.6.2
+Version:3.7
 Author: Scimone Ignazio
 Author URI: http://plugin.sisviluppo.info
 License: GPL2
@@ -74,54 +74,56 @@ if (!class_exists('AlboPretorio')) {
 		add_action( 'admin_menu', array (&$this, 'add_menu') ); 
 		add_action( 'wp_ajax_logdati', array('AlboPretorio','get_crealog'));
 		add_action('template_redirect', array('AlboPretorio', 'Gestione_Link'));
-		$role =& get_role( 'amministratore_albo' );
+		$role =get_role( 'amministratore_albo' );
 	}
 	
-	function Gestione_Link(){
-		switch ($_REQUEST['action']){
-		case "dwnalle":
-			$chunksize	= 2*(1024*1024);
-			$file_path	= ap_get_allegato_atto($_REQUEST['id']);
-			$file_path	=$file_path[0]->Allegato;
-			$stat 		= @stat($file_path);
-			$etag		= sprintf('%x-%x-%x', $stat['ino'], $stat['size'], $stat['mtime'] * 1000000);
-			$path 		= pathinfo($file_path);
-			header('Pragma: public');
-			header('Expires: 0');
-			header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-			header('Cache-Control: private', FALSE);
-			header('Content-Type: application/force-download', FALSE);
-			header('Content-Type: application/octet-stream', FALSE);
-			header('Content-Type: application/download', FALSE);
-			header('Content-Disposition: attachment; filename="'.basename($file_path).'";');
-			header('Content-Transfer-Encoding: binary');
-			header('Last-Modified: ' . date('r', $stat['mtime']));
-			header('Etag: "' . $etag . '"');
-			header('Content-Length: '.$stat['size']);
-			header('Accept-Ranges: bytes');
-			ob_flush();
-			flush();
-			if ($stat['size'] < $chunksize) {
-				@readfile($file_path);
-			}
-			else {
-				$handle = fopen($file_path, 'rb');
-				while (!feof($handle)) {
-					echo fread($handle, $chunksize);
-					ob_flush();
-					flush();
+	static function Gestione_Link(){
+		if(isset($_REQUEST['action'])){
+			switch ($_REQUEST['action']){
+			case "dwnalle":
+				$chunksize	= 2*(1024*1024);
+				$file_path	= ap_get_allegato_atto($_REQUEST['id']);
+				$file_path	=$file_path[0]->Allegato;
+				$stat 		= @stat($file_path);
+				$etag		= sprintf('%x-%x-%x', $stat['ino'], $stat['size'], $stat['mtime'] * 1000000);
+				$path 		= pathinfo($file_path);
+				header('Pragma: public');
+				header('Expires: 0');
+				header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+				header('Cache-Control: private', FALSE);
+				header('Content-Type: application/force-download', FALSE);
+				header('Content-Type: application/octet-stream', FALSE);
+				header('Content-Type: application/download', FALSE);
+				header('Content-Disposition: attachment; filename="'.basename($file_path).'";');
+				header('Content-Transfer-Encoding: binary');
+				header('Last-Modified: ' . date('r', $stat['mtime']));
+				header('Etag: "' . $etag . '"');
+				header('Content-Length: '.$stat['size']);
+				header('Accept-Ranges: bytes');
+				ob_flush();
+				flush();
+				if ($stat['size'] < $chunksize) {
+					@readfile($file_path);
 				}
-				fclose($handle);
-			}
-			if(is_numeric($_REQUEST['id']) and is_numeric($_REQUEST['idAtto']))
-				ap_insert_log(6,5,(int)$_REQUEST['id'],"Download",(int)$_REQUEST['idAtto']);
-		break;
-
-			exit();
+				else {
+					$handle = fopen($file_path, 'rb');
+					while (!feof($handle)) {
+						echo fread($handle, $chunksize);
+						ob_flush();
+						flush();
+					}
+					fclose($handle);
+				}
+				if(is_numeric($_REQUEST['id']) and is_numeric($_REQUEST['idAtto']))
+					ap_insert_log(6,5,(int)$_REQUEST['id'],"Download",(int)$_REQUEST['idAtto']);
 			break;
+
+				exit();
+				break;
+			}			
 		}
 	}
-	function Albo_Admin_Enqueue_Scripts( $hook_suffix ) {
+	static function Albo_Admin_Enqueue_Scripts( $hook_suffix ) {
 	    if(strpos($hook_suffix,"albo-pretorio")===false)
 			return;
 	    wp_enqueue_script('jquery');
@@ -146,7 +148,7 @@ if (!class_exists('AlboPretorio')) {
 	}
 
 /*TINY MCE Quote Button*/
-function add_albo_button() {  
+static function add_albo_button() {  
   if ( current_user_can('edit_posts') &&  current_user_can('edit_pages') )  
  {  
    add_filter('mce_external_plugins',array('AlboPretorio', 'add_albo_plugin'));  
@@ -157,12 +159,12 @@ function register_albo_button($buttons) {
     array_push($buttons, "separator", "albo");  
     return $buttons;  
  }  
-function add_albo_plugin($plugin_array) {  
+static function add_albo_plugin($plugin_array) {  
   $plugin_array['albo'] =Albo_URL.'/js/ButtonEditor.js';  
    return $plugin_array;  
 }
 
-	function get_crealog(){
+	static function get_crealog(){
 		global $AP_OnLine;
 		$Tipo=$_POST['Tipo'];
 		$IdOggetto=$_POST['IdOggetto'];
@@ -252,6 +254,7 @@ function add_albo_plugin($plugin_array) {
 				</tr>
 			    </thead>
 			    <tbody>';
+		$Operazione="";
 		foreach ($righe as $riga) {
 			switch ($riga->TipoOperazione){
 			 	case 1:
@@ -291,7 +294,7 @@ function add_albo_plugin($plugin_array) {
 
 }
 	
-	function show_menu() {
+	static function show_menu() {
 		global $AP_OnLine;
 
 		switch ($_REQUEST['page']){
@@ -332,7 +335,7 @@ function add_albo_plugin($plugin_array) {
 		}
 	}
 	
-	function init() {
+	static function init() {
 		if (is_admin()) return;
 		wp_enqueue_script('jquery');
 
@@ -343,7 +346,7 @@ function add_albo_plugin($plugin_array) {
 ################################################################################
 
 
-	function ap_head() {
+	static function ap_head() {
 		global $wp_db_version, $wp_dlm_root;
 		?>
 <script language="JavaScript">
@@ -374,7 +377,7 @@ function add_albo_plugin($plugin_array) {
 						break;
 				}
 				$.ajax({
-					type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo (int)$_REQUEST['id']; ?>', IdAtto: '<?php echo (int)$IdAtto; ?>'},
+					type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo (int)$_REQUEST['id']; ?>', IdAtto: '<?php echo (int)$_REQUEST['id']; ?>'},
 					beforeSend: function() {
 					 $("#DatiLog").html('');
 					 $("#loading").fadeIn('fast');}, 
@@ -391,14 +394,15 @@ function add_albo_plugin($plugin_array) {
 	<?php
 	}
 
-	function head_Front_End() {
+	static function head_Front_End() {
 		global $wp_query;
 		$postObj=$wp_query->get_queried_object();
-		if (strpos(strtoupper($postObj->post_content),"[ALBO STATO=")!== false){
+//		echo $postObj->post_content;
+		if (is_object($postObj) And strpos(strtoupper($postObj->post_content),"[ALBO STATO=")!== false){
 			echo "
 	<!--HEAD Albo Preotrio On line -->
 	";
-			if(get_option(blog_public)==1)
+			if(get_option('blog_public')==1)
 				echo "	<meta name='robots' content='noindex, nofollow, noarchive' />
 	<!--HEAD Albo Preotrio On line -->
 			";
@@ -440,7 +444,8 @@ function add_albo_plugin($plugin_array) {
 			}	
 		}
 	
-	function VisualizzaAtti($Parametri){
+	static function VisualizzaAtti($Parametri){
+		$ret="";
 	extract(shortcode_atts(array(
 		'Stato' => '1',
 		'Cat' => 'All',
@@ -459,7 +464,7 @@ function add_albo_plugin($plugin_array) {
 	function AP_menu(){
 	global $wpdb;
 	  
-	  if ($_REQUEST['action']=="setta-anno"){
+	  if (isset($_REQUEST['action']) And $_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
 		update_option('opt_AP_NumeroProgressivo',1 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
@@ -559,7 +564,8 @@ echo '<div  style="margin-left: 10px;">
 	}	
 
 	function AP_config(){
-	  if ($_REQUEST['action']=="setta-anno"){
+		$stato="";
+	  if (isset($_REQUEST['action']) And $_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
 		update_option('opt_AP_NumeroProgressivo',1 );
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
@@ -670,7 +676,7 @@ echo '<div  style="margin-left: 10px;">
 			<th scope="row">Numero Progressivo</th>
 			<td><strong> ';
 			if(ap_get_all_atti(0,0,0,'',0,0,"",0,0,TRUE,TRUE)==0)
-				echo '<input type="text" id="progressivo" name="progressivo" value="0" size="5"/>';
+				echo '<input type="text" id="progressivo" name="progressivo" value="'.$nprog.'" size="5"/>';
 			else
 				echo $nprog;
 		echo ' / '.$nanno.'</strong>	
@@ -979,7 +985,7 @@ echo '<div  style="margin-left: 10px;">
 		delete_option( 'opt_AP_Versione' );  
 	}
 
-	function update_AlboPretorio_settings(){
+	static function update_AlboPretorio_settings(){
 	    if(isset($_POST['AlboPretorio_submit_button']) And $_POST['AlboPretorio_submit_button'] == 'Salva Modifiche'){
 	    	if (!isset($_POST['confAP'])) {
 	    		header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=false'); 		
@@ -994,6 +1000,7 @@ echo '<div  style="margin-left: 10px;">
 				update_option('opt_AP_VisualizzaEnte','No' );
 			if (isset($_POST['progressivo']))
 			    update_option('opt_AP_NumeroProgressivo',(int)$_POST['progressivo'] );
+		    update_option('opt_AP_Ente',$_POST['c_Ente'] );
 		    update_option('opt_AP_AnnoProgressivo',$_POST['c_AnnoProgressivo'] );
 		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
 		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
@@ -1009,7 +1016,7 @@ echo '<div  style="margin-left: 10px;">
   		}
 	}
 
-	function albo_styles() {
+	static function albo_styles() {
         $myStyleUrl = plugins_url('css/style.css', __FILE__); 
         $myStyleFile = Albo_DIR.'/css/style.css';
         if ( file_exists($myStyleFile) ) {

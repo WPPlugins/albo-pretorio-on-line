@@ -11,7 +11,7 @@ jQuery.noConflict();
 			}					
 		});
 		
-		$('a.annullaattox').click(function(){
+/*		$('a.annullaattox').click(function(){
 			var answer = confirm("Confermi l'annullamento dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
 			if (answer){
 				var Testoannullamento;
@@ -22,7 +22,7 @@ jQuery.noConflict();
 			else{
 				return false;
 			}					
-		});
+		});*/
 		$('a.eliminaatto').click(function(){
 			var answer = confirm("Confermi l'eliminazione dell'atto `" + $(this).attr('rel') + '` ?\nATTENZIONE L\'OPERAZIONE E\' IRREVERSIBILE!!!!!')
 			if (answer){

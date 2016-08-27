@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -25,7 +25,7 @@ $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico
 
 <?php
 $NC="";
-if ($_REQUEST['action']=="delete-responsabile"){
+if (isset($_REQUEST['action']) And $_REQUEST['action']=="delete-responsabile"){
 	if (!isset($_REQUEST['cancresp'])) {
 		$NC=$messages[80];
 	}else{
@@ -46,7 +46,7 @@ if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message'])) or $N
 	echo '</p></div>';
 	$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 }
-if ($_REQUEST['action']=="edit"){
+if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit"){
 	$risultato=ap_get_responsabile((int)$_REQUEST['id']);
 	$edit=True;
 }else{
@@ -73,7 +73,7 @@ echo '<tr>
 			<ul>';
 if ($lista){
 	foreach($lista as $riga){
-		echo'<li style="text-align:left;padding-left:'.$shift.'px;">';
+		echo'<li style="text-align:left;padding-left:1px;">';
 		if(ap_num_responsabili_atto($riga->IdResponsabile)==0)
 			echo '<a href="?page=responsabili&amp;action=delete-responsabile&amp;id='.$riga->IdResponsabile.'&amp;cancresp='.wp_create_nonce('deleteresponsabile').'" rel="'.$riga->Cognome.'" class="dr">
 			<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
@@ -135,7 +135,6 @@ echo '    </tbody>
 
 <div id="col-left">
 <div class="form-wrap">
-<h3><?php echo $tax->labels->add_new_item; ?></h3>
 <form id="addtag" method="post" action="?page=responsabili" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
 <input type="hidden" name="action" value="<?php if($edit || $_REQUEST['action']=="edit_err") echo "memo-responsabile"; else echo "add-responsabile"; ?>"/>
 <input type="hidden" name="id" value="<?php echo $_REQUEST['id']; ?>" />
@@ -143,27 +142,27 @@ echo '    </tbody>
 
 <div class="form-field form-required">
 	<label for="resp-cognome">Cognome</label>
-	<input name="resp-cognome" id="resp-cognome" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Cognome); else echo htmlentities($_GET['resp-cognome']); ?>" size="20" aria-required="true" />
+	<input name="resp-cognome" id="resp-cognome" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Cognome); else echo htmlentities((isset($_GET['resp-cognome'])?$_GET['resp-cognome']:"")); ?>" size="20" aria-required="true" />
 </div>
 <div class="form-field form-required">
 	<label for="resp-nome">Nome</label>
-	<input name="resp-nome" id="resp-nome" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Nome); else echo htmlentities($_GET['resp-nome']); ?>" size="20" aria-required="true" />
+	<input name="resp-nome" id="resp-nome" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Nome); else echo htmlentities((isset($_GET['resp-nome'])?$_GET['resp-nome']:"")); ?>" size="20" aria-required="true" />
 </div>
 <div class="form-field form-required">
 	<label for="resp-email">Email</label>
-	<input name="resp-email" id="resp-email" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Email); else echo htmlentities($_GET['resp-email']);?>" size="100" aria-required="true" />
+	<input name="resp-email" id="resp-email" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Email); else echo htmlentities((isset($_GET['resp-email'])?$_GET['resp-email']:""));?>" size="100" aria-required="true" />
 </div>
 <div class="form-field form-required">
 	<label for="resp-telefono">Telefono</label>
-	<input name="resp-telefono" id="resp-telefono" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Telefono); else echo htmlentities($_GET['resp-telefono']); ?>" size="30" aria-required="true" />
+	<input name="resp-telefono" id="resp-telefono" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Telefono); else echo htmlentities((isset($_GET['resp-telefono'])?$_GET['resp-telefono']:"")); ?>" size="30" aria-required="true" />
 </div>
 <div class="form-field form-required">
 	<label for="resp-orario">Orario ricevimento</label>
-	<input name="resp-orario" id="resp-orario" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Orario);  else echo htmlentities($_GET['resp-orario']);?>" size="60" aria-required="true" />
+	<input name="resp-orario" id="resp-orario" type="text" value="<?php if($edit) echo stripslashes($risultato[0]->Orario);  else echo htmlentities((isset($_GET['resp-orario'])?$_GET['resp-orario']:""));?>" size="60" aria-required="true" />
 </div>
 <div class="form-field">
 	<label for="resp-description">Note</label>
-	<textarea name="resp-note" id="resp-note" rows="5" cols="40"><?php if($edit) echo stripslashes($risultato[0]->Note); else echo htmlentities($_GET['resp-note']); ?></textarea>
+	<textarea name="resp-note" id="resp-note" rows="5" cols="40"><?php if($edit) echo stripslashes($risultato[0]->Note); else echo htmlentities((isset($_GET['resp-note'])?$_GET['resp-note']:"")); ?></textarea>
 	<p>inserire eventuali informazioni aggiuntive</p>
 </div>
 
@@ -171,7 +170,7 @@ echo '    </tbody>
 if($edit) {
 	echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche Responsabile '.$risultato[0]->Cognome.'" rel="'.stripslashes($risultato[0]->Cognome).'" />';
 }else{
- 	if ($_REQUEST['action']=="edit_err")
+ 	if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit_err")
 		echo '<input type="submit" name="memo" id="memo" class="button" value="Memorizza Modifiche Responsabile '.htmlentities($_GET['resp-cognome']).'" rel="'.htmlentities($_GET['resp-cognome']).'" />';
 	else
 		echo '<input type="submit" name="submit" id="submit" class="button" value="Aggiungi nuovo Responsabile"  />';	

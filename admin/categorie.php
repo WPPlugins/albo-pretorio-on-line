@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
@@ -30,7 +30,7 @@ if ( isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message'] ) ) {
 	echo '<div id="message" class="updated"><p>'.$messages[$msg].'</p></div>';
 	$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 }
-if ($_REQUEST['action']=="edit"){
+if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit"){
 	$risultato=ap_get_categoria($_REQUEST['id']);
 //	print_r($risultato);
 	$edit=True;
@@ -123,7 +123,6 @@ echo '    </tbody>
 
 <div id="col-left">
 <div class="form-wrap">
-<h3><?php echo $tax->labels->add_new_item; ?></h3>
 <form id="addtag" method="post" action="?page=categorie" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
 <input type="hidden" name="action" value="<?php if($edit) echo "memo-categoria"; else echo "add-categorie"; ?>"/>
 <input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id']; ?>" />

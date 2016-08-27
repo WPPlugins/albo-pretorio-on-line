@@ -2,7 +2,7 @@
 /*
 Plugin URI: http://www.sisviluppo.info
 Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.6.2
+Version:3.7
 Author: Scimone Ignazio
 Author URI: http://www.sisviluppo.info
 License: GPL2
@@ -28,7 +28,7 @@ class AlboPretorioWidget extends WP_Widget
 {
 	public function __construct()
 	{
-	   parent::WP_Widget( 'AlboPretorio', 'Albo On Line', array('description' => 'Grazie a questo widget &eacute; possibile visualizzare sulla sidebar le ultime pubblicazioni dell Albo Pretorio',array( 'width' => 300, 'height' => 350)));
+	   parent::__construct( 'AlboPretorio', 'Albo On Line', array('description' => 'Grazie a questo widget &eacute; possibile visualizzare sulla sidebar le ultime pubblicazioni dell Albo Pretorio',array( 'width' => 300, 'height' => 350)));
 	 }
     
 	public function form($instance)
@@ -207,7 +207,7 @@ class AlboPretorioElencoAttiCorrentiWidget extends WP_Widget
 {
 	public function __construct()
 	{
-	   parent::WP_Widget( 'AlboOnLineAC', 'Albo On Line Atti Correnti', array('description' => 'Grazie a questo widget &eacute; possibile visualizzare gli atti correnti dell \'Albo Pretorio',array( 'width' => 300, 'height' => 350)));
+	   parent::__construct( 'AlboOnLineAC', 'Albo On Line Atti Correnti', array('description' => 'Grazie a questo widget &eacute; possibile visualizzare gli atti correnti dell \'Albo Pretorio',array( 'width' => 300, 'height' => 350)));
 	 }
     
         public function form($instance)

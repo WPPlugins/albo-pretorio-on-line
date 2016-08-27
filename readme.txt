@@ -3,8 +3,8 @@ Contributors: Scimone Ignazio
 Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
-Tested up to: 4.4.2
-Stable tag: 3.6.1
+Tested up to: 4.5
+Stable tag: 3.7
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -13,9 +13,11 @@ Albo Pretorio On Line e' un plugin per WordPress che tenta di dare una risposta 
 Questa legge prevede che dal 1 gennaio 2011 gli atti soggetti a pubblicazione devono essere pubblicati sul sito internet istituzionale dell'ente per avere efficacia legale.
 
 Si ringrazia Alessandro Cingolani per la consulenza in ambito sicurezza informatica.
+
+Se vuoi rimanere aggiornato sullo sviluppo del plugin, puoi registrarti sulla piattaforma <a href="https://www.indoona.com/" target="_blank">indoona</a> Applicazione <img src="http://www.albo.eduva.org/wp-content/uploads/2016/05/Indoona_App_Albo.png" />
 == Installation ==
 
-Di seguito sono riportati i passi necessari per l'installazione del plugin. la procedura dettagliata la potete trovare sul sito dedicato al plugin http://www.sisviluppo.info
+Di seguito sono riportati i passi necessari per l'installazione del plugin. la procedura dettagliata la potete trovare sul sito dedicato al plugin http://www.albo.eduva.org/
 
 1. Scaricare il plugin dal repository di wordpress o dal sito di riferimento
 2. Attivare il plugin dal menu Plugins
@@ -32,6 +34,11 @@ Di seguito sono riportati i passi necessari per l'installazione del plugin. la p
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
+= 3.7 =
+- <strong>Corretto</strong> errore su visualizzazione allegati superiori ai 2MB
+- <strong>Verificato</strong> il codice e <strong>Corretti</strong> alcuni piccoli errori
+= 3.6.2 =
+- <strong>Adeguamento</strong> alla versione 4.5 di Wordpress
 = 3.6.1 =
 - <strong>Aggiunta</strong> la possibilit&agrave; di scaricare gli allegati degli atti oltre che visualizzarli direttamente nel browser
 - <strong>Corretti</strong> bug minori; Nella tabella degli atti i testi son stati ripuliti dai caratteri backslashes 

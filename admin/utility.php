@@ -5,7 +5,7 @@
  * @package Albo Pretorio On line
  * @author Scimone Ignazio
  * @copyright 2011-2014
- * @since 3.6.2
+ * @since 3.7
  */
 
 
@@ -14,156 +14,161 @@ $Stato="";
 if (isset($_REQUEST['message']))
 	if($_REQUEST['message']==80)
 		$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata";
-switch($_REQUEST['action']){
+if (isset($_REQUEST['action'])){
+	switch($_REQUEST['action']){
 
-	case "Crearobots":
-		if (!isset($_REQUEST['creasic'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "Crearobots":
+			if (!isset($_REQUEST['creasic'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['creasic'],'creasicurezza')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 			ap_crearobots();
+			menu();
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['creasic'],'creasicurezza')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "rip":
+			ap_ripubblica_atti_correnti(htmlentities($_GET['Data']));
+			menu();
 			break;
-		} 			ap_crearobots();
-		menu();
-		break;
-	case "rip":
-		ap_ripubblica_atti_correnti(htmlentities($_GET['Data']));
-		menu();
-		break;
-	case "menu":
-		menu(str_replace("%%br%%","<br />",htmlentities($_GET['stato'])));
-		unset($_GET['action']);
-		break;
-	case "creafsic":
-		menu(ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload')));
-		unset($_POST['action']);
-		break;
-	case "posttrasf":
-		if (!isset($_REQUEST['posttrasf'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "menu":
+			menu(str_replace("%%br%%","<br />",htmlentities($_GET['stato'])));
+			unset($_GET['action']);
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['posttrasf'],'posttrasferimento')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "creafsic":
+			menu(ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload')));
+			unset($_POST['action']);
 			break;
-		} 			
-		$Msg=ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload'))."<br />";
-		$Msg.=ap_allinea_allegati();
-		unset($_POST['action']);
-		menu($Msg);
-		break;
-	case "BackupData":
-		if (!isset($_REQUEST['bckdata'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "posttrasf":
+			if (!isset($_REQUEST['posttrasf'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['posttrasf'],'posttrasferimento')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 			
+			$Msg=ap_NoIndexNoDirectLink(AP_BASE_DIR.get_option('opt_AP_FolderUpload'))."<br />";
+			$Msg.=ap_allinea_allegati();
+			unset($_POST['action']);
+			menu($Msg);
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['bckdata'],'BackupDatiAlbo')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+		case "BackupData":
+			if (!isset($_REQUEST['bckdata'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['bckdata'],'BackupDatiAlbo')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 			
+			$Data=date('Ymd_H_i_s');
+			$nf=ap_BackupDatiFiles($Data);
+			$filename=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
+			$fpmsg = @fopen($filename, "rb");
+				$Stato=fread($fpmsg,filesize($filename));
+			fclose($fpmsg);
 			menu($Stato);
+			unset($_POST['action']);
 			break;
-		} 			
-		$Data=date('Ymd_H_i_s');
-		$nf=ap_BackupDatiFiles($Data);
-		$filename=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
-		$fpmsg = @fopen($filename, "rb");
-			$Stato=fread($fpmsg,filesize($filename));
-		fclose($fpmsg);
-		menu($Stato);
-		unset($_POST['action']);
-		break;
-	case "setData":
-		if (!isset($_REQUEST['ripub'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "setData":
+			if (!isset($_REQUEST['ripub'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['ripub'],'ripubblicaatti')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 	
+			if ($_REQUEST['Data']> date("d/m/Y")){
+				$Stato="La Data dell'interruzione del serzio deve essere nel passato";
+				menu($Stato);
+			}else
+				menu("","1",$_REQUEST['Data']);
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['ripub'],'ripubblicaatti')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "verificaproc":
+			if (!isset($_REQUEST['verproc'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['verproc'],'verificaprocedura')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 			
+			TestProcedura();
 			break;
-		} 	
-		if ($_REQUEST['Data']> date("d/m/Y")){
-			$Stato="La Data dell'interruzione del serzio deve essere nel passato";
-			menu($Stato);
-		}else
-			menu("","1",$_REQUEST['Data']);
-		break;
-	case "verificaproc":
-		if (!isset($_REQUEST['verproc'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "oblio":
+			MSGOblio();  
+			break;		
+		case "creaninf":
+			if (!isset($_REQUEST['rigenera'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['rigenera'],'rigenerasic')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 		
+			ImplementaNINF();
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['verproc'],'verificaprocedura')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "imploblio":
+			ImplementaOblio();
 			break;
-		} 			
-		TestProcedura();
-		break;
-	case "oblio":
-		MSGOblio();  
-		break;		
-	case "creaninf":
-		if (!isset($_REQUEST['rigenera'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "creaTabella":
+			creaTabella(htmlentities($_REQUEST['Tabella']));
+			TestProcedura();
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['rigenera'],'rigenerasic')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "creacategorie":
+			CreaCategorie();
 			break;
-		} 		
-		ImplementaNINF();
-		break;
-	case "imploblio":
-		ImplementaOblio();
-		break;
-	case "creaTabella":
-		creaTabella(htmlentities($_REQUEST['Tabella']));
-		TestProcedura();
-		break;
-	case "creacategorie":
-		CreaCategorie();
-		break;
-	case "svuotalog":
-		if (!isset($_REQUEST['svuotalog'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "svuotalog":
+			if (!isset($_REQUEST['svuotalog'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['svuotalog'],'svuotafilelog')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 		
+			$Msg=SvuotaLog(0);
+			menu($Msg);
 			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['svuotalog'],'svuotafilelog')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
+		case "puliscilog":
+			if (!isset($_REQUEST['puliscilog'])) {
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			}
+			if (!wp_verify_nonce($_REQUEST['puliscilog'],'puliscifilelog')){
+				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+				menu($Stato);
+				break;
+			} 		
+			$Msg=SvuotaLog(11);
+			menu($Msg);
 			break;
-		} 		
-		$Msg=SvuotaLog(0);
-		menu($Msg);
-		break;
-	case "puliscilog":
-		if (!isset($_REQUEST['puliscilog'])) {
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
+		default:
 			menu($Stato);
-			break;
-		}
-		if (!wp_verify_nonce($_REQUEST['puliscilog'],'puliscifilelog')){
-			$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
-			menu($Stato);
-			break;
-		} 		
-		$Msg=SvuotaLog(11);
-		menu($Msg);
-		break;
-	default:
+	}	
+}else{
 		menu($Stato);
 }
+
 function CreaCategorie(){
 echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
@@ -267,7 +272,7 @@ echo '<div class="wrap">
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
       <meta http-equiv="refresh" content="5;url=admin.php?page=utilityAlboP"/>';
-echo '<div id="utility-tabs-container"  style="margin-top:20px;">
+echo '<div id="utility-tabs-container"  style="margin-top:60px;">
 					<ul>
 						<li><a href="#utility-tab-1">Ripubblicazione Atti</a></li>
 						<li><a href="#utility-tab-2">Verifica procedura</a></li>
@@ -783,7 +788,7 @@ echo '<div class="wrap">
 	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
 		<h2 style="margin-left:40px;">Analisi Procedura</h2>
 		<div class="postbox-container" style=";margin-top:20px;">
-			<a class="add-new-h2 tornaindietro" href="'.htmlentities($_SERVER[PHP_SELF]).'?page=utilityAlboP" >
+			<a class="add-new-h2 tornaindietro" href="'.htmlentities($_SERVER['PHP_SELF']).'?page=utilityAlboP" >
 			Torna indietro
 			</a>
 		<h3>Librerie</h3>
