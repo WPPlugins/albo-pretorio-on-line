@@ -1,21 +1,11 @@
 <?php
 /**
+ * WGestione Enti.
+ * @link       http://www.eduva.org
+ * @since      4.0.1
  *
- * @link              eduva.org
- * @since             4.0.0
- * @package           Gestione_Corsi
- *
- * @wordpress-plugin
- * Plugin Name:       Albo Pretorio On line
- * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
- * Description:       COdice per la gestione degli enti.
- * Version:           4.0.0
- * Author:            Ignazio Scimone
- * Author URI:        eduva.org
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       albo-pretorio-on-line
-*/
+ * @package    ALbo On Line
+ */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
@@ -130,9 +120,9 @@ echo '    </tbody>
 <div id="col-left">
 <div class="form-wrap">
 <form id="addtag" method="post" action="?page=enti" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
-<input type="hidden" name="action" value="<?php if($edit || $_REQUEST['action']=="edit_err") echo "memo-ente"; else echo "add-ente"; ?>"/>
-<input type="hidden" name="action2" value="<?php echo htmlentities($_REQUEST['action']); ?>"/>
-<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id']; ?>" />
+<input type="hidden" name="action" value="<?php if($edit || (isset($_REQUEST['action']) And  $_REQUEST['action']=="edit_err")) echo "memo-ente"; else echo "add-ente"; ?>"/>
+<input type="hidden" name="action2" value="<?php echo htmlentities(isset($_REQUEST['action'])?$_REQUEST['action']:""); ?>"/>
+<input type="hidden" name="id" value="<?php echo (int)isset($_REQUEST['id'])?$_REQUEST['id']:0; ?>" />
 <input type="hidden" name="enti" value="<?php echo wp_create_nonce('enti')?>" />
 
 <div class="form-field form-required"  style="margin-bottom:0px;margin-top:0px;">

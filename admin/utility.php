@@ -1,21 +1,11 @@
 <?php
 /**
+ * Utility dell'albo.
+ * @link       http://www.eduva.org
+ * @since      4.0.1
  *
- * @link              eduva.org
- * @since             4.0.0
- * @package           Gestione_Corsi
- *
- * @wordpress-plugin
- * Plugin Name:       Albo Pretorio On line
- * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
- * Description:       COdice per la gestione delle utility.
- * Version:           4.0.0
- * Author:            Ignazio Scimone
- * Author URI:        eduva.org
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       albo-pretorio-on-line
-*/
+ * @package    ALbo On Line
+ */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { 
 	die('You are not allowed to call this page directly.'); 
@@ -83,7 +73,7 @@ if (isset($_REQUEST['action'])){
 			} 			
 			$Data=date('Ymd_H_i_s');
 			$nf=ap_BackupDatiFiles($Data);
-			$filename=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
+			$filename=WP_CONTENT_DIR."/AlboOnLine/BackupDatiAlbo/tmp/msg.txt";
 			$fpmsg = @fopen($filename, "rb");
 				$Stato=fread($fpmsg,filesize($filename));
 			fclose($fpmsg);
@@ -360,7 +350,7 @@ Questa procedura esegue le operazioni necessarie per l\'allineamento dei files e
 		</div>';
 $elenco="<option value='' selected='selected'>Nessuno</option>";
 $elencoExpo="";
-$Dir=str_replace("\\","/",Albo_DIR.'/BackupDatiAlbo');
+$Dir=str_replace("\\","/",WP_CONTENT_DIR.'/AlboOnLine/BackupDatiAlbo');
 if (is_dir($Dir)){
 	$files_bck = scandir($Dir, 1);
 	foreach($files_bck as $fileinfo) {
@@ -846,8 +836,7 @@ if(is_file(APHomePath."/robots.txt"))
 else	
 	$ob3=FALSE;
 echo '<div class="wrap">
-	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
-		<h2 style="margin-left:40px;">Analisi Procedura</h2>
+		<h2 style="font-size:2em;">Analisi Procedura</h2>
 		<div class="postbox-container" style=";margin-top:20px;">
 			<a class="add-new-h2 tornaindietro" href="'.htmlentities($_SERVER['PHP_SELF']).'?page=utilityAlboP" >
 			Torna indietro

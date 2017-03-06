@@ -1,21 +1,12 @@
 <?php
 /**
+ * Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
+ * @link       http://www.eduva.org
+ * @since      4.0.1
  *
- * @link              eduva.org
- * @since             4.0.0
- * @package           Gestione_Corsi
- *
- * @wordpress-plugin
- * Plugin Name:       Albo Pretorio On line
- * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
- * Description:       Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
- * Version:           4.0.0
- * Author:            Ignazio Scimone
- * Author URI:        eduva.org
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       albo-pretorio-on-line
-*/
+ * @package    ALbo On Line
+ */
+
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 class AlboPretorioWidget extends WP_Widget

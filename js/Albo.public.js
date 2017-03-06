@@ -18,12 +18,8 @@ jQuery(document).ready(function($){
 		$('#paginazione').change(function(){
 				location.href=$(this).attr('rel')+$("#paginazione option:selected" ).text();
 		});
-		$('#Calendario1').datepicker({
-        dateFormat : 'dd/mm/yy'
-    });
-		$('#Calendario2').datepicker({
-        dateFormat : 'dd/mm/yy'
-    });
+		$('#Calendario1').datepicker({dateFormat : 'dd/mm/yy'});
+		$('#Calendario2').datepicker({dateFormat : 'dd/mm/yy'});
 		$('a.addstatdw').click(function() {
 			 var link=$(this).attr('rel');
 				jQuery.ajax({type: 'get',url: $(this).attr('rel')}); //close jQuery.ajax

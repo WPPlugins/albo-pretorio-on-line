@@ -1,21 +1,12 @@
 <?php
 /**
+ * Libreria di funzioni necessarie al plugin per la gestione dell'albo.
+ * @link       http://www.eduva.org
+ * @since      4.0.1
  *
- * @link              eduva.org
- * @since             4.0.0
- * @package           Gestione_Corsi
- *
- * @wordpress-plugin
- * Plugin Name:       Albo Pretorio On line
- * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
- * Description:       Libreria di funzioni necessarie al plugin per la gestione dell'albo
- * Version:           4.0.0
- * Author:            Ignazio Scimone
- * Author URI:        eduva.org
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       albo-pretorio-on-line
-*/ 
+ * @package    ALbo On Line
+ */
+
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 ################################################################################
@@ -383,10 +374,10 @@ function ap_EstraiParametriCampo($Tabella,$Campo){
 		Type  ==> Tipo Campo
 		Null  ==> Il campo contiene YES se il campo accetta valori NULL altrimenti contiene NO 
 		Key   ==> Contiene il tipo di Kiave:
-			Vuota se non è indice oppure è parte di indice multicolonna come campo secondario
-			PRI se è Kiave primaria o parte di essa
-			UNI se è il primo campo di una chiave Univoca
-			MUL se è la prima colonna di un indice non univoco
+			Vuota se non ï¿½ indice oppure ï¿½ parte di indice multicolonna come campo secondario
+			PRI se ï¿½ Kiave primaria o parte di essa
+			UNI se ï¿½ il primo campo di una chiave Univoca
+			MUL se ï¿½ la prima colonna di un indice non univoco
 		Extra  ==> contiene informazioni addizionali. Il valore auto_increment 
 */
 	$ris=$wpdb->get_row("SHOW COLUMNS FROM $Tabella LIKE '$Campo'", ARRAY_A);
@@ -1336,7 +1327,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 
 /* Stato:
 		 0 - tutti
-		 1 - in corso di validità
+		 1 - in corso di validitï¿½
 		 2 - scaduti
 		 3 - da pubblicare
 		 4 - da cancellare
@@ -2163,7 +2154,7 @@ function ap_SvuotaDirectory($Dir,$fplog){
 	}
 }
 
-function ap_BackupDatiFiles($NomeFile,$Tipo="",$Destinazione=Albo_DIR){
+function ap_BackupDatiFiles($NomeFile,$Tipo="",$Destinazione=WP_CONTENT_DIR."/AlboOnLine" ){
 global $wpdb;
 	$tables=array(	$wpdb->table_name_Allegati,
 					$wpdb->table_name_Atti,
@@ -2186,25 +2177,31 @@ global $wpdb;
 	$Risultato="Risultato del Backup:<br />";
 	if (class_exists('PclZip')) {
 //		echo $Dir." <br />".$DirTmp." <br />".$DirAllegati." <br />".$DirLog."";exit;
-		if (!is_dir ( $Dir)){
-			if (!mkdir($Dir, 0755)) 
-				$ControlloDir.="Non sono riuscito a creare la directory ".$Dir."\n Fine Operazione";
-			else
+		if (!is_dir ( $Destinazione)){
+			if (!mkdir($Destinazione, 0755)) 
+				$ControlloDir.="Non sono riuscito a creare la directory ".$Destinazione."\n Fine Operazione";
+			else			
+			if (!is_dir ( $Dir)){
+				if (!mkdir($Dir, 0755)) 
+					$ControlloDir.="Non sono riuscito a creare la directory ".$Dir."\n Fine Operazione";
+				else
+					if (!mkdir($DirTmp, 0755))
+						$ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
+					if (!mkdir($DirLog, 0755)) 
+						$ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
+			}
+			if (!is_dir ($DirTmp) and $ControlloDir=="")
 				if (!mkdir($DirTmp, 0755))
-					$ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
-				if (!mkdir($DirLog, 0755)) 
-					$ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
-		}
-		if (!is_dir ($DirTmp) and $ControlloDir=="")
-			if (!mkdir($DirTmp, 0755))
-				  $ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
-		if (!is_dir ($DirLog) and $ControlloDir=="")
-			if (!mkdir($DirLog, 0755))
-				  $ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
+					  $ControlloDir.="Non sono riuscito a creare la directory ".$DirTmp."\n Fine Operazione";
+			if (!is_dir ($DirLog) and $ControlloDir=="")
+				if (!mkdir($DirLog, 0755))
+					  $ControlloDir.="Non sono riuscito a creare la directory ".$DirLog."\n Fine Operazione";
+		}			
 		if ($ControlloDir!=""){
 			return $ControlloDir;
 		}
-/*		if ($Tipo==""){
+
+	/*		if ($Tipo==""){
 			$nomefileZip=$Dir."/".$NomeFile.".zip";
 			$nomefileLog=$DirLog."/Backup_AlboPretorio_".$NomeFile.".log";
 		}else{
@@ -2265,7 +2262,7 @@ global $wpdb;
 	//Svuoto cartella tmp che contiene i files dati
 	ap_SvuotaDirectory($DirTmp,$fplog);
 	fclose($fplog);
-	$fpmsg = @fopen(Albo_DIR."/BackupDatiAlbo/tmp/msg.txt", "wb");
+	$fpmsg = @fopen($Destinazione."/BackupDatiAlbo/tmp/msg.txt", "wb");
 	fwrite($fpmsg,$Risultato);
 	fclose($fpmsg);
 	return $nomefileZip;
@@ -2288,7 +2285,7 @@ function ap_backquote($a_name) {
 } 
 
 function ap_MakeZipOblio(){
-	$Dir=str_replace("\\","/",Albo_DIR.'/OblioDatiAlbo');
+	$Dir=str_replace("\\","/",WP_CONTENT_DIR.'/AlboOnLine/OblioDatiAlbo');
 	$DirTmp=$Dir."/tmp";
 	$DirTmpBox=$DirTmp."/BoxSingAtto";
 	if(!is_dir($DirTmp))
@@ -2313,7 +2310,7 @@ function ap_BackupFilesAllegatiOblio($idAtto){
 	global $wpdb;
 	$Sql=ap_get_SQL_Oggetto($wpdb->table_name_Allegati,"IdAtto","=",$idAtto);
 	$Sql.=ap_get_SQL_Oggetto($wpdb->table_name_Atti,"IdAtto","=",$idAtto);
-	$Dir=str_replace("\\","/",Albo_DIR.'/OblioDatiAlbo');
+	$Dir=str_replace("\\","/",WP_CONTENT_DIR.'/AlboOnLine/OblioDatiAlbo');
 	$DirTmp=$Dir."/tmp";
 	$DirTmpBox=$DirTmp."/BoxSingAtto";
 	$DirAllegati=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
@@ -2374,16 +2371,34 @@ function ap_BackupFilesAllegatiOblio($idAtto){
 
 function ap_oblio_atti($Atti){
 	global $wpdb;
-	$Dir=str_replace("\\","/",Albo_DIR.'/OblioDatiAlbo');
+	$Dir=str_replace("\\","/",WP_CONTENT_DIR.'/AlboOnLine/OblioDatiAlbo');
 	$DirTmp=$Dir."/tmp";
 	$MessaggiRitorno=array("Message"=>"","Message2"=>"");
+	$ControlloDir=TRUE;
+	if (!is_dir ( $Dir)){
+		if (!mkdir($Dir, 0755)) 
+			$ControlloDir=FALSE;
+		else{
+			if(!is_dir($DirTmp))
+				if (!mkdir($DirTmp, 0755))
+					$ControlloDir=FALSE;
+		}
+	}else{
+		if(!is_dir($DirTmp))
+			if (!mkdir($DirTmp, 0755))
+			  $ControlloDir=FALSE;
+	}
+	if(!$ControlloDir){
+		$Msg=" Non riesco a creare le cartelle necessarie all'operazione";
+		return $Msg;	
+	}
 	ap_SvuotaDirectory($DirTmp,NULL);
+	$Msg="";
 	if(!is_array($Atti)){
 		$Atti=array($Atti);
 		$Bulk=FALSE;
 	}
 	else{
-		$Msg="";
 		$Bulk=TRUE;
 	}
 	foreach($Atti as $Atto){
@@ -2415,8 +2430,8 @@ function ap_oblio_atti($Atti){
 				}		
 			}
 		}else{
-			$MessaggiRitorno["Message2"]=99;//OPERAZIONE NON AMMESSA!<br />l'atto non è ancora da eliminare
-			$Msg.=" OPERAZIONE NON AMMESSA! %%br%%l&apos;atto non è ancora da eliminare";
+			$MessaggiRitorno["Message2"]=99;//OPERAZIONE NON AMMESSA!<br />l'atto non ï¿½ ancora da eliminare
+			$Msg.=" OPERAZIONE NON AMMESSA! %%br%%l&apos;atto non ï¿½ ancora da eliminare";
 		}
 		$Msg.=$MsgAlle." %%br%%";		
 	}

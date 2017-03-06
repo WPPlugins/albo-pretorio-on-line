@@ -4,7 +4,7 @@ Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
 Tested up to: 4.7.2
-Stable tag: 4.0
+Stable tag: 4.0.1
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -34,6 +34,10 @@ Di seguito sono riportati i passi necessari per l'installazione del plugin. la p
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
+= 4.0.1 =
+- <strong>Sistema</strong> problema con sistema di minimizzazione della finestra fei filtri nel FrontEnd
+- <strong>Spostate</strong> nella caretella wp-content/AlboOnLine delle cartelle dei Backup generati con l'apposita Utility wp-content/AlboOnLine/BackupDatiAlbo e delle copie di salvataggio pre Oblio nella cartella wp-content/AlboOnLine/OblioDatiAlbo.
+- <strong>Sistemato</strong> errore che generava tre voci nell'elenco dei plugin per l'Albo
 = 4.0 =
 - <strong>revisionato</strong> completamente il backend del plugin riportandolo sia nell'aspetto che nel codice più uniforme a quello di Wordpress
 - <strong>Eliminato</strong> il plugin DataTables di Jquery sia dal backend che dal frontend

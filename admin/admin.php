@@ -1,21 +1,11 @@
 <?php
 /**
+ * Amministrazione richieste delle singole pagine.
+ * @link       http://www.eduva.org
+ * @since      4.0.1
  *
- * @link              eduva.org
- * @since             4.0.0
- * @package           Gestione_Corsi
- *
- * @wordpress-plugin
- * Plugin Name:       Albo Pretorio On line
- * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
- * Description:       COdice per la gestione del BackEnd.
- * Version:           4.0.0
- * Author:            Ignazio Scimone
- * Author URI:        eduva.org
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       albo-pretorio-on-line
-*/
+ * @package    ALbo On Line
+ */
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
 add_action( 'init', 'albo_post');
 function DownloadFile($file_path){

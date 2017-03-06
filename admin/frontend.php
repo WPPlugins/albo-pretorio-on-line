@@ -1,21 +1,11 @@
 <?php
 /**
+ * Gestione FrontEnd.
+ * @link       http://www.eduva.org
+ * @since      4.0.1
  *
- * @link              eduva.org
- * @since             4.0.0
- * @package           Gestione_Corsi
- *
- * @wordpress-plugin
- * Plugin Name:       Albo Pretorio On line
- * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
- * Description:       COdice per la gestione del FrontEnd.
- * Version:           4.0.0
- * Author:            Ignazio Scimone
- * Author URI:        eduva.org
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       albo-pretorio-on-line
-*/
+ * @package    ALbo On Line
+ */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 if(isset($_REQUEST['action'])){
@@ -338,7 +328,7 @@ switch ($Parametri['stato']){
 	$colorePari=get_option('opt_AP_ColorePari');
 	$coloreDispari=get_option('opt_AP_ColoreDispari');
 	$VisFiltro="";
-	if($Parametri['minfiltri']=="si"){
+	if(isset($Parametri['minfiltri']) And $Parametri['minfiltri']=="si"){
 		if(isset($_REQUEST['vf']) and  $_REQUEST['vf']=="s"){
 			$VisFiltro='<img src="'.Albo_URL.'img/minimize.png" id="maxminfiltro" class="s" alt="icona minimizza finestra filtri"/>';
 		}else{

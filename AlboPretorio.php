@@ -2,14 +2,14 @@
 /**
  *
  * @link              eduva.org
- * @since             4.0.0
+ * @since             4.0.1
  * @package           Gestione_Corsi
  *
  * @wordpress-plugin
  * Plugin Name:       Albo Pretorio On line
  * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
  * Description:       Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
- * Version:           4.0.0
+ * Version:           4.0.1
  * Author:            Ignazio Scimone
  * Author URI:        eduva.org
  * License:           GPL-2.0+
@@ -788,6 +788,11 @@ if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 
 	static function activate() {
 	global $wpdb;
+	if(get_option('opt_AP_ColonneFE')  == '' || !get_option('opt_AP_ColonneFE')){
+		$FEColsOption=array("Ente"=>0,"Riferimento"=>0,"Oggetto"=>1, "Validita"=>1,
+					  "Categoria"=>1,"Note"=>0,"RespProc"=>0, "DataOblio"=>0);
+		add_option('opt_AP_ColonneFE',json_encode($FEColsOption));
+		}
 	if(get_option('opt_AP_Versione')  == '' || !get_option('opt_AP_Versione')){
 			add_option('opt_AP_Versione', '0');
 		}
