@@ -1,13 +1,21 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7.1
- */
-
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione delle categorie.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 $messages[1] = __('Item added.');
@@ -22,8 +30,7 @@ $messages[9] = __('Bisogna assegnare il nome alla nuova categoria');
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
-<img src="<?php echo Albo_URL; ?>/img/categoria32.png" alt="Icona Visualizza Categorie Atti" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Categorie Atti<a href="?page=categorie" class="add-new-h2">Aggiungi nuovo</a></h2>
+<h2  style="font-size:2em;">Categorie Atti<a href="?page=categorie" class="add-new-h2">Aggiungi nuovo</a></h2>
 
 <?php 
 if ( isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message'] ) ) {
@@ -59,18 +66,18 @@ if ($lista){
 	foreach($lista as $riga){
 	 $shift=(((int)$riga[2])*30)+5;
 	 echo'<li style="text-align:left;padding-left:'.$shift.'px;">';
+	 $Tab=0;
 	 	if (ap_num_atti_categoria($riga[0])==0)
 			echo'
 				<a href="?page=categorie&amp;action=delete-categorie&amp;id='.$riga[0].'&amp;canccategoria='.wp_create_nonce('delcategoria').'" rel="'.$riga[1].'" class="dc">			
 				<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 			</a>
-';
+	';
 		else
-			echo'
-				<img src="'.Albo_URL.'/img/null.png" alt="Vuoto" title="Spazio vuoto" />';
-			echo'					
+			$Tab=20;
+		echo'					
 			<a href="?page=categorie&amp;action=edit-categorie&amp;id='.$riga[0].'&amp;modcategoria='.wp_create_nonce('editcategoria').'" rel="'.$riga[1].'">
-			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" style="margin-left:'.$Tab.'px;"/>
 			</a>
 			('.$riga[0] .') '.$riga[1] .' (n&ordm; atti '.ap_num_atti_categoria($riga[0]).')
 			</li>'; 
@@ -125,7 +132,7 @@ echo '    </tbody>
 <div class="form-wrap">
 <form id="addtag" method="post" action="?page=categorie" class="<?php if($edit) echo "edit"; else echo "validate"; ?>"  >
 <input type="hidden" name="action" value="<?php if($edit) echo "memo-categoria"; else echo "add-categorie"; ?>"/>
-<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id']; ?>" />
+<input type="hidden" name="id" value="<?php echo (int)(isset($_REQUEST['id'])?$_REQUEST['id']:0); ?>" />
 <input type="hidden" name="categoria" value="<?php echo wp_create_nonce('categoria')?>" />
 
 <div class="form-field form-required">

@@ -1,43 +1,159 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Amministrazione Albo Pretorio
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7.1
- */
-
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione del BackEnd.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
 add_action( 'init', 'albo_post');
-
+function DownloadFile($file_path){
+	$chunksize	= 2*(1024*1024);
+	$stat 		= @stat($file_path);
+	$etag		= sprintf('%x-%x-%x', $stat['ino'], $stat['size'], $stat['mtime'] * 1000000);
+	$path 		= pathinfo($file_path);
+	header('Pragma: public');
+	header('Expires: 0');
+	header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+	header('Cache-Control: private', FALSE);
+	header('Content-Type: application/force-download', FALSE);
+	header('Content-Type: application/octet-stream', FALSE);
+	header('Content-Type: application/download', FALSE);
+	header('Content-Disposition: attachment; filename="'.basename($file_path).'";');
+	header('Content-Transfer-Encoding: binary');
+	header('Last-Modified: ' . date('r', $stat['mtime']));
+	header('Etag: "' . $etag . '"');
+	header('Content-Length: '.$stat['size']);
+	header('Accept-Ranges: bytes');
+	ob_flush();
+	flush();
+	if ($stat['size'] < $chunksize) {
+		@readfile($file_path);
+	}
+	else {
+		$handle = fopen($file_path, 'rb');
+		while (!feof($handle)) {
+			echo fread($handle, $chunksize);
+			ob_flush();
+			flush();
+		}
+		fclose($handle);
+	}
+}
 function albo_post() {
 if(isset($_REQUEST['action'] )){
-	switch ( $_REQUEST['action'] ) {
-
-			case "elimina-atto":
-			$id=(int)$_GET['id'];
-	 		$location = "?page=atti&p=2" ;
-			$riga=ap_get_atto($id);
-			$riga=$riga[0];
-			if (ap_cvdate($riga->DataFine) < ap_cvdate(date("Y-m-d")) and $_GET['sgs']=="ok"){
-				if(ap_del_allegati_atto((int)$_GET['id']))
-					$location = add_query_arg( 'message2',10, $location );
+	switch ( $_REQUEST['action'] ) {		
+			case "ToCsv":
+				$Testata="Nome Ente;Numero Atto;Riferimento;Oggetto;Data Inizio;Data Fine;Informazioni;Categoria;Data Annullamento;Motivo Annullamento";
+				$Atti="";
+				$Righe=ap_Repertorio($_REQUEST['Anno'],FALSE);
+				foreach($Righe as $Riga){
+					$Atti.=stripcslashes($Riga->NomeEnte).";";
+					$Atti.=$Riga->Numero.";";
+					$Atti.=stripcslashes($Riga->Riferimento).";";
+					$Atti.=stripcslashes($Riga->Oggetto).";";
+					$Atti.=$Riga->DataInizio.";";
+					$Atti.=$Riga->DataFine.";";
+					$Atti.=stripcslashes($Riga->Informazioni).";";
+					$Atti.=$Riga->Categoria.";";
+					$Atti.=$Riga->DataAnnullamento.";";
+					$Atti.=stripcslashes($Riga->MotivoAnnullamento).";\n";					
+				}	
+				$Dir=str_replace("\\","/",Albo_DIR.'/Repertori');
+				if (!is_dir ( $Dir))
+					if (!mkdir($Dir, 0755)) 
+						break;
+				$file_path=$Dir."/repertorio_".$_REQUEST['Anno'].".csv";
+				$file = fopen($file_path, "w") or die;
+				fwrite($file, $Testata."\n".$Atti);
+				fclose($file);
+				DownloadFile($file_path);
+				break;
+			case "ToXML":
+				$xml=new SimpleXMLElement('<?xml version="1.0" encoding="utf-8" standalone="yes" ?><repertorio></repertorio>'); 
+				$MetaData=$xml->addChild('metadata');
+				$MetaData->addChild('anno',$_REQUEST['Anno']);
+				$Righe=ap_Repertorio($_REQUEST['Anno'],FALSE);
+				$Atti=$xml->addChild('Atti');
+				foreach($Righe as $Riga){
+					$Atto=$Atti->addChild('Atto');
+					$riga=$Atto->addChild('NomeEnte', stripcslashes($Riga->NomeEnte));
+					$riga=$Atto->addChild('Numero', $Riga->Numero);
+					$riga=$Atto->addChild('Riferimento', stripcslashes($Riga->Riferimento));
+					$riga=$Atto->addChild('Oggetto', stripcslashes($Riga->Oggetto));
+					$riga=$Atto->addChild('DataInizio', $Riga->DataInizio);
+					$riga=$Atto->addChild('DataFine', $Riga->DataFine);
+					$riga=$Atto->addChild('Informazioni',stripcslashes($Riga->Informazioni));
+					$riga=$Atto->addChild('Categoria',$Riga->Categoria);
+					$riga=$Atto->addChild('DataAnnullamento',$Riga->DataAnnullamento);
+					$riga=$Atto->addChild('MotivoAnnullamento',stripcslashes($Riga->MotivoAnnullamento));					
+				}	
+				$Dir=str_replace("\\","/",Albo_DIR.'/Repertori');
+				if (!is_dir ( $Dir))
+					if (!mkdir($Dir, 0755)) 
+						break;
+				$file_path=$Dir."/repertorio_".$_REQUEST['Anno'].".xml";
+				$file = fopen($file_path, "w") or die;
+				fwrite($file, $xml->asXML());
+				fclose($file);
+				DownloadFile($file_path);
+				break;
+			case "ToJson": 
+				$Repertorio=ap_Repertorio($_REQUEST['Anno'],FALSE);
+				$Dir=str_replace("\\","/",Albo_DIR.'/Repertori');
+				if (!is_dir ( $Dir))
+					if (!mkdir($Dir, 0755)) 
+						break;
+				$file_path=$Dir."/repertorio_".$_REQUEST['Anno'].".json";
+				$file = fopen($file_path, "w") or die;
+				$txt = json_encode($Repertorio);
+				fwrite($file, $txt);
+				fclose($file);
+				DownloadFile($file_path);
+				break;
+			case "ToPdf":
+				if (isset($_GET['Anno']))
+					$AnnoRepertorio=$_GET['Anno'];
 				else
-					$location = add_query_arg( 'message2',11, $location );
-				$res=ap_del_atto((int)$_GET['id']);
-				if (!is_array($res))
-					$location = add_query_arg( 'message', 2, $location );
-				else{
-					if ($res['allegati']>0) {
-						$location = add_query_arg( 'message', 7, $location );
-					}else
-						$location = add_query_arg( 'message', 6, $location );
-				}
-			}else{
-				$location = add_query_arg( 'message2', 99, $location );
-			}
-			wp_redirect( $location );
+					$AnnoRepertorio=date("Y");
+				$ToPdf= new ap_cls_Repertorio("Portrait","mm","A4");
+				$ToPdf->ToTable($AnnoRepertorio);
+				break;			
+			case "delete_bulk_atti":
+		        if ( isset( $_GET['_wpnonce'] ) && ! empty( $_GET['_wpnonce'] ) ) {
+	            	$nonce  = filter_input( INPUT_GET, '_wpnonce', FILTER_SANITIZE_STRING );
+	            	$action = 'bulk-atti' ;
+		            if ( ! wp_verify_nonce( $nonce, $action ) )
+		                wp_die( 'Attenzione! Verfica sicurezza non riuscita!' );
+		        }
+			 	$Msg=ap_oblio_atti($_GET['IdAtto']);
+			 	$location = "?page=atti&stato_atti=Eliminare&message=".urlencode($Msg);
+				wp_redirect( $location );
+				break;
+ 			case "elimina-atto":
+				if ( isset( $_GET['cancellatto'] ) && ! empty( $_GET['cancellatto'] ) ) {
+		            $nonce  = filter_input( INPUT_GET, 'cancellatto', FILTER_SANITIZE_STRING );
+		            $action = 'operazionecancelaatto';
+		            if ( ! wp_verify_nonce( $nonce, $action ) )
+		                wp_die( 'Attenzione! Verfica sicurezza non riuscita!',"Problemi di sicurezza",array("back_link" => "?page=atti") );
+			 		$location = "?page=atti&stato_atti=Eliminare" ;
+			 		$MessaggiRitorno=ap_oblio_atti((int)$_GET['id']);
+					$location = add_query_arg( 'message',$MessaggiRitorno["Message"], $location );
+					$location = add_query_arg( 'message2',$MessaggiRitorno["Message2"], $location );
+					wp_redirect( $location );
+				}else
+					wp_die( 'Attenzione! Verfica sicurezza non riuscita!',"Problemi di sicurezza",array("back_link" => "?page=atti") );					
 			break;
 		case "annulla-atto":
 			if (!isset($_REQUEST['annatto'])) {
@@ -398,55 +514,22 @@ if(isset($_REQUEST['action'] )){
 				Go_Atti();
 				break;
 			} 
-			$NonValidato=false;
-			$message="Impossibile memorizzare l'atto:";
-			if ($_POST['Riferimento']==""){
-				$NonValidato=true;
-				$message.="<br />Bisogna inserire il <em><strong>Riferimento</strong></em> ";
-			}
-			if ($_POST['Oggetto']==""){
-				$NonValidato=true;
-				$message.="<br />Bisogna inserire l'<em><strong>Oggetto</strong></em> ";
-			}
-			if ($_POST['Categoria']==0){
-				$NonValidato=true;
-				$message.="<br />Bisogna selezionare una <em><strong>Categoria</strong></em> ";
-			}
-			if ($_POST['Responsabile']==0){
-				$NonValidato=true;
-				$message.="<br />Bisogna selezionare un Responsabile del Procedimento ";
-			}
-			$location = "?page=atti&amp;p=1" ;
-			if ($NonValidato){
-				$location = add_query_arg( 'msg', $message, $location );
-				$location = add_query_arg( 'action', "new-atto", $location );	
-				$location = add_query_arg( 'id', $_POST['id'], $location );	
-				$location = add_query_arg( 'Ente', $_POST['Ente'], $location );	
-				$location = add_query_arg( 'Data', $_POST['Data'], $location );	
-				$location = add_query_arg( 'Riferimento', $_POST['Riferimento'], $location );	
-				$location = add_query_arg( 'Oggetto', $_POST['Oggetto'], $location );	
-				$location = add_query_arg( 'DataInizio', $_POST['DataInizio'], $location );	
-				$location = add_query_arg( 'DataFine', $_POST['DataFine'], $location );	
-				$location = add_query_arg( 'DataOblio', $_POST['DataOblio'], $location );
-				$location = add_query_arg( 'Note', $_POST['Note'], $location );	
-				$location = add_query_arg( 'Categoria', $_POST['Categoria'], $location );	
-				$location = add_query_arg( 'Responsabile', $_POST['Responsabile'], $location );	
-			}else{
-				$ret=ap_insert_atto($_POST['Ente'],
-						            $_POST['Data'],
-				                    $_POST['Riferimento'],
-									$_POST['Oggetto'],
-									$_POST['DataInizio'],
-									$_POST['DataFine'],
-									$_POST['DataOblio'],
-									$_POST['Note'],
-									$_POST['Categoria'],
-									$_POST['Responsabile']);
-				if ( !$ret)
-					$location = add_query_arg( 'message', 1, $location );
-				else
-					$location = add_query_arg( 'message', 4, $location );
-					$location = add_query_arg( 'errore', $ret , $location );
+			$location = "?page=atti" ;
+			$ret=ap_insert_atto($_POST['Ente'],
+					            $_POST['Data'],
+			                    $_POST['Riferimento'],
+								$_POST['Oggetto'],
+								$_POST['DataInizio'],
+								$_POST['DataFine'],
+								$_POST['DataOblio'],
+								$_POST['Note'],
+								$_POST['Categoria'],
+								$_POST['Responsabile']);
+			if ( !$ret)
+				$location = add_query_arg( 'message', 1, $location );
+			else{
+				$location = add_query_arg( 'message', 4, $location );
+				$location = add_query_arg( 'errore', $ret , $location );		
 			}
 			wp_redirect( $location );
 			break;
@@ -459,7 +542,7 @@ if(isset($_REQUEST['action'] )){
 				Go_Atti();
 				break;
 			} 		
-			$location = "?page=atti&amp;p=1" ;
+			$location = "?page=atti" ;
 			$ret=ap_memo_atto((int)$_REQUEST['id'],
 							  $_REQUEST['Ente'],
 			                  $_POST['Data'],
@@ -478,7 +561,8 @@ if(isset($_REQUEST['action'] )){
 			wp_redirect( $location );
 			break;
 		case "memo-allegato-atto":
-			$location = site_url()."/wp-admin/admin.php?page=atti&amp;p=1" ;
+			$location = site_url()."/wp-admin/admin.php?page=atti" ;
+			$location='?page=atti&action=allegati-atto&id='.(int)$_REQUEST['id'].'&allegatoatto='.wp_create_nonce('gestallegatiatto');
 			if (!isset($_REQUEST['uploallegato'])) {
 				Go_Atti();
 				break;	
@@ -486,18 +570,22 @@ if(isset($_REQUEST['action'] )){
 			if (!wp_verify_nonce($_REQUEST['uploallegato'],'uploadallegato')){
 				Go_Atti();
 				break;
-			}		
-			$messaggio =addslashes(str_replace(" ","%20",Memo_allegato_atto()));
-			if (isset($_REQUEST['ref']))
-				$location = add_query_arg(array ( 'action' => $_REQUEST['ref'], 
-											  'messaggio' => $messaggio,
-											  'allegatoatto'=>wp_create_nonce('gestallegatiatto'),
-											  'id' => (int)$_REQUEST['id']) , $location );
-			else
-				$location = add_query_arg(array ( 'action' => 'allegati-atto', 
-			                                  'messaggio' => $messaggio,
-											  'allegatoatto'=>wp_create_nonce('gestallegatiatto'),
-											  'id' => (int)$_REQUEST['id']) , $location );
+			}
+			if (isset($_REQUEST['annulla'])){
+				wp_redirect( $location );
+			}else{
+				$messaggio =addslashes(str_replace(" ","%20",Memo_allegato_atto()));
+				if (isset($_REQUEST['ref']))
+					$location = add_query_arg(array ( 'action' => $_REQUEST['ref'], 
+												  'messaggio' => $messaggio,
+												  'allegatoatto'=>wp_create_nonce('gestallegatiatto'),
+												  'id' => (int)$_REQUEST['id']) , $location );
+				else
+					$location = add_query_arg(array ( 'action' => 'allegati-atto', 
+				                                  'messaggio' => $messaggio,
+												  'allegatoatto'=>wp_create_nonce('gestallegatiatto'),
+												  'id' => (int)$_REQUEST['id']) , $location );
+			}
 			wp_redirect( $location );	
 			break;	
 		case "update-allegato-atto":

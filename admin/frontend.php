@@ -1,39 +1,65 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7.1
- */
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione del FrontEnd.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
+
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
-switch ($_REQUEST['action']){
-	case 'visatto':
-		if(is_numeric($_REQUEST['id']))
-			VisualizzaAtto($_REQUEST['id']);
-		else{
-			$ret=Lista_Atti($Parametri);
-		}
-			
-		break;
-	case 'addstatall':
-		if(is_numeric($_GET['id']) and is_numeric($_GET['idAtto']))
-			ap_insert_log(6,5,(int)$_GET['id'],"Download",(int)$_GET['idAtto']);
-		break;
-	default: 
-		if (isset($_REQUEST['filtra']))
-		 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
-		else if(isset($_REQUEST['annullafiltro'])){
-				 unset($_REQUEST['categoria']);
-				 unset($_REQUEST['anno']);
-				 unset($_REQUEST['oggetto']);
-				 unset($_REQUEST['DataInizio']);
-				 unset($_REQUEST['DataFine']);
-				 $ret=Lista_Atti($Parametri);
-			}else{
+if(isset($_REQUEST['action'])){
+	switch ($_REQUEST['action']){
+		case 'visatto':
+			if(is_numeric($_REQUEST['id']))
+				VisualizzaAtto($_REQUEST['id']);
+			else{
 				$ret=Lista_Atti($Parametri);
 			}
+				
+			break;
+		case 'addstatall':
+			if(is_numeric($_GET['id']) and is_numeric($_GET['idAtto']))
+				ap_insert_log(6,5,(int)$_GET['id'],"Download",(int)$_GET['idAtto']);
+			break;
+		default: 
+			if (isset($_REQUEST['filtra']))
+			 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
+			else if(isset($_REQUEST['annullafiltro'])){
+					 unset($_REQUEST['categoria']);
+					 unset($_REQUEST['anno']);
+					 unset($_REQUEST['oggetto']);
+					 unset($_REQUEST['DataInizio']);
+					 unset($_REQUEST['DataFine']);
+					 $ret=Lista_Atti($Parametri);
+				}else{
+					$ret=Lista_Atti($Parametri);
+				}
+		}	
+	}else{
+		if (isset($_REQUEST['filtra']))
+ 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
+else if(isset($_REQUEST['annullafiltro'])){
+		 unset($_REQUEST['categoria']);
+		 unset($_REQUEST['anno']);
+		 unset($_REQUEST['oggetto']);
+		 unset($_REQUEST['DataInizio']);
+		 unset($_REQUEST['DataFine']);
+		 $ret=Lista_Atti($Parametri);
+	}else{
+		$ret=Lista_Atti($Parametri);
+
+	}
 }
 function VisualizzaAtto($id){
 	$risultato=ap_get_atto($id);
@@ -79,6 +105,10 @@ echo '
 		<tr>
 			<th>Data fine Pubblicazione</th>
 			<td style="vertical-align: middle;">'.ap_VisualizzaData($risultato->DataFine).'</td>
+		</tr>
+		<tr>
+			<th>Data oblio</th>
+			<td style="vertical-align: middle;">'.ap_VisualizzaData($risultato->DataOblio).'</td>
 		</tr>
 		<tr>
 			<th>Note</th>
@@ -163,8 +193,8 @@ echo '
 ';	
 }
 function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
-	$anni=ap_get_dropdown_anni_atti('anno','anno','postform','',$_REQUEST['anno'],$Stato); 
-	$categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',$_REQUEST['categoria'],$Stato); 
+	$anni=ap_get_dropdown_anni_atti('anno','anno','postform','',(isset($_REQUEST['anno'])?$_REQUEST['anno']:date("Y")),$Stato); 
+	$categorie=ap_get_dropdown_ricerca_categorie('categoria','categoria','postform','',(isset($_REQUEST['categoria'])?$_REQUEST['categoria']:0),$Stato); 
 	ap_Bonifica_Url();
 	if (strpos($_SERVER['REQUEST_URI'],"?")>0)
 		$sep="&amp;";
@@ -197,15 +227,15 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 					</tr>
 					<tr>
 						<th scope="row"><label for="oggetto">Oggetto</label></th>
-						<td><input type="text" size="40" maxlength="150" name="oggetto" id ="oggetto" value="'.$_REQUEST['oggetto'].'"/></td>
+						<td><input type="text" size="40" maxlength="150" name="oggetto" id ="oggetto" value="'.(isset($_REQUEST['oggetto'])?$_REQUEST['oggetto']:"").'"/></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="Calendario1">da Data</label></th>
-						<td><input name="DataInizio" id="Calendario1" type="text" value="'.htmlentities($_REQUEST['DataInizio']).'" size="10" /></td>
+						<td><input name="DataInizio" id="Calendario1" type="text" value="'.htmlentities((isset($_REQUEST['DataInizio'])?$_REQUEST['DataInizio']:"")).'" size="10" /></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="Calendario2">a Data</label></th>
-						<td><input name="DataFine" id="Calendario2" type="text" value="'.htmlentities($_REQUEST['DataFine']).'" size="10" /></td>
+						<td><input name="DataFine" id="Calendario2" type="text" value="'.htmlentities((isset($_REQUEST['DataFine'])?$_REQUEST['DataFine']:"")).'" size="10" /></td>
 					</tr>
 					<tr>
 						<td style="text-align:center;"><input type="submit" name="filtra" id="filtra" class="bottoneFE" value="Filtra"  /></td>
@@ -307,6 +337,7 @@ switch ($Parametri['stato']){
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	$colorePari=get_option('opt_AP_ColorePari');
 	$coloreDispari=get_option('opt_AP_ColoreDispari');
+	$VisFiltro="";
 	if($Parametri['minfiltri']=="si"){
 		if(isset($_REQUEST['vf']) and  $_REQUEST['vf']=="s"){
 			$VisFiltro='<img src="'.Albo_URL.'img/minimize.png" id="maxminfiltro" class="s" alt="icona minimizza finestra filtri"/>';
@@ -366,19 +397,31 @@ if ($TotAtti>$N_A_pp){
 	$Contenuto.='			</p>
     	</div>
 	</div>';
-	}		
+	}	
+$FEColsOption=get_option('opt_AP_ColonneFE',array(
+									"Ente"=>0,
+									"Riferimento"=>0,
+									"Oggetto"=>0,
+									"Validita"=>0,
+									"Categoria"=>0,
+									"Note"=>0,
+									"RespProc"=>0,
+									"DataOblio"=>0));
+if(!is_array($FEColsOption)){
+$FEColsOption=json_decode($FEColsOption,TRUE);
+}	
 $Contenuto.= '	<div class="tabalbo">                               
 		<table id="elenco-atti-OldStyle" class="tabella-dati-albo" summary="atti validi per riferimento, oggetto e categoria"> 
 	    <caption>Atti</caption>
 		<thead>
 	    	<tr>
-	        	<th scope="col">Prog.</th>
-	        	<th scope="col">Ente</th>
-	        	<th scope="col">Rif.</th>
-	        	<th scope="col" style="width:200px;">Oggetto</th>
-	        	<th scope="col">Validit&agrave;</th>
-	        	<th scope="col" style="width:100px;">Categoria</th>
-			</tr>
+	        	<th scope="col">Prog.</th>';
+foreach($FEColsOption as $Opzione => $Valore){
+		if($Valore==1){
+			$Contenuto.= '			<th scope="col">'.$Opzione.'</th>';
+		}
+}
+echo'	</tr>
 	    </thead>
 	    <tbody>';
 	    $CeAnnullato=false;
@@ -387,6 +430,8 @@ $Contenuto.= '	<div class="tabalbo">
 		foreach($lista as $riga){
 			$categoria=ap_get_categoria($riga->IdCategoria);
 			$cat=$categoria[0]->Nome;
+			$responsabileprocedura=ap_get_responsabile($riga->RespProc);
+			$respproc=$responsabileprocedura[0]->Cognome." ".$responsabileprocedura[0]->Nome;
 			$NumeroAtto=ap_get_num_anno($riga->IdAtto);
 	//		Bonifica_Url();
 			$classe='';
@@ -404,23 +449,49 @@ $Contenuto.= '	<div class="tabalbo">
 			else
 				$sep="?";
 			$Contenuto.= '<tr >
-			        <td '.$classe.'>'.$NumeroAtto.'/'.$riga->Anno .'
-					</td>
+			        <td '.$classe.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  style="text-decoration: underline;">'.$NumeroAtto.'/'.$riga->Anno .'</a> 
+					</td>';
+			if ($FEColsOption['Ente']==1)
+				$Contenuto.='
 					<td '.$classe.'>
 						'.stripslashes(ap_get_ente($riga->Ente)->Nome) .'
-					</td>
+					</td>';
+			if ($FEColsOption['Riferimento']==1)
+				$Contenuto.='
 					<td '.$classe.'>
 						'.stripslashes($riga->Riferimento) .'
-					</td>
+					</td>';
+			if ($FEColsOption['Oggetto']==1)
+				$Contenuto.='			
 					<td '.$classe.'>
-						<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  style="text-decoration: underline;">'.stripslashes($riga->Oggetto) .'</a>  
-					</td>
+						'.stripslashes($riga->Oggetto) .' 
+					</td>';
+			if ($FEColsOption['Validita']==1)
+				$Contenuto.='								
 					<td '.$classe.'>
 						'.ap_VisualizzaData($riga->DataInizio) .'<br />'.ap_VisualizzaData($riga->DataFine) .'  
-					</td>
+					</td>';
+			if ($FEColsOption['Categoria']==1)
+				$Contenuto.='								
 					<td '.$classe.'>
 						'.$cat .'  
-					</td>
+					</td>';
+			if ($FEColsOption['Note']==1)
+				$Contenuto.='
+					<td '.$classe.'>
+						'.stripslashes($riga->Informazioni) .'
+					</td>';
+			if ($FEColsOption['RespProc']==1)
+				$Contenuto.='
+					<td '.$classe.'>
+						'.$respproc .'
+					</td>';	
+			if ($FEColsOption['DataOblio']==1)
+				$Contenuto.='
+					<td '.$classe.'>
+						'.ap_VisualizzaData($riga->DataOblio) .'
+					</td>';
+		$Contenuto.='	
 				</tr>'; 
 			}
 	} else {

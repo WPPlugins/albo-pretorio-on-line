@@ -1,12 +1,21 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Funzioni Gestione Permessi
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7.1
- */
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione dei permessi.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 if (isset($_REQUEST['action']) And $_REQUEST['action']=="memoPermessi"){
@@ -43,8 +52,7 @@ if (isset($_REQUEST['action']) And $_REQUEST['action']=="memoPermessi"){
 }
 
 echo '<div class="wrap">
-	<img src="'.Albo_URL.'/img/ruoli32.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
-		<h2 style="margin-left:40px;">Permessi Utente</h2>';
+		<h2 style="font-size:2em;">Permessi Utente</h2>';
 if (isset($Msg)) {
 	echo '<div id="message" class="updated"><p>'.$Msg.'</p></div>';
 }

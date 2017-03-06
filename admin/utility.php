@@ -1,22 +1,34 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Funzioni Gestione Permessi
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7.1
- */
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione delle utility.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
+
+if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { 
+	die('You are not allowed to call this page directly.'); 
+}
 
 
-if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 $Stato="";
+
 if (isset($_REQUEST['message']))
 	if($_REQUEST['message']==80)
 		$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata";
 if (isset($_REQUEST['action'])){
 	switch($_REQUEST['action']){
-
 		case "Crearobots":
 			if (!isset($_REQUEST['creasic'])) {
 				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
@@ -264,27 +276,32 @@ function ImplementaOblio(){
 
 function menu($Stato="",$passo="",$Data=""){
 global $wpdb;
+if (isset($_REQUEST['p']))
+	$Pag=$_REQUEST['p'];
+else
+	$Pag=0;
 $upload_dir = wp_upload_dir();
 $basedir=substr( $upload_dir['basedir'],0,strlen($upload_dir['basedir'])-19);
 echo '<div class="wrap">
-	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
-		<h2 style="margin-left:40px;">Utility Albo</h2>';
+	<h2 style="font-size:2em;">Utility</h2>';
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
       <meta http-equiv="refresh" content="5;url=admin.php?page=utilityAlboP"/>';
-echo '<div id="utility-tabs-container"  style="margin-top:60px;">
+echo '<input type="hidden" id="Pagina" value="'.$Pag.'" />
+<div id="utility-tabs-container"  style="margin-top:20px;">
 					<ul>
 						<li><a href="#utility-tab-1">Ripubblicazione Atti</a></li>
 						<li><a href="#utility-tab-2">Verifica procedura</a></li>
 						<li><a href="#utility-tab-3">Post trasferimento sito</a></li>
 						<li><a href="#utility-tab-4">Pulitura file di Log</a></li>
 						<li><a href="#utility-tab-5">Backup dei dati dell\'Albo Pretorio</a></li>
+						<li><a href="#utility-tab-6">Repertorio</a></li>
 					</ul>
 		<div id="utility-tab-1" style="margin-bottom:20px;">
-				<p style="text-align:center;font-size:1.5em;font-weight: bold;">Attenzione!!!!!<br />
-				Operazione di ripubblicazione degli atti in corso di validit&agrave; a causa di interruzione del servizio di pubblicazione</p>
-				<p>Questa operazione Annulla gli atti gi&agrave; pubblicati ed in corso di validit&agrave; con motivazione <span style="font-size:1.1em;font-weight: bold;font-style: italic;color:red;">Annullamento per interruzione del sevizio di pubblicazione</span><br />Ripubblica gli atti in corso di validit&agrave; annullati per un periodo di tempo (n. giorni) uguale a quello degli atti originali</p>
-				<p style="font-size:1.1em;font-weight: bold;font-style: italic;color:red;">Questa &egrave; una operazione che pu&ograve; modificare una grosa quantit&agrave; di dati, si consiglia di eseguire un backup prima di procedere, per poter recuperare i dati originali in caso di errori.</p>';
+				<h3 style="text-align:center;">Attenzione!!!!!<br />
+				Operazione di ripubblicazione degli atti in corso di validit&agrave; a causa di interruzione del servizio di pubblicazione</h3>
+				<p>Questa operazione Annulla gli atti gi&agrave; pubblicati ed in corso di validit&agrave; con motivazione <span style="font-weight: bold;font-style: italic;color:red;">Annullamento per interruzione del sevizio di pubblicazione</span><br />Ripubblica gli atti in corso di validit&agrave; annullati per un periodo di tempo (n. giorni) uguale a quello degli atti originali</p>
+				<p style="font-weight: bold;font-style: italic;color:red;">Questa &egrave; una operazione che pu&ograve; modificare una grosa quantit&agrave; di dati, si consiglia di eseguire un backup prima di procedere, per poter recuperare i dati originali in caso di errori.</p>';
 switch ($passo){
 	case "":
 		echo '<form action="?page=utilityAlboP" id="ripub" method="post"  class="validate">
@@ -297,31 +314,30 @@ switch ($passo){
 		break;
 	case "1":
 		$TotAtti=ap_get_all_atti(1,0,0,'',0,$Data,'',0,0,true,false);
-		echo'<p><span style="font-size:1.1em;font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utilityAlboP&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
+		echo'<p><span style="font-style: italic;color:green;"><strong>'.$TotAtti.'</strong> Atti in pubblicazione in data '.$Data.'.</span> <a href="?page=utilityAlboP&action=rip&Data='.$_REQUEST['Data'].'" class="ripubblica" rel="'.$TotAtti.'">Ripubblica gli atti a causa dell\' interruzione del servizio</a>?
 			</p>';
 }
 echo '		</div> 
 		<div id="utility-tab-2" style="margin-bottom:20px;">
-				<p style="text-align:left;font-style: italic;">
-Questa procedura esegue un test generale della procedura e riporta eventuali anomalie nei dati e nelle impostazioni.</spam><br />Operazioni eseguite:</p>
-<p style="font-size:1em;font-style: italic;margin-left:10px;font-weight: bold;">
-	Verifica permessi cartella di Upload degli allegati
-	<br />Verifica dati del Data Base e viene riportata una breve statistica sui dati
-</p>
+			<p style="font-style: italic;">
+Questa procedura esegue un test generale della procedura e riporta eventuali anomalie nei dati e nelle impostazioni.
+			</p>
+			<p>Operazioni eseguite:
+				<ul style="font-style: italic;font-weight: bold;list-style-type: disc;margin-left:15px;">
+					<li>Verifica permessi cartella di Upload degli allegati</li>
+					<li>Verifica dati del Data Base e viene riportata una breve statistica sui dati</li>
+				</ul>
+			</p>
 				<p style="text-align:center;font-weight: bold;">
  					<button type="button" onclick="location.href=\'?page=utilityAlboP&action=verificaproc&amp;verproc='.wp_create_nonce('verificaprocedura').'\'"> Verifica </button>
 				</p>
 		</div>
 		<div id="utility-tab-3" style="margin-bottom:20px;">
 				<p style="text-align:left;font-style: italic;">
-Questa procedura esegue le seguenti operazioni:
+Questa procedura esegue le operazioni necessarie per l\'allineamento dei files e delle tabelle del DataBase per mantenere il diritto all\'oblio degli atti pubblicati:
 					<ul style="list-style: circle inside;">
-						<li>Aggiornamento dei file 
-							<ul style="list-style: disc inside;padding-left:10px;">
-								<li><span style="font-weight: bold;">.htaccess</span> e <span style="font-weight: bold;">index.php</span> nella cartella <span style="font-style: italic;font-weight: bold;"> '.AP_BASE_DIR.'AllegatiAttiAlboPretorio</span></li>
-								<li> <span style="font-weight: bold;">robots.txt</span> nella cartella <span style="font-style: italic;font-weight: bold;">'.$basedir.'</span></li>
-							</ul>
-							 per il diritto all\'oblio</li>
+						<li>Aggiornamento del contenuto del files <span style="font-weight: bold;">.htaccess</span> e <span style="font-weight: bold;">index.php</span> nella cartella <span style="font-style: italic;font-weight: bold;"> '.AP_BASE_DIR.'AllegatiAttiAlboPretorio</span></li>
+						<li>Aggiornamento del contenuto del file <span style="font-weight: bold;">robots.txt</span> nella cartella <span style="font-style: italic;font-weight: bold;">'.$basedir.'</span></li>
 						<li>Aggiornamento del percorso nella tabella degli allegati nel Data Base</li>
 					</ul>
 				<p style="text-align:center;font-weight: bold;">
@@ -374,6 +390,51 @@ echo '  <div id="utility-tab-5" style="margin-bottom:20px;">
 					</form>
 				</p>
 	</div>
+	<div id="utility-tab-6" style="margin-bottom:20px; height: 600px;">';
+
+		if (isset($_GET['Anno']))
+			$AnnoRepertorio=$_GET['Anno'];
+		else
+			$AnnoRepertorio=date("Y");
+		if (($Anni=ap_AnniAtti())!=FALSE){
+			echo '<div style="display:inline">
+			Repertorio <select id="Anno" onchange="document.location.href=this.options[this.selectedIndex].value;">
+				<option value="">Anno</option>';
+			foreach($Anni as $Anno){
+				echo '<option value="'.admin_url().'/admin.php?page=utilityAlboP&amp;p=5&amp;Anno='.$Anno->Anno.'">'.$Anno->Anno.'</option>';
+			}
+			echo '
+			</select>
+					<a href="?page=utilityAlboP&amp;p=5&amp;Anno='.$AnnoRepertorio.'&amp;action=ToXML&amp;Anno='.$AnnoRepertorio.'">
+					<img src="'.Albo_URL.'/img/XML.png" title="Esporta il repertorio del '.$AnnoRepertorio.' in XML" style="vertical-align: middle;"/></a>
+				<a href="?page=utilityAlboP&amp;p=5&amp;Anno='.$AnnoRepertorio.'&amp;action=ToJson&amp;Anno='.$AnnoRepertorio.'">
+					<img src="'.Albo_URL.'/img/Json.png" title="Esporta il repertorio del '.$AnnoRepertorio.' in Json" style="vertical-align: middle;"/></a>
+				<a href="?page=utilityAlboP&amp;p=5&amp;Anno='.$AnnoRepertorio.'&amp;action=ToCsv&amp;Anno='.$AnnoRepertorio.'">
+					<img src="'.Albo_URL.'/img/Csv.png" title="Esporta il repertorio del '.$AnnoRepertorio.' in csv" style="vertical-align: middle;"/></a>
+	</div>
+			<h3 style="text-align:center">Repertorio Anno '.$AnnoRepertorio.'</h3>
+			<div style="overflow: scroll;height:440px;">
+				<table class="widefat" id="Repertorio-anno" style="border: thin solid #f9f9f9;">
+					<thead>
+						<th>Ente titolare dell\'Atto</th>
+						<th>Numero progressivo</th>
+						<th>Codice di Riferimento</th>
+						<th>Oggetto</th>
+						<th>Data inizio Pubblicazione</th>
+						<th>Data fine Pubblicazione</th>
+						<th>Note</th>
+						<th>Categoria</th>
+						<th>Data Annullamento</th>
+						<th>Motivo Annullamento</th>
+					</thead>
+					<tbody>';
+					echo ap_Repertorio($AnnoRepertorio);
+					echo '</tbody>
+				</table>
+			</div>';
+		}
+echo'	
+	</div>	
 </div>';
 }
 	
@@ -676,7 +737,7 @@ global $wpdb;
 		  	$n_atti_dapub = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where Numero=0;");	
 		  	$n_atti_attivi = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataInizio <= now() And DataFine>= now() And Numero>0;");	
 		  	$n_atti_storico=$n_atti-$n_atti_attivi-$n_atti_dapub; 
-			$Analisi.='<em>Atti In corso di Validit&agrave;:</em><strong>'.$n_atti_attivi.'</strong><br />';
+			$Analisi='<em>Atti In corso di Validit&agrave;:</em><strong>'.$n_atti_attivi.'</strong><br />';
 			$Analisi.='<em>Atti Scaduti:</em><strong>'.$n_atti_storico.'</strong><br />';
 			$Analisi.='<em>Atti da Pubblicare:</em><strong>'.$n_atti_dapub.'</strong><br />';
 			// Verifica Atti con Categorie Orfane

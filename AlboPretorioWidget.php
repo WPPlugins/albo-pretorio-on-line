@@ -1,27 +1,21 @@
 <?php
-/*
-Plugin URI: http://www.sisviluppo.info
-Description: Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.7.1
-Author: Scimone Ignazio
-Author URI: http://www.sisviluppo.info
-License: GPL2
-    Copyright YEAR  PLUGIN_AUTHOR_NAME  (email : info@sisviluppo.info)
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as 
-    published by the Free Software Foundation.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+/**
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
 */
-
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 class AlboPretorioWidget extends WP_Widget

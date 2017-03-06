@@ -14,4 +14,7 @@ jQuery(document).ready(function($){
 	$( "#Calendario4" ).datepicker({
         dateFormat : 'dd/mm/yy'
     });
+    $("#setta-def-data-o").click(function() {
+ 	 $( "#Calendario4" ).datepicker( "setDate", $(this).attr('name') );
+ 	});
 });

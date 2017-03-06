@@ -1,22 +1,31 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Gestione Allegati Atto
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7
- */
-
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione degli allegati agli atti.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 ?>
 <div class="wrap">
-<img src="<?php echo Albo_URL;?>/img/up32.png" alt="Icona Upload File" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Allegati</h2>
-<br class="clear" />
+	<div class="HeadPage" style="margin-bottom: 30px;">
+		<h2 class="wp-heading-inline">Atti</h2>
+		<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<h3>Upload nuovo Allegato</h3>	
+	</div>
 <div id="col-container">
-	<h3>Allegato</h3>
 	<form id="allegato" enctype="multipart/form-data" method="post" action="?page=atti" class="validate">
 	<input type="hidden" name="operazione" value="upload" />
 	<input type="hidden" name="action" value="memo-allegato-atto" />

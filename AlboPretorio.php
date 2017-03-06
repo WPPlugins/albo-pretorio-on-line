@@ -1,32 +1,26 @@
 <?php
-/*
-Plugin Name:Albo Pretorio On line
-Plugin URI: http://plugin.sisviluppo.info
-Description: Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
-Version:3.7.4
-Author: Scimone Ignazio
-Author URI: http://plugin.sisviluppo.info
-License: GPL2
-    Copyright YEAR  PLUGIN_AUTHOR_NAME  (email : info@sisviluppo.info)
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as 
-    published by the Free Software Foundation.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+/**
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
 */
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
 
-include_once(dirname (__FILE__) .'/AlboPretorioFunctions.php');				/* Various functions used throughout */
+include_once(dirname (__FILE__) .'/AlboPretorioFunctions.php');			/* libreria delle funzioni */
 include_once(dirname (__FILE__) .'/AlboPretorioWidget.php');
 //include_once( dirname (__FILE__) .'/admin/webservice.php' );	
 //include_once( dirname (__FILE__) .'/admin/albowebservice.php' );	
@@ -75,8 +69,8 @@ if (!class_exists('AlboPretorio')) {
 		add_shortcode('Albo', array('AlboPretorio', 'VisualizzaAtti'));
 		add_action('wp_head', array('AlboPretorio','head_Front_End'));
 		add_action( 'admin_menu', array (&$this, 'add_menu') ); 
-		add_action( 'wp_ajax_logdati', array('AlboPretorio','get_crealog'));
 		add_action('template_redirect', array('AlboPretorio', 'Gestione_Link'));
+		add_filter('set-screen-option', array('AlboPretorio', 'atti_set_option'), 10, 3);
 		$role =get_role( 'amministratore_albo' );
 	}
 	
@@ -131,58 +125,23 @@ if (!class_exists('AlboPretorio')) {
 			return;
 	    wp_enqueue_script('jquery');
 	    wp_enqueue_script('jquery-ui-core');
-	    wp_enqueue_script('jquery-ui-tabs');
-	    wp_enqueue_script( 'my-admin-fields', plugins_url('js/Fields.js', __FILE__ ));
+	    wp_enqueue_script('jquery-ui-tabs', '', array('jquery'));
+	    wp_enqueue_script('jquery-ui-dialog', '', array('jquery'));    
 		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
-		wp_enqueue_script( 'wp-color-picker');
+		wp_enqueue_script( 'wp-color-picker', '', array('jquery'));
+	    wp_enqueue_script( 'my-admin-fields', plugins_url('js/Fields.js', __FILE__ ));
 	    wp_enqueue_script( 'my-admin', plugins_url('js/Albo.admin.js', __FILE__ ));
-		wp_enqueue_script( 'my-admin-dtpicker-it', plugins_url('js/jquery.ui.datepicker-it.js', __FILE__ ));
-		wp_enqueue_script( 'Albo-DataTable', plugins_url('js/jquery.dataTables.js', __FILE__ ));
-		wp_enqueue_script( 'Albo-DataTable-Tools', plugins_url('js/dataTables.tableTools.js', __FILE__ ));
-
-		wp_enqueue_style( 'Albo-DataTable-theme', plugins_url( 'css/jquery.dataTables.css', __FILE__ ) );
-		wp_enqueue_style( 'Albo-DataTable-theme-Tools', plugins_url( 'css/dataTables.tableTools.css', __FILE__ ) );
 		wp_enqueue_style( 'wp-color-picker' );
-		wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );
-		
+		wp_enqueue_style( 'jquery.ui.theme', plugins_url( 'css/jquery-ui-custom.css', __FILE__ ) );	
 		wp_register_style('AdminAlbo', plugins_url( 'css/styleAdmin.css', __FILE__ ) );
         wp_enqueue_style( 'AdminAlbo');
 
 	}
 
-/*TINY MCE Quote Button*/
-static function add_albo_button() {  
-  if ( current_user_can('edit_posts') &&  current_user_can('edit_pages') )  
- {  
-   add_filter('mce_external_plugins',array('AlboPretorio', 'add_albo_plugin'));  
-   add_filter('mce_buttons', array('AlboPretorio','register_albo_button'));  
-  }  
-}  
-static function register_albo_button($buttons) {  
-    array_push($buttons, "separator", "albo");  
-    return $buttons;  
- }  
-static function add_albo_plugin($plugin_array) {  
-  $plugin_array['albo'] =Albo_URL.'/js/ButtonEditor.js';  
-   return $plugin_array;  
-}
-
-	static function get_crealog(){
-		global $AP_OnLine;
-		$Tipo=$_POST['Tipo'];
-		$IdOggetto=$_POST['IdOggetto'];
-		$IdAtto=$_POST['IdAtto'];
-		if ($Tipo==99){
-			echo $AP_OnLine->CreaStatistiche($IdAtto);
-		}else{
-			echo $AP_OnLine->CreaLog($Tipo,$IdOggetto,$IdAtto);
-		}
-		die();
-	}
-
 	function CreaStatistiche($IdAtto,$Oggetto){
 		$righeVisiteAtto=ap_get_Stat_Visite($IdAtto);
 		$righeVisiteDownload=ap_get_Stat_Download($IdAtto);
+		$HtmlTesto='';
 		if ($Oggetto==5){
 			$HtmlTesto='
 				<h3>Totale Visite Atto '.ap_get_Stat_Num_log($IdAtto,5).'</h3>
@@ -228,6 +187,22 @@ static function add_albo_plugin($plugin_array) {
 		}
 		return $HtmlTesto;	
 	}
+/*TINY MCE Quote Button*/
+static function add_albo_button() {  
+  if ( current_user_can('edit_posts') &&  current_user_can('edit_pages') )  
+ {  
+   add_filter('mce_external_plugins',array('AlboPretorio', 'add_albo_plugin'));  
+   add_filter('mce_buttons', array('AlboPretorio','register_albo_button'));  
+  }  
+}  
+static function register_albo_button($buttons) {  
+    array_push($buttons, "separator", "albo");  
+    return $buttons;  
+ }  
+static function add_albo_plugin($plugin_array) {  
+  $plugin_array['albo'] =Albo_URL.'/js/ButtonEditor.js';  
+   return $plugin_array;  
+}
 	
 	function CreaLog($Tipo,$IdOggetto,$IdAtto){
 	//	echo $Tipo;
@@ -293,15 +268,33 @@ static function add_albo_plugin($plugin_array) {
 		$parametri_page=add_submenu_page( 'Albo_Pretorio', 'Generale', 'Parametri', 'admin_albo', 'configAlboP', array( 'AlboPretorio','show_menu'));
 		$permessi=add_submenu_page( 'Albo_Pretorio', 'Permessi', 'Permessi', 'admin_albo', 'permessiAlboP', array('AlboPretorio', 'show_menu'));
 		$utility=add_submenu_page( 'Albo_Pretorio', 'Utility', 'Utility', 'admin_albo', 'utilityAlboP', array('AlboPretorio', 'show_menu'));		
-/*		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
-		$utility=add_submenu_page( 'Albo_Pretorio', 'REST-API', 'Rest-API', 'admin_albo', 'RESTAlboP', array('AlboPretorio', 'show_menu'));		
+//		$testrestapi=add_submenu_page( 'Albo_Pretorio', 'Rest API', 'Rest API', 'admin_albo', 'test_rest_api', array('AlboPretorio', 'show_menu'));		
+//		add_action( 'admin_head-'. $atti_page, array( 'AlboPretorio','ap_head' ));
+/*		$utility=add_submenu_page( 'Albo_Pretorio', 'REST-API', 'Rest-API', 'admin_albo', 'RESTAlboP', array('AlboPretorio', 'show_menu'));		
 */
+		add_action( "load-$atti_page", array('AlboPretorio', 'screen_option'));
+
 }
-	
+	static function screen_option() {
+		if(!isset($_GET['action'])){
+			$args=array('label'   => 'Atti per pagina',
+				   'default' => 25,
+				   'option'  => 'atti_per_page');
+			add_screen_option( 'per_page', $args );			
+		}
+	}
+
+	static function atti_set_option($status, $option, $value) {
+	    if ( 'atti_per_page' == $option ) 
+	    	return $value;
+	}	
+
 	static function show_menu() {
 		global $AP_OnLine;
 
 		switch ($_REQUEST['page']){
+			case "test_rest_api":
+				include_once ( dirname (__FILE__) . '/inc/restAPI.php' );
 			case "Albo_Pretorio" :
 				$AP_OnLine->AP_menu();
 				break;
@@ -355,50 +348,13 @@ static function add_albo_plugin($plugin_array) {
 
 
 	static function ap_head() {
-		global $wp_db_version, $wp_dlm_root;
+//		global $wp_db_version, $wp_dlm_root;
 		?>
 <script language="JavaScript">
 	function change(html){
 		description.innerHTML=html
 	}
 </script>
-<script type="text/javascript">
-		jQuery.noConflict();
-		(function($) {
-			$(function() {	
-			var l = window.location;
-			var url = l.protocol + "//" + l.host +"/"+  l.pathname.split('/')[1]+"/wp-content/plugins/albo-pretorio-on-line/swf/copy_csv_xls_pdf.swf"; 
-		  	$('input.infolog').click(function() { //start function when Random button is clicked
-				var tipo;
-				switch ($(this).attr('value')){
-					case "Atti":
-						tipo=1;
-						break;
-					case "Allegati":
-						tipo=3;
-						break;
-					case "Statistiche Visite":
-						tipo=5;
-						break;
-					case "Statistiche Download":
-						tipo=6;
-						break;
-				}
-				$.ajax({
-					type: "post",url: "admin-ajax.php",data: { action: 'logdati', Tipo: tipo, IdOggetto: '<?php echo (int)$_REQUEST['id']; ?>', IdAtto: '<?php echo (int)$_REQUEST['id']; ?>'},
-					beforeSend: function() {
-					 $("#DatiLog").html('');
-					 $("#loading").fadeIn('fast');}, 
-					success: function(html){
-						$("#loading").fadeOut('fast');
-						$("#DatiLog").html(html); 
-					}
-				}); //close jQuery.ajax
-				return false;
-			})
-		 });
-		})(jQuery);
-</script>	
 	<?php
 	}
 
@@ -418,30 +374,10 @@ static function add_albo_plugin($plugin_array) {
 				echo "	<meta name='robots' content='noarchive' />
 	<!--HEAD Albo Preotrio On line -->
 			";
-//		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
-//	    wp_enqueue_script( 'my-admin-dtpicker-it', plugins_url('js/jquery.ui.datepicker-it.js', __FILE__ ));
+		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
 	    wp_enqueue_script('jquery');
-		wp_enqueue_script( 'AlboP-DataTable-Tools', plugins_url('js/dataTables.tableTools.js', __FILE__ ), array('jquery' ));
-	    wp_register_style('AlboP_datatable_style' ,plugins_url( 'css/jquery.dataTables.css', __FILE__ ));
-	    wp_enqueue_style('AlboP_datatable_style');   
-	    wp_register_style('AlboP_datatable_theme_Tools' ,plugins_url( 'css/dataTables.tableTools.css', __FILE__ ));
-	    wp_enqueue_style('AlboP_datatable_theme_Tools');   
-?>	
-		<style type="text/css" class="init">
-			td.details-control {
-				background: url('<?php echo Albo_URL;?>img/details_open.png') no-repeat center center;
-				cursor: pointer;
-			}
-			tr.shown td.details-control {
-				background: url('<?php echo Albo_URL;?>img/details_close.png') no-repeat center center;
-			}
-		</style>
-		<script type="text/javascript" language="javascript" src="<?php echo Albo_URL;?>js/jquery-1.11.1.min.js"></script>
-		<script type="text/javascript" language="javascript" src="<?php echo Albo_URL;?>js/jquery.dataTables.min.js"></script>
-		<script type="text/javascript" language="javascript" src="<?php echo Albo_URL;?>js/jquery.ui.datepicker-it.js"></script>
-		<script type="text/javascript" language="javascript" src="<?php echo Albo_URL;?>js/Albo.public.js"></script>
-	<!--FINE HEAD Albo Preotrio On line -->
-<?php		
+		wp_enqueue_script( 'Albo-Public', plugins_url('js/Albo.public.js', __FILE__ ));
+	echo "<!--FINE HEAD Albo Preotrio On line -->";	
 		}
 	}
 	
@@ -461,11 +397,7 @@ static function add_albo_plugin($plugin_array) {
 		'MinFiltri' =>'si',
 		'per_page' =>'10'
 	), $Parametri));
-	if(get_option('opt_AP_stileTableFE')=="Table")
-		require_once ( dirname (__FILE__) . '/admin/frontend.php' );
-	else
-		require_once ( dirname (__FILE__) . '/admin/frontenddatatable.php' );
-//		return "Albo Pretorio".$Correnti." ".$Paginazione." ".$per_page." ".$default_order;
+	require_once ( dirname (__FILE__) . '/admin/frontend.php' );
 	return $ret;
 	}
 
@@ -483,63 +415,95 @@ static function add_albo_plugin($plugin_array) {
 	  $n_atti_storico=$n_atti-$n_atti_attivi-$n_atti_dapub; 
 	  $n_allegati = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Allegati;");	 
 	  $n_categorie = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Categorie;");	 
-    
-	echo '<div class="wrap">
-		<img src="'.Albo_URL.'/img/albo32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:5px;"/>
-			<h2 style="margin-left:40px;">Albo Pretorio</h2>
-		<div class="postbox-container" style="width:80%;margin-top:20px;">
-		<h3>Sommario</h3>
-	<div class="widefat">
-		<table>
-			<caption>Statistiche</caption>
-			<thead>
-				<tr>
-					<th>Oggetto</th>
-					<th>N.</th>
-					<th>In Attesa di Pubblicazione</th>
-					<th>Attivi</th>
-					<th>Scaduti</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr class="first">
-					<td style="text-align:left;width:200px;" >Atti</td>
-					<td style="text-align:left;width:200px;">'.$n_atti.'</td>
-					<td style="text-align:left;width:200px;">'.$n_atti_dapub.'</td>
-					<td style="text-align:left;width:200px;">'.$n_atti_attivi.'</td>
-					<td style="text-align:left;width:200px;">'.$n_atti_storico.'</td>
-				</tr>
-				<tr>
-					<td>Categorie</td>
-					<td colspan="4">'.$n_categorie.'</td>
-				</tr>
-				<tr>
-					<td>Allegati</td>
-					<td colspan="4">'.$n_allegati.'</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+      $n_atti_oblio = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataOblio < now() And Numero>0;");	
+	echo ' <div class="welcome-panel" class="welcome-panel" style="padding: 5px;5px; 20px; 5px;">
+	         	<div class="welcome-panel-content" style="display:inline;float:left;">
+					<p style="text-align: center;">
+						<img src="'.Albo_URL.'/img/LogoAlbo.png" alt="Logo Albo on line pubblicità legale" />
+					<br />Versione <strong>'.$this->version.'</strong></p>
+					<p style="font-size:1.2em;text-align: center;">Plugin sviluppato da <strong>Scimone Ignazio</strong>
+					<br /><small>con il contributo della Comunità di Pratica</small>
+					<a href="http://www.porteapertesulweb.it" target="_blank" title="Porte Aperte sul Web">
+					<br /><img src="'.Albo_URL.'/img/pasw.png"></a>	<br />				
+					<a href="https://www.youtube.com/channel/UCjV2LoFIVcoUKux6VeHWohg" target="_blank" title="vai al canale YouTube">
+						<img src="'.Albo_URL.'/img/canaleyoutube.png" alt="Logo Canale Youtube Albo" />
+					</a>
+					</p>	
+
+				</div>
+				<div class="welcome-panel-content"  style="display:inline;float:right;width:60%;">
+					<div class="widefat" style="display:inline;">
+						<table style="margin-bottom:20px;border: 1px solid #e5e5e5;">
+							<caption style="font-size:1.2em;font-weight:bold;">Sommario</caption>
+							<thead>
+								<tr>
+									<th>Oggetto</th>
+									<th>N.</th>
+									<th>In Attesa di Pubblicazione</th>
+									<th>Attivi</th>
+									<th>Scaduti</th>
+									<th>Da eliminare</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="first">
+									<td style="text-align:left;width:200px;" >Atti</td>
+									<td style="text-align:left;width:200px;">'.$n_atti.'</td>
+									<td style="text-align:left;width:200px;">'.$n_atti_dapub.'</td>
+									<td style="text-align:left;width:200px;">'.$n_atti_attivi.'</td>
+									<td style="text-align:left;width:200px;">'.$n_atti_storico.'</td>
+									<td style="text-align:left;width:200px;">'.$n_atti_oblio.'</td>
+								</tr>
+								<tr>
+									<td>Categorie</td>
+									<td colspan="4">'.$n_categorie.'</td>
+								</tr>
+								<tr>
+									<td>Allegati</td>
+									<td colspan="4">'.$n_allegati.'</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div style="width: 400px;margin: auto;padding:0;">
+						<a href="http://eduva.org" target="_blank">
+							<input type="submit" name="submit" id="submit" class="button button-primary" value="Sito di suporto">
+						</a>
+						<a href="http://www.eduva.org/wp-content/uploads/2014/02/Albo-Pretorio-On-line.pdf" target="_blank">
+							<input type="submit" name="submit" id="submit" class="button button-primary" value="Manuale Albo Pretorio">
+						</a>
+						<a href="http://www.eduva.org/io-utilizzo-il-plugin"target="_blank">
+							<input type="submit" name="submit" id="submit" class="button button-primary" value="Io utilizzo il plugin">
+						</a>
+						<br />
+
+		 				<iframe src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FAlbo-Pretorio%2F1487571581520684%3Fref%3Dhl&amp;width&amp;height=290&amp;colorscheme=light&amp;show_faces=true&amp;header=true&amp;stream=false&amp;show_border=true" scrolling="no" frameborder="0" style="border:none; overflow:hidden;height:290px; width: 300px; margin-top:20px;margin-left: 50px;" allowTransparency="true"></iframe>
+		 			</div>	
+				</div>
+			</div>
 	';
 	if ($this->version>=3.0 and !is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/.htaccess")){
-	echo'<p> </p>
+	echo'<div class="welcome-panel" >
 		<div class="widefat" >
 			<p style="text-align:center;font-size:1.2em;font-weight: bold;color: red;">Questa versione dell plugin implementa il diritto all\'oblio, questo meccanismo permette agli utenti di accedere agli allegati degli atti pubblicati all\'albo pretorio solo dal sito che ospita l\'albo e non con link diretti al file<br />Non risulta ancora attivato il diritto all\'oblio,<br /><a href="?page=utilityAlboP&amp;action=oblio">Attivalo</a></p>
-			</div>';
+			</div>
+		</div>';
 	}
 if (ap_get_num_categorie()==0){
-echo'<p> </p>
+echo'<div class="welcome-panel" >
 		<div class="widefat" >
 				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
 				Non risultano categorie codificate, se vuoi posso impostare le categorie di default &ensp;&ensp;<a href="?page=utilityAlboP&amp;action=creacategorie">Crea Categorie di Default</a></p>
-			</div>';
+			</div>
+		</div>';
 }
 if (ap_num_responsabili()==0){
-echo'<p> </p>
+echo'<div class="welcome-panel" >
 		<div class="widefat" >
 				<p style="text-align:center;font-size:1.2em;font-weight: bold;color: green;">
 				Non risultano <strong>Responsabili</strong> codificati, devi crearne almeno uno prima di iniziare a codificare gli Atti &ensp;&ensp;<a href="?page=responsabili">Crea Responsabile</a></p>
-			</div>';
+			</div>
+		</div>';
 }
 if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 	echo '<div style="border: medium groove Blue;margin-top:10px;">
@@ -551,28 +515,10 @@ if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 			</div>
 		 </div>';
 }
-echo '<div  style="margin-left: 10px;">
-			<h3>Informazioni generali</h3>
-			<p style="margin-left:10px;font-size:1.2em;">Versione Plugin: '.$this->version.'</p>
-			<h3 style="margin-top: 5px;">A proposito ...</h3>
-			<ul style="margin-left: 25px;list-style-type: circle;">
-				<li>Plugin realizzato da Scimone Ignazio, per avere informazioni e supporto potete visitare il sito ufficiale del plugin <a href="http://plugin.sisviluppo.info">http://plugin.sisviluppo.info</a></li>
-				<li>Documentazione del plugin <a href="http://plugin.sisviluppo.info/wp-content/uploads/2014/02/Albo-Pretorio-On-line.pdf">Manuale Albo Pretorio</a></li>
-				<li><strong>In caso di problemi contattatemi all\'indirizzo</strong> <a href="mailto://ignazios@gmail.com">ignazios@gmail.com</a></li>
-			</ul>
-			<h3 style="margin-bottom: 5px;">Ti piace il Plugin?</h3>
-			<ul  style="margin-left: 25px;list-style-type: circle;">
-				<li>Facci sapere che utilizzi il plugin <strong>Albo Pretorio On Line</strong>, compila il form a questo indirizzo <a href="http://www.sisviluppo.info/?page_id=315">Io utilizzo il plugin</a></li>
-				<li><img src="'.Albo_URL.'/img/star.png" alt="Stella dorata" /><a href="http://wordpress.org/extend/plugins/albo-pretorio-on-line/">Vota questo plugin sul sito WordPress.org</a> richiede la registrazione sul sito http://www.wordpress.org</li>
-			</ul>
-			<iframe src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FAlbo-Pretorio%2F1487571581520684%3Fref%3Dhl&amp;width&amp;height=290&amp;colorscheme=light&amp;show_faces=true&amp;header=true&amp;stream=false&amp;show_border=true" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:290px;" allowTransparency="true"></iframe> 
-			</div> 
-			<div>
-		</div>';
-	}	
+}	
 
 	function AP_config(){
-		$stato="";
+	$stato="";
 	  if (isset($_REQUEST['action']) And $_REQUEST['action']=="setta-anno"){
 		update_option('opt_AP_AnnoProgressivo',date("Y") );
 		update_option('opt_AP_NumeroProgressivo',1 );
@@ -599,7 +545,19 @@ echo '<div  style="margin-left: 10px;">
 	  $colDispari=get_option('opt_AP_ColoreDispari');
 	  $stileTableFE=get_option('opt_AP_stileTableFE');
 	  $LogOperazioni=get_option('opt_AP_LogOp');
-	  $TempoOblio=get_option('opt_AP_GiorniOblio');
+	  //$TempoOblio=get_option('opt_AP_GiorniOblio');
+	  $FEColsOption=get_option('opt_AP_ColonneFE',array(
+	  										"Ente"=>0,
+	  										"Riferimento"=>0,
+	  										"Oggetto"=>0,
+	  										"Validita"=>0,
+	  										"Categoria"=>0,
+											"Note"=>0,
+											"RespProc"=>0,
+											"DataOblio"=>0));
+	  if(!is_array($FEColsOption)){
+	  	$FEColsOption=json_decode($FEColsOption,TRUE);
+	  }
 	  $LOStatoS="";
 	  $LOStatoN=" checked='checked' ";
 	  if($LogOperazioni=="Si"){
@@ -629,119 +587,174 @@ echo '<div  style="margin-left: 10px;">
 	  $dirUpload =  stripslashes(get_option('opt_AP_FolderUpload'));
 	  echo '
 	  <div class="wrap">
-	  	<img src="'.Albo_URL.'/img/opzioni32.png" alt="Icona configurazione" style="display:inline;float:left;margin-top:10px;"/>
-	  	<h2 style="margin-left:40px;">AlboPretorio Configurazione</h2>
+	  	<h2 style="font-size:2em;">Parametri</h2>
 	  '.$stato.'
-	  <form name="AlboPretorio_cnf" action="'.get_bloginfo('wpurl').'/wp-admin/index.php" method="post">
+
+	 <form name="AlboPretorio_cnf" action="'.get_bloginfo('wpurl').'/wp-admin/index.php" method="post">
 	  <input type="hidden" name="c_AnnoProgressivo" value="'.$nanno.'"/>
 	  <input type="hidden" name="confAP" value="'.wp_create_nonce('configurazionealbo').'" />
-	  <table class="form-table">
-		<tr valign="top">
-			<th scope="row"><label for="nomeente">Nome Ente</label></th>
-			<td><input type="text" name="c_Ente" value=\''.$ente.'\' size="100" id="nomeente"/></td>
-		</tr>
-		<tr valign="top">
-			<th scope="row"><label for="visente">Visualizza Nome Ente</label></th>
-			<td><input type="checkbox" name="c_VEnte" value="Si" '.$ve_selezionato.' id="visente"/></td>
-		</tr>
-		<tr valign="top">
-			<th scope="row"><label for="LivelloTitoloEnte">Titolo Nome Ente</label></th>
-			<td>
-				<select name="c_LTE" id="LivelloTitoloEnte" >';
-			for ($i=2;$i<5;$i++){
-				echo '<option value="h'.$i.'"';
-				if($livelloTitoloEnte=='h'.$i) 
-					echo 'selected="selected"';
-				echo '>h'.$i.'</option>';	
-			}
-		echo '</select></td>
-		</tr>		
-		<tr valign="top">
-			<th scope="row"><label for="LivelloTitoloPagina">Titolo Pagina Albo</label></th>
-			<td>
-				<select name="c_LTP" id="LivelloTitoloPagina" >';
-			for ($i=2;$i<5;$i++){
-				echo '<option value="h'.$i.'"';
-				if($livelloTitoloPagina=='h'.$i) 
-					echo 'selected="selected"';
-				echo '>h'.$i.'</option>';	
-			}
-		echo '</select></td>
-		</tr>		
-		<tr valign="top">
-			<th scope="row"><label for="LivelloTitoloFiltri">Titolo Filtri</label></th>
-			<td>
-				<select name="c_LTF" id="LivelloTitoloFiltri" >';
-			for ($i=2;$i<5;$i++){
-				echo '<option value="h'.$i.'"';
-				if($livelloTitoloFiltri=='h'.$i) 
-					echo 'selected="selected"';
-				echo '>h'.$i.'</option>';	
-			}
-		echo '</select></td>
-		</tr>		
-		<tr valign="top">
-			<th scope="row">Numero Progressivo</th>
-			<td><strong> ';
-			if(ap_get_all_atti(0,0,0,'',0,0,"",0,0,TRUE,TRUE)==0)
-				echo '<input type="text" id="progressivo" name="progressivo" value="'.$nprog.'" size="5"/>';
-			else
-				echo $nprog;
-		echo ' / '.$nanno.'</strong>	
-			</td>
-		</tr>
-		<tr valign="top">
-			<th scope="row"><label for="dirUpload">Cartella Upload</label></th>
-			<td><strong> '.AP_BASE_DIR.get_option('opt_AP_FolderUpload').'</strong></td>
-		</tr>
-		<tr>
-			<td colspan="2" style="font-size:1.2em;"><strong>Colori di sfondo delle righe della Tabella Elenco Atti</strong></td>
-		<tr>
-		<tr>
-			<th scope="row"><label for="color">Righe Atti Annullati</label></th>
-			<td> 
-				<input type="text" id="color" name="color" value="'.$colAnnullati.'" size="5"/>
-			</td>
-		</tr>
-			<th scope="row"><label for="colorp">Righe Pari</label></th>
-			<td> 
-				<input type="text" id="colorp" name="colorp" value="'.$colPari.'" size="5"/>
-			</td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="colord">Righe Dispari</label></th>
-			<td> 
-				<input type="text" id="colord" name="colord" value="'.$colDispari.'" size="5"/>
-			</td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="stileTableFE">Stile Tabella elenco atti Front End</label></th>
-			<td> 
-				<input type="radio" id="stileTableFET" name="stileTableFE" value="Table" '.$selstiletab.'>Tabella standard<br>
-				<input type="radio" id="stileTableFEDT" name="stileTableFE" value="DataTables" '.$selstiledatatab.'>Jquery Data Tables
-			</td>		
-		</tr>
-		<tr>
-			<th scope="row"><label for="LogOperazioni">Abilita il Log sulle Operazioni di gestione degli Oggetti dell\'Albo</label></th>
-			<td> 
-				<input type="radio" id="LogOperazioniSi" name="LogOperazioni" value="Si" '.$LOStatoS.'>Si<br>
-				<input type="radio" id="LogOperazioniNo" name="LogOperazioni" value="No" '.$LOStatoN.'>No
-			</td>		
-		</tr>
-		<tr>
-			<th scope="row"><label for="LogOperazioni">Abilita il Log sulle Visualizzazioni/Download degli atti pubblicati</label></th>
-			<td> 
-				<input type="radio" id="LogAccessiSi" name="LogAccessi" value="Si" '.$LOAccessiS.'>Si<br>
-				<input type="radio" id="LogAccessiNo" name="LogAccessi" value="No" '.$LOAccessiN.'>No
-			</td>		
-		</tr>
-		<tr>
-			<th scope="row"><label for="Oblio">Imposta il numero di giorni dopo i quali si possono cancellare gli Atti</label></th>
-			<td> 
-				<input type="text" id="TempoOblio" name="TempoOblio" value="'.$TempoOblio.'" size="5"/>
-			</td>		
-		</tr>
+	  <div id="config-tabs-container" style="margin-top:20px;">
+		<ul>
+			<li><a href="#Conf-tab-1">Impostazioni Generali</a></li>
+			<li><a href="#Conf-tab-2">Colori</a></li>
+			<li><a href="#Conf-tab-3">Log</a></li>
+			<li><a href="#Conf-tab-4">Colonne Tabella Front End</a></li>
+		</ul>	 
+		<div id="Conf-tab-1">
+		  <table class="albo_cell">
+			<tr>
+				<th scope="row"><label for="nomeente">Nome Ente</label></th>
+				<td><input type="text" name="c_Ente" value=\''.$ente.'\' size="100" id="nomeente"/></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="visente">Visualizza Nome Ente</label></th>
+				<td><input type="checkbox" name="c_VEnte" value="Si" '.$ve_selezionato.' id="visente"/></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="LivelloTitoloEnte">Titolo Nome Ente</label></th>
+				<td>
+					<select name="c_LTE" id="LivelloTitoloEnte" >';
+				for ($i=2;$i<5;$i++){
+					echo '<option value="h'.$i.'"';
+					if($livelloTitoloEnte=='h'.$i) 
+						echo 'selected="selected"';
+					echo '>h'.$i.'</option>';	
+				}
+			echo '</select></td>
+			</tr>		
+			<tr>
+				<th scope="row"><label for="LivelloTitoloPagina">Titolo Pagina Albo</label></th>
+				<td>
+					<select name="c_LTP" id="LivelloTitoloPagina" >';
+				for ($i=2;$i<5;$i++){
+					echo '<option value="h'.$i.'"';
+					if($livelloTitoloPagina=='h'.$i) 
+						echo 'selected="selected"';
+					echo '>h'.$i.'</option>';	
+				}
+			echo '</select></td>
+			</tr>		
+			<tr>
+				<th scope="row"><label for="LivelloTitoloFiltri">Titolo Filtri</label></th>
+				<td>
+					<select name="c_LTF" id="LivelloTitoloFiltri" >';
+				for ($i=2;$i<5;$i++){
+					echo '<option value="h'.$i.'"';
+					if($livelloTitoloFiltri=='h'.$i) 
+						echo 'selected="selected"';
+					echo '>h'.$i.'</option>';	
+				}
+			echo '</select></td>
+			</tr>		
+			<tr>
+				<th scope="row"><label>Numero Progressivo</label></th>
+				<td><strong> ';
+				if(ap_get_all_atti(0,0,0,'',0,0,"",0,0,TRUE,TRUE)==0)
+					echo '<input type="text" id="progressivo" name="progressivo" value="'.$nprog.'" size="5"/>';
+				else
+					echo $nprog;
+			echo ' / '.$nanno.'</strong>	
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label>Cartella Upload</label></th>
+				<td><strong> '.AP_BASE_DIR.get_option('opt_AP_FolderUpload').'</strong></td>
+			</tr>
 		</table>
+		</div>
+		<div id="Conf-tab-2">		  
+			<table class="albo_cell">
+			<tr>
+				<th scope="row"><label for="color">Righe Atti Annullati</label></th>
+				<td> 
+					<input type="text" id="color" name="color" value="'.$colAnnullati.'" size="5"/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="colorp">Righe Pari</label></th>
+				<td> 
+					<input type="text" id="colorp" name="colorp" value="'.$colPari.'" size="5"/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="colord">Righe Dispari</label></th>
+				<td> 
+					<input type="text" id="colord" name="colord" value="'.$colDispari.'" size="5"/>
+				</td>
+			</tr>
+		</table>
+		</div>
+		<div id="Conf-tab-3">		  
+			<table class="albo_cell">
+			<tr>
+				<th scope="row"><label for="LogOperazioni">Abilita il Log sulle Operazioni di gestione degli Oggetti dell\'Albo</label></th>
+				<td> 
+					<input type="radio" id="LogOperazioniSi" name="LogOperazioni" value="Si" '.$LOStatoS.'>Si<br>
+					<input type="radio" id="LogOperazioniNo" name="LogOperazioni" value="No" '.$LOStatoN.'>No
+				</td>		
+			</tr>
+			<tr>
+				<th scope="row"><label for="LogOperazioni">Abilita il Log sulle Visualizzazioni/Download degli atti pubblicati</label></th>
+				<td> 
+					<input type="radio" id="LogAccessiSi" name="LogAccessi" value="Si" '.$LOAccessiS.'>Si<br>
+					<input type="radio" id="LogAccessiNo" name="LogAccessi" value="No" '.$LOAccessiN.'>No
+				</td>		
+			</tr>
+		</table>
+		</div>
+		<div id="Conf-tab-4">		  
+			<table class="albo_cell">
+			<tr>
+				<th scope="row"><label for="ente">Ente</label></th>
+				<td> 
+					<input type="checkbox" id="ente" name="Ente" value="1" '.($FEColsOption['Ente']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="riferimento">Riferimento</label></th>
+				<td> 
+					<input type="checkbox" id="riferimento" name="Riferimento" value="1" '.($FEColsOption['Riferimento']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="oggetto">Oggetto</label></th>
+				<td> 
+					<input type="checkbox" id="oggetto" name="Oggetto" value="1" '.($FEColsOption['Oggetto']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="validita">Validit&agrave;</label></th>
+				<td> 
+					<input type="checkbox" id="validita" name="Validita" value="1" '.($FEColsOption['Validita']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="categoria">Categoria</label></th>
+				<td> 
+					<input type="checkbox" id="categoria" name="Categoria" value="1" '.($FEColsOption['Categoria']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="note">Note</label></th>
+				<td> 
+					<input type="checkbox" id="note" name="Note" value="1" '.($FEColsOption['Note']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="respproc">Responsabile Procedura</label></th>
+				<td> 
+					<input type="checkbox" id="respproc" name="RespProc" value="1" '.($FEColsOption['RespProc']==1?"checked":"").'/>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="oblio">Data Oblio</label></th>
+				<td> 
+					<input type="checkbox" id="oblio" name="DataOblio" value="1" '.($FEColsOption['DataOblio']==1?"checked":"").'/>
+				</td>
+			</tr>
+			</table>
+		</div>
+	</div>
 	    <p class="submit">
 	        <input type="submit" name="AlboPretorio_submit_button" value="Salva Modifiche" />
 	    </p> 
@@ -1019,7 +1032,16 @@ echo '<div  style="margin-left: 10px;">
 			update_option('opt_AP_stileTableFE',$_POST['stileTableFE']);
 			update_option('opt_AP_LogOp', $_POST['LogOperazioni']);
 			update_option('opt_AP_LogAc', $_POST['LogAccessi']);
-			update_option('opt_AP_GiorniOblio', (int)$_POST['TempoOblio']); 
+		  	$FEColsOption=array("Ente"=>(isset($_POST['Ente'])?1:0),
+		  					  "Riferimento"=>(isset($_POST['Riferimento'])?1:0),
+		  					  "Oggetto"=>(isset($_POST['Oggetto'])?1:0),
+		  					  "Validita"=>(isset($_POST['Validita'])?1:0),
+		  					  "Categoria"=>(isset($_POST['Categoria'])?1:0),
+							  "Note"=>(isset($_POST['Note'])?1:0),
+							  "RespProc"=>(isset($_POST['RespProc'])?1:0),
+							  "DataOblio"=>(isset($_POST['DataOblio'])?1:0)
+			);
+			update_option('opt_AP_ColonneFE', json_encode($FEColsOption)); 
 			header('Location: '.get_bloginfo('wpurl').'/wp-admin/admin.php?page=configAlboP&update=true'); 
   		}
 	}

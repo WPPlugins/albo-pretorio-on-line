@@ -1,14 +1,339 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Gestione Atti
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7
- */
-
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione degli atti.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
+
+if (!class_exists('WP_List_Table')) {
+ require_once(ABSPATH.'wp-admin/includes/class-wp-list-table.php');
+}
+
+class AdminTableAtti extends WP_List_Table
+{
+/*		 1 - in corso di validità 	"Correnti"
+		 2 - scaduti				"Scaduti"	
+		 3 - da pubblicare			"DaPubblicare"
+		 4 - da cancellare			"Eliminare"
+*/
+  public $stato_atti="Correnti";
+  public $Atti_DaPubblicare; 
+  public $Atti_Correnti; 
+  public $Atti_Scaduti; 
+  public $Atti_Eliminare; 
+  public $Atti_Tutti; 
+  public $AzioneDefault;
+  
+  function Codstato_atti(){
+  	switch ($this->stato_atti){
+		case "Correnti":$Ret=1;break;
+		case "Scaduti":$Ret=2;break;
+		case "DaPubblicare":$Ret=3;break;
+		case "Eliminare":$Ret=4;break;
+		default: $Ret=3;break;
+	}
+	return $Ret;
+  }
+
+  function __construct() {
+  	$this->Atti_DaPubblicare=ap_get_all_atti(3,0,0,'', 0,0,"",0,0,true);
+  	$this->Atti_Correnti=ap_get_all_atti(1,0,0,'', 0,0,"",0,0,true); 
+  	$this->Atti_Scaduti=ap_get_all_atti(2,0,0,'', 0,0,"",0,0,true); 
+  	$this->Atti_Eliminare=ap_get_all_atti(4,0,0,'', 0,0,"",0,0,true);
+  	$this->Atti_Tutti=ap_get_all_atti(0,0,0,'', 0,0,"",0,0,true);
+    parent::__construct(array('singular'=>'Atto','plural'=>'Atti'));
+  }
+
+	protected function get_views() {
+	    $status_links = array(
+	        "Tutti"		  => "<strong>Tutti (".$this->Atti_Tutti.")</strong>",
+	        "nuovi"       => "<a href='?page=atti'>da Pubblicare(".$this->Atti_DaPubblicare.")</a>",
+	        "correnti"    => "<a href='?page=atti&amp;stato_atti=Correnti'>Correnti(".$this->Atti_Correnti.")</a>",
+	        "storico"     => "<a href='?page=atti&amp;stato_atti=Scaduti'>Scaduti(".$this->Atti_Scaduti.")</a>",
+	        "oblio"       => "<a href='?page=atti&amp;stato_atti=Eliminare'>da Eliminare(".$this->Atti_Eliminare.")</a>",
+	    );
+	    return $status_links;
+	}
+  // Funzione per la preparazione dei campi da visualizzare
+  // e la query SQL principale che deve essere eseguita 
+
+  function prepare_items()
+  {
+    global $wpdb;
+ 
+    // Calcolo elenco de dei campi per le differenti
+    // sezioni e memorizzo tutto in array separati
+
+    $columns  = $this->get_columns();
+    $hidden   = $this->get_columns_hidden();
+    $sortable = $this->get_columns_sortable();
+
+    // Bisogna memorizzare tre array che devono contenere i campi da 
+    // visualizzare, quelli nascosti e quelli per eseguire l'ordinamento
+
+
+    $this->_column_headers = array($columns,$hidden,$sortable);
+
+    // Preparazione delle variabili che devono essere utilizzate
+    // nella preparazione della query con gli ordinamenti e la posizione
+	$user = get_current_user_id();
+	$screen = get_current_screen();
+	$screen_option = $screen->get_option('per_page', 'option');
+	$per_page = get_user_meta($user, $screen_option, true);
+	if ( empty ( $per_page) || $per_page < 1 ) {
+	    $per_page = $screen->get_option( 'per_page', 'default' );
+	}
+	if (!is_numeric($per_page))
+		$per_page = 10;
+
+    if (!isset($_REQUEST['paged'])) 
+    	$paged = 0;
+      else $paged = max(0,(intval($_REQUEST['paged'])-1)*$per_page);
+
+    if (isset($_REQUEST['orderby'])and in_array($_REQUEST['orderby'],array_keys($sortable)))
+    	$orderby = $_REQUEST['orderby']; 
+    else
+    	$orderby ="Anno DESC, Numero DESC , Data DESC";
+
+    if (isset($_REQUEST['order']) and in_array($_REQUEST['order'],array('asc','desc')))
+    	$order = $_REQUEST['order']; 
+    else $order = '';
+
+    // Calcolo le variabili che contengono il numero dei record totali
+    // e l'elenco dei record da visualizzare per una singola pagina
+    $total_items = ap_get_all_atti($this->Codstato_atti(),0,0,'', 0,0,"",0,0,true);
+    $this->items = ap_get_all_atti($this->Codstato_atti(),0,0,'', 0,0,$orderby." ".$order ,$paged,$per_page);
+
+    $this->set_pagination_args(array(
+    'total_items' => $total_items,
+    'per_page'    => $per_page,
+    'total_pages' => ceil($total_items/$per_page)
+  ));
+  }
+
+  // Funzione per la definizione dei campi che devono
+  // essere visualizzati nella lista da visualizzare
+
+	function get_columns()
+	{
+	  switch ($this->stato_atti){
+	  	case "Correnti": 
+	  	case "Scaduti":
+	  		$columns = array(
+		    'Stato'			 	 => 'Stato',
+		    'Numero'             => 'Numero',
+		    'Riferimento'        => 'Riferimento',
+		    'Oggetto'          	 => 'Oggetto',
+		    'Ente'               => 'Ente',
+		    'Data'          	 => 'Del',
+		    'validita'           => 'Validità Dal/Al',
+		    'dataoblio'        	 => 'Oblio',
+		    'Idcategoria'     	 => 'Categoria');
+		    break;
+	  	case "DaPubblicare": $columns = array(
+		    'Stato'			 	 => 'Stato',
+		    'Riferimento'        => 'Riferimento',
+		    'Oggetto'          	 => 'Oggetto',
+		    'Ente'               => 'Ente',
+		    'Data'          	 => 'Del',
+		    'Idcategoria'     	 => 'Categoria');
+		    break;
+	  	case "Eliminare": $columns = array(
+	    	'cb'                 => '<input type="checkbox"/>',
+		    'Stato'			 	 => 'Stato',
+		    'Numero'             => 'Numero',
+		    'Riferimento'        => 'Riferimento',
+		    'Oggetto'          	 => 'Oggetto',
+		    'Ente'               => 'Ente',
+		    'Data'          	 => 'Del',
+		    'validita'           => 'Validità Dal/Al',
+		    'dataoblio'        	 => 'Oblio',
+		    'Idcategoria'     	 => 'Categoria');
+		    break;
+	  }
+/*	  $columns = array(
+	    'cb'                 => '<input type="checkbox"/>',
+	    'IdAtto'             => 'ID Atto',
+	    'Numero'             => 'Numero',
+	    'Anno'     			 => 'Anno',
+	    'Data'          	 => 'Data',
+	    'Riferimento'        => 'Riferimento',
+	    'Oggetto'          	 => 'Oggetto',
+	    'DataInizio'         => 'Data Inizio',
+	    'DataFine'    		 => 'Data Fine',
+	    'Informazioni'       => 'Informazioni',
+	    'IdCategoria'     	 => 'Categoria',
+	    'RespProc'  		 => 'Responsabile Procedura',
+	    'MotivoAnnullamento' => 'Motivo Annullamento',
+	    'Ente' 				 => 'Ente',
+	    'DataOblio' 		 => 'Data Oblio',
+	    'DataAnnullamento' 	 => 'Data Annullamento',
+	  );*/
+	  return $columns;
+	}
+
+  // Funzione per la definizione dei campi che possono
+  // essere utilizzati per eseguire la funzione di ordinamento
+
+  function get_columns_sortable()
+  {
+    $sortable_columns = array(
+      'Data'       => array('Data',true),
+      'DataInizio'       => array('DataInizio',true),
+      'DataFine' => array('DataFine',false),
+    );
+    return $sortable_columns;
+  }
+
+  // Funzione per la definizione dei campi che devono 
+  // essere calcolati dalla query ma non visualizzati
+
+  function get_columns_hidden() {
+	  return array();  
+  }
+
+  // Funzione per reperire il valore di un campo in
+  // maniera standard senza una personalizzazione di output
+
+  function column_default($item,$column_name) { 
+    return $item->$column_name; 
+  }
+
+  // Dato che alcuni campi hanno bisogno di output 
+  // personalizzato bisogna creare una funzione per campo
+  function column_Stato($item) { 
+
+	$Msg="";
+	if ( $item->DataAnnullamento != '0000-00-00' ) {
+			$Annullato = true;
+		} else {
+			$Annullato = false;
+		}
+
+		if ((ap_cvdate($item->DataInizio) <= ap_cvdate(date("Y-m-d"))) and (ap_cvdate($item->DataFine) >= ap_cvdate(date("Y-m-d"))))
+			$Scaduto=False;
+		else	
+			$Scaduto=True;
+
+   	  $actions = array(
+	    'visualizza'   => '<a href="?page=atti&amp;action=view-atto&amp;id='.$item->IdAtto.'&amp;stato_atti='.$this->stato_atti.'"  >
+						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+					</a>');
+	$this->AzioneDefault='<a href="?page=atti&amp;action=view-atto&amp;id='.$item->IdAtto.'&amp;stato_atti='.$this->stato_atti.'" >';
+	switch($this->stato_atti){
+		case "DaPubblicare":
+		$actions['cancella'] ='<a href="?page=atti&amp;action=delete-atto&amp;id='.$item->IdAtto.'&amp;cancellaatto='.
+			wp_create_nonce('deleteatto').'" rel="'.strip_tags($item->Oggetto).'" tag="" class="ac">
+					<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
+				</a>';
+		$this->AzioneDefault='<a href="?page=atti&amp;action=edit-atto&amp;id='.$item->IdAtto.'&amp;modificaatto='.
+		wp_create_nonce('editatto').'">';
+		$actions['modifica'] ='<a href="?page=atti&amp;action=edit-atto&amp;id='.$item->IdAtto.'&amp;modificaatto='.
+		wp_create_nonce('editatto').'">
+					<img style="vertical-align: middle;" src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+				</a>';
+		$actions['allegati'] ='<a href="?page=atti&amp;action=allegati-atto&amp;id='.$item->IdAtto.'&amp;allegatoatto='.
+		wp_create_nonce('gestallegatiatto').'">
+					<img style="vertical-align: middle;" src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
+				</a>';
+		if (current_user_can('admin_albo')){
+			$actions['pubblica'] ='<a href="?page=atti&amp;action=approva-atto&amp;id='.$item->IdAtto.'"  >
+<img style="vertical-align: middle;" src="'.Albo_URL.'/img/approva.png" alt="Approva" title="Approva" />
+				</a>';
+		}
+		$Msg='<span style="color: green;font-weight: bold;">Da Pubblicare</span>';
+		break;
+		case "Correnti":
+		$Msg=($Annullato?'<span style="color: red;font-weight: bold;">Annullato</span>':'<span style="color: green;font-weight: bold;">Pubblicato</span>');
+		break;
+		case "Scaduti":
+		$Msg=($Annullato?'<span style="color: red;font-weight: bold;">Annullato</span>':'<span style="color: green;font-weight: bold;">Pubblicato</span>');			
+		break;
+		case "Eliminare":
+		if (current_user_can('admin_albo')){
+			$actions['delete'] ='<a href="?page=atti&amp;action=elimina-atto&amp;id='.$item->IdAtto.'&amp;cancellatto='.
+			wp_create_nonce('operazionecancelaatto').'">
+			<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cestino.png" alt="Elimina Atto" title="Elimina Atto" />
+		</a>';
+		}
+		$Msg='<span style="color: red;font-weight: bold;">Oblio</span>';			
+		break;			
+	}
+	if( !$Scaduto and $Annullato=='' and $this->stato_atti=="Correnti" and current_user_can('admin_albo')){
+		$actions['annulla'] ='<a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$item->IdAtto.'">
+				<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
+			</a>';
+	}
+	
+
+	return sprintf('%1$s %2$s',$Msg,
+	    $this->row_actions($actions));
+  }  
+  function column_Ente($item) { 
+    return stripslashes(ap_get_ente($item->Ente)->Nome); 
+  }  
+  function column_Numero($item) { 
+    return $this->AzioneDefault.$item->Numero."/".$item->Anno."</a>"; 
+  }  
+  function column_Data($item) { 
+    return ap_VisualizzaData($item->Data); 
+  }  
+  function column_Riferimento($item) { 
+    return $this->AzioneDefault.stripslashes($item->Riferimento)."</a>"; 
+  }  
+  function column_Oggetto($item) { 
+  	$Oggetto=stripslashes($item->Oggetto);
+  	if ( strlen( $Oggetto ) > 120 ) {
+			$Oggetto = substr( $Oggetto, 0, 120 ) . " ...";
+		}
+	return $this->AzioneDefault.$Oggetto."</a>"; 
+  }   
+  function column_validita($item) { 
+    return ap_VisualizzaData($item->DataInizio)."<br />".ap_VisualizzaData($item->DataFine); 
+  }  
+  function column_Idcategoria($item) {
+	if ($item->IdCategoria>0){
+		$Cate=ap_get_categoria($item->IdCategoria);
+		return $Cate[0]->Nome;
+	}else{
+		return "Non Definita";
+	}
+  }   
+  function column_dataoblio($item) { 
+    return ap_VisualizzaData($item->DataOblio); 
+  }  
+
+// Definire la nuova funzione per indicare le
+// azioni che devo essere presenti sul menu a tendina
+
+	function get_bulk_actions() {
+	  if (isset($_GET['stato_atti']) And $_GET['stato_atti']=="Eliminare" And current_user_can('admin_albo'))	
+	  	return array('delete_bulk_atti' => 'Elimina');
+	}
+
+	// Funzione per la prima colonna che non sarà più il 
+	// numero di tessera ma un campo di checkbox per la selezione
+
+	function column_cb($item) {
+	  if (current_user_can('admin_albo')){
+		  return sprintf('<input type="checkbox" name="IdAtto[]" value="%s"/>',$item->IdAtto);
+	  }
+	}
+ 
+}
 
 if(isset($_REQUEST['action'])){
 	switch ($_REQUEST['action']){
@@ -93,15 +418,29 @@ if(isset($_REQUEST['action'])){
 			include_once ( dirname (__FILE__) . '/allegati.php' );
 			break;
 		default:
-			if(isset($_REQUEST['message']))
-				$message=$_REQUEST['message'];
+			if(isset($_REQUEST['message'])){
+				if (is_numeric($_REQUEST['message']))
+					$message=$_REQUEST['message'];
+				elseif(strlen($_REQUEST['message'])>0)
+						$message=$_REQUEST['message'];
 			else
 				$message="";
+			}
+
 			Lista_Atti($message);
 			break;
 	}	
-}else
-	Lista_Atti();
+}else{
+	if(isset($_REQUEST['message'])){
+		if (is_numeric($_REQUEST['message']))
+			$message=$_REQUEST['message'];
+		elseif(strlen($_REQUEST['message'])>0)
+				$message=urldecode($_REQUEST['message']);
+	}else{
+		$message="";
+	}
+Lista_Atti($message);
+}
 
 unset($_REQUEST['action']);
 
@@ -125,13 +464,13 @@ if ($ret!=""){
 		$AppPostMigrazione="";
 echo'
 <div class="wrap">
-<div style="display:inline;float:left;"><img src="'.Albo_URL.'/img/approva32.png" alt="Icona Approvazione Atto"/></div>
-	<h2 style="display:inline;margin-left:10px;">Approvazione Atto</h2>
+	<h2 style="font-size:2em;">Atti</h2>
 	<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 	if ( $ret!="" ) {
 		echo '<div id="message" class="updated"><p>'.$ret.'</p></div>';
 	}
-echo'<br class="clear" />';
+echo'<br class="clear" />
+<h3>Approvazione Atto</h3>';
 if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 	echo '<div style="border: medium groove Blue;margin-top:10px;">
 			<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
@@ -222,11 +561,11 @@ echo'<br />
 
 		if($Passato){
   			$incrementoStandard=get_option('opt_AP_GiorniOblio');
- 			$DataOblioStandard=ap_DateAdd($atto->DataInizio,$incrementoStandard);
+ 			$DataOblioStandard=(date("Y")+6)."-01-01";
  			//echo $atto->DataInizio."   -  ".$incrementoStandard;
 			echo '<tr>
 					<td>Data Oblio</td>
-					<td> Data Oblio impostata '.$atto->DataOblio.' - Data Oblio da impostazione standard '.$DataOblioStandard.'</td>';
+					<td> Data Oblio impostata '.$atto->DataOblio.' - Data Oblio da Decreto n. 33/2013 art. 8 '.$DataOblioStandard.'</td>';
 				//	echo $atto->DataFine.' '.$atto->DataInizio. ' '.SeDate("<=",$atto->DataFine,$atto->DataInizio);
 			if(ap_SeDate("=",$atto->DataOblio,$DataOblioStandard)){
 				$Passato=true;
@@ -375,7 +714,7 @@ function Nuovo_atto(){
 	if (isset($_REQUEST['DataOblio']))
 		$DataO=htmlentities($_REQUEST['DataOblio']);
 	else
-		$DataO=ap_VisualizzaData(ap_DateAdd(ap_oggi(),get_option('opt_AP_GiorniOblio')));
+		$DataO=ap_VisualizzaData((date("Y")+6)."-01-01");
 	if (isset($_REQUEST['Note']))
 		$Note=$_REQUEST['Note'];
 	else	
@@ -383,7 +722,7 @@ function Nuovo_atto(){
 	if (isset($_REQUEST['Categoria']))
 		$Categoria=$_REQUEST['Categoria'];
 	else
-		$Categoria="";
+		$Categoria=0;
 	if (isset($_REQUEST['Responsabile']))
 		$Responsabile=$_REQUEST['Responsabile'];
 	else{
@@ -391,134 +730,108 @@ function Nuovo_atto(){
 		if (count($Resp)>0)
 			$Responsabile=$Resp[0]->IdResponsabile;
 		else
-			$Responsabile="";	
+			$Responsabile=0;	
 	}
-		
+$DataOblioStandard=(date("Y")+6)."-01-01";		
 ?>
+<div id="errori" title="Validazione Dati" style="display:none">
+  <h3>Lista Campi con Errori:</h3><p id="ElencoCampiConErrori"></p><p style='color:red;font-weight: bold;'>Correggere gli errori per continuare</p>
+</div>
+
 <div class="wrap">
-	<div style="display:inline;float:left;">
-		<img src="<?php echo Albo_URL.'/img/atti32.png';?>" alt="Icona Nuovo Atto"/>
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline">Atti</h2>
+		<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<div class="Obbligatori">
+		<span style="color:red;font-weight: bold;">*</span> i campi contrassegnati dall'asterisco sono <strong>obbligatori</strong>
+		</div>
+		<h3 >Nuovo Atto</h3>	
 	</div>
-	<h2 style="display:inline;margin-left:10px;">Nuovo Atto</h2>
-	<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
-<?php 
-	if ( isset($_REQUEST['msg']) And $_REQUEST['msg'] !="") {
-		?><div id="message" class="updated"><p><?php echo stripslashes($_REQUEST['msg']);?></p></div>
-<?php	}?>
-	<div style="margin-top: 30px;">
 		<form id="addatto" method="post" action="?page=atti" class="validate">
 		<input type="hidden" name="action" value="add-atto" />
-		<input type="hidden" name="id" value="<?php echo(int)$_REQUEST['id']?>" />
+		<input type="hidden" name="id" value="<?php echo(int)(isset($_REQUEST['id'])?$_REQUEST['id']:0);?>" />
 		<input type="hidden" name="nuovoatto" value="<?php echo wp_create_nonce('nuovoatto')?>" />
-		<table class="widefat">
-		    <thead>
-				<tr>
-					<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
-				</tr>
-	    	</thead>
-	    	<tbody id="dati-atto">
-				<tr>
-					<th valign="top" style="text-align:right;">Ente Emittente</th>
-					<td style="vertical-align: middle;"><?php echo ap_get_dropdown_enti('Ente','Ente','postform','',$defEnte)?>
-						<br />
-						<span style="font-style: italic;">Ente che pubblica l'atto; potrebbe essere diverso dall'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Numero Albo</th>
-					<td>&nbsp;&nbsp;<strong><em>00000/<?php echo date("Y");?></em></strong><br />
-						<span style="font-style: italic;">Numero progressivo generato dal programma, verr&agrave; assegnato in fase di pubblicazione</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data</th>
-					<td>
-						<input name="Data" id="Calendario1" type="hidden" value="<?php echo $dataCorrente;?>" maxlength="10" size="10"/><strong><em><?php echo $dataCorrente;?></strong></em>
-						<br />
-						<span style="font-style: italic;">Data di codifica dell'atto, viene inserita automaticamente nel momento in cui viene creato.</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Codice di Riferimento <span style="color:red;font-weight: bold;">*</span></th>
-					<td>
-						<textarea name="Riferimento" id="riferimento-atto" rows="2" cols="125" maxlength="255"><?php echo $Riferimento;?></textarea>
-						<br />
-						<span style="font-style: italic;">Numero di riferimento dell'atto, es. N. Protocollo</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Oggetto <span style="color:red;font-weight: bold;">*</span></th>
-					<td>
-						<?php wp_editor( $Oggetto, 'oggetto-atto',
-							array('wpautop'=>true,
-								  'textarea_name' => 'Oggetto',
-								  'textarea_rows' => 10,
-								  'teeny' => TRUE,
-								  'media_buttons' => false)
-								)?>
-						<br />
-						<span style="font-style: italic;">Oggetto, descrizione sintetica dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
-					<td style="vertical-align: middle;">
-						<input name="DataInizio" type="hidden" value="<?php echo $DataI;?>" /><strong><em><?php echo $DataI;?></em></strong><br />
-					<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto, verr&agrave; valorizzata definitivamente in fase di pubblicazione dell'atto</span></td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
-					<td style="vertical-align: middle;">
-						<input name="DataFine" id="Calendario3" type="text" maxlength="10" size="10" value="<?php echo $DataF;?>" />
-						<br />
-						<span style="font-style: italic;">Data Fine Pubblicazione dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data Oblio</th>
-					<td style="vertical-align: middle;">
-						<input name="DataOblio" id="Calendario4" type="text" maxlength="10" size="10" value="<?php echo $DataO;?>" />
-						<br />
-						<span style="font-style: italic;">Data in cui l'atto viene eliminato dall'archivio, di default dopo <?php echo get_option('opt_AP_GiorniOblio').' giorni '.daGiorniaAnniMesiGiorni(get_option('opt_AP_GiorniOblio'));?>, come definito in impostazioni</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Note</th>
-					<td><?php wp_editor( $Note, 'note_txt',
-							array('wpautop'=>true,
-								  'textarea_name' => 'Note',
-								  'textarea_rows' => 10,
-								  'teeny' => TRUE,
-								  'media_buttons' => false)
-								)?>
-							<br />
-							<span style="font-style: italic;">Descrizione dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Categoria <span style="color:red;font-weight: bold;">*</span></th>
-					<td>
-						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform', '',$Categoria);?>
-						<br />
-						<span style="font-style: italic;">Categoria in cui viene collocato l'atto, questo sistema permette di ragguppare gli oggetti in base alla loro natura</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Responsabile Procedimento <span style="color:red;font-weight: bold;">*</span></th>
-					<td style="vertical-align: middle;">
-						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$Responsabile);?>
-						<br />
-						<span style="font-style: italic;">Persona preposta dall'ente alla gestione del procedimento che ha generato l'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="3"><input type="submit" name="submit" id="submit" class="button" value="Aggiungi Atto"  /></td>
-				</tr>
-			    </tbody>
-	</table>
-</form>
- <span style="color:red;font-weight: bold;">*</span> i campo contrassegnati dall'asterisco sono obbligatori
-</div>
+
+	<div id="poststuff">
+		<div id="post-body" class="metabox-holder columns-2">
+			<div id="post-body-content">
+				<div id="riferimentodiv">
+					<h2>Riferimento<span style="color:red;font-weight: bold;">*</span></h2>
+					<textarea name="Riferimento" id="riferimento-atto" rows="2" cols="255" maxlength="255" class="richiesto" style="width: 100%"><?php echo stripslashes($Riferimento);?></textarea>
+				<label for="Riferimento" style="font-style: italic;">Codice di riferimento dell'atto, es. N. Protocollo </label>
+				</div><!-- /riferimentodiv -->
+				<div id="riferimentowrap">
+					<h2>Oggetto<span style="color:red;font-weight: bold;">*</span></h2>
+					<textarea name="Oggetto" id="oggetto-atto" rows="10" cols="255" maxlength="255" class="richiesto" style="width: 100%"><?php echo stripslashes($Oggetto);?></textarea>
+				<label for="Riferimento" style="font-style: italic;">Descrizione sintetica dell'atto </label>
+				</div><!-- /riferimentowrap -->
+
+				<div id="notewrap">
+					<h2>Note</h2>
+					<div id="note-wrap">
+						<?php wp_editor( stripslashes($Note), 'note_txt',
+									array('wpautop'=>true,
+										  'textarea_name' => 'Note',
+										  'textarea_rows' => 10,
+										  'teeny' => TRUE,
+										  'media_buttons' => false)
+										)?>
+						<span style="font-style: italic;font-size: 0.8em;">Eventuali note a corredo dell'atto</span>
+					</div>
+					</div><!-- /notewrap -->
+			</div><!-- /post-body-content -->
+
+		<div id="postbox-container-1" class="postbox-container">
+			<div id="postimagediv" class="postbox " >
+				<h2 class='hndle'><span>Memorizza</span></h2>
+				<div class="inside">
+					<p>Numero Albo: 
+						<span style="font-weight: bold;">00000/<?php echo date("Y");?></span>
+					</p>
+					<p class="hide-if-no-js">
+					<input type="submit" name="MemorizzaDati" id="MemorizzaDati" class="button button-primary button-large" value="Memorizza Atto">
+					</p>
+				</div>
+			</div>
+			<div id="datediv" class="postbox " >
+				<h2 class='hndle'><span>Date</span></h2>
+				<div class="inside">
+					<p><abbr title="viene inserita automaticamente nel momento in cui viene creato.">Data di codifica dell'atto</abbr>: 
+						<input name="Data" type="hidden" value="<?php echo $dataCorrente;?>" /><em><strong><?php echo $dataCorrente;?></strong></em>
+					</p>
+					<p><abbr title="Data in cui inizia a validità legale dell'atto. Viene impostata automaticamente in fase di pubblicazione">Data inizio Pubblicazione</abbr>:
+						<input name="DataInizio" type="hidden" value="<?php echo $DataI;?>" />
+						<em><strong><?php echo $DataI;?></strong></em>					
+					</p>
+					<p><abbr title="Data fine validità legale dell'atto">Data fine Pubblicazione</abbr>:
+						<input name="DataFine" id="Calendario3" type="text" value="<?php echo $DataF;?>" maxlength="10" size="10" />		
+					</p>		
+					<p><abbr title="Data in cui l'atto viene eliminato dall'archivio, in base al Decreto n. 33/2013 art.8:<br />5 anni, decorrenti dal 1° gennaio dell'anno successivo a quello
+da cui decorre l'obbligo di pubblicazione, e comunque fino a che gli atti pubblicati producono i loro effetti,
+fatti salvi i diversi termini previsti dalla normativa in materia di trattamento dei dati personali e quanto
+previsto dagli articoli 14, comma 2, e 15, comma 4">Data Oblio</abbr>:
+						<input name="DataOblio" id="Calendario4" type="text" value="<?php echo $DataO;?>" maxlength="10" size="10" /><button type="button" id="setta-def-data-o" class="setta-def-data" name="<?php echo ap_VisualizzaData($DataOblioStandard);?>" style="margin-top: 5px;margin-left:10px;"> Aggiorna a <?php echo ap_VisualizzaData($DataOblioStandard);?></button>	
+					</p>				
+				</div>
+			</div>
+			<div id="metadiv" class="postbox " >
+				<h2 class='hndle'><span>Meta dati</span></h2>
+				<div class="inside">
+					<p><abbr title="Ente che pubblica l'atto; potrebbe essere diverso dall'ente titolare del sito web se la pubblicazione avviene per conto di altro ente">Ente</abbr>: 
+						<?php echo ap_get_dropdown_enti('Ente','Ente','postform maxdime','',$defEnte);?>
+					</p>
+					<p><abbr title="Categoria in cui viene collocato l'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura">Categoria<span style="color:red;font-weight: bold;">*</span></abbr>:
+						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform maxdime richiesto ValValue(>0)','',$Categoria);?>					
+					</p>
+					<p><abbr title="Persona preposta dall'ente alla gestione del procedimento che ha generato l'atto">Responsabile Procedimento<span style="color:red;font-weight: bold;">*</span></abbr>:
+						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform maxdime richiesto ValValue(>0)','',$Responsabile);?>
+					</p>		
+				</div>
+			</div>
+	</div>
+	</div><!-- /post-body-content -->	
+	</div>
+	</form>
 </div>
 <?php
 }
@@ -527,133 +840,107 @@ function Nuovo_atto(){
 function Edit_atto($id){
 $atto=ap_get_atto($id);
 $atto=$atto[0];
+$DataOblioStandard=(date("Y")+6)."-01-01";
 ?>
+<div id="errori" title="Validazione Dati" style="display:none">
+  <h3>Lista Campi con Errori:</h3><p id="ElencoCampiConErrori"></p><p style='color:red;font-weight: bold;'>Correggere gli errori per continuare</p>
+</div>
+
 <div class="wrap">
-<div style="display:inline;float:left;"><img src="<?php echo Albo_URL.'/img/atti32.png';?>" alt="Icona Nuovo Atto" /></div>
-	<h2 style="display:inline;margin-left:10px;">Modifica Atto</h2>
-	<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
-	<div id="col-container">
-		<form id="addatto" method="post" action="?page=atti" class="validate">
-			<input type="hidden" name="action" value="memo-atto" />
-			<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id'];?>" />
-			<input type="hidden" name="modificaatto" value="<?php echo wp_create_nonce('editatto')?>" />
-			<br />
-			<table class="widefat">
-			    <thead>
-				<tr>
-					<th colspan="3" style="text-align:center;font-size:2em;">Dati atto</th>
-				</tr>
-			    </thead>
-			    <tbody id="dati-atto">
-				<tr>
-					<th valign="top" style="text-align:right;">Ente</th>
-					<td style="vertical-align: middle;">
-						<?php echo ap_get_dropdown_enti('Ente','Ente','postform','',$atto->Ente);?>
-						<br />
-						<span style="font-style: italic;">Ente che pubblica l'atto; potrebbe essere diverso dall'ente titolare del sito web se la pubblicazione avviene per conto di altro ente</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Numero Albo</th>
-					<td>
-						<span style="font-weight: bold;">00000/<?php echo $atto->Anno;?></span>
-						<br />
-						<span style="font-style: italic;">Numero progressivo generato dal programma</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data</th>
-					<td>
-						<input name="Data" type="hidden" value="<?php echo ap_VisualizzaData($atto->Data);?>" /><em><strong><?php echo ap_VisualizzaData($atto->Data);?></strong></em>
-						<br />
-						<span style="font-style: italic;">Data di codifica dell'atto, viene inserita automaticamente nel momento in cui viene creato.</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Codice di Riferimento<span style="color:red;font-weight: bold;">*</span></th>
-					<td>
-						<textarea name="Riferimento" id="riferimento-atto" rows="2" cols="125" maxlength="255"><?php echo stripslashes($atto->Riferimento);?></textarea>
-						<br />
-						<span style="font-style: italic;">Numero di riferimento dell'atto, es. N. Protocollo</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Oggetto<span style="color:red;font-weight: bold;">*</span></th>
-					<td>
-						<?php wp_editor( stripslashes($atto->Oggetto), 'oggetto-atto',
-							array('wpautop'=>true,
-								  'textarea_name' => 'Oggetto',
-								  'textarea_rows' => 10,
-								  'teeny' => TRUE,
-								  'media_buttons' => false)
-								)?>
-						<br />
-						<span style="font-style: italic;">Oggetto, descrizione sintetica dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data inizio Pubblicazione</th>
-					<td style="vertical-align: middle;">
-						<input name="DataInizio" type="hidden" value="<?php echo ap_VisualizzaData($atto->DataInizio);?>" /><em><strong><?php echo ap_VisualizzaData($atto->DataInizio);?></strong></em>
-						<br />
-						<span style="font-style: italic;">Data Inizio Pubblicazione dell'atto, verrà valorizzata definitivamente in fase di pubblicazione dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data fine Pubblicazione</th>
-					<td style="vertical-align: middle;">
-						<input name="DataFine" id="Calendario3" type="text" value="<?php echo ap_VisualizzaData($atto->DataFine);?>" maxlength="10" size="10" />
-						<br />
-						<span style="font-style: italic;">Data Fine Pubblicazione dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Data Oblio</th>
-					<td style="vertical-align: middle;">
-						<input name="DataOblio" id="Calendario4" type="text" value="<?php echo ap_VisualizzaData($atto->DataOblio);?>" maxlength="10" size="10" />
-						<br />
-						<span style="font-style: italic;">Data in cui l'atto viene eliminato dall'archivio</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Note</th>
-					<td><?php wp_editor( stripslashes($atto->Informazioni), 'note_txt',
-							array('wpautop'=>true,
-								  'textarea_name' => 'Note',
-								  'textarea_rows' => 10,
-								  'teeny' => TRUE,
-								  'media_buttons' => false)
-								)?>
-						<br />
-						<span style="font-style: italic;">Descrizione dell'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Categoria<span style="color:red;font-weight: bold;">*</span></th>
-					<td>
-						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform','',$atto->IdCategoria);?>
-						<br />
-						<span style="font-style: italic;">Categoria in cui viene collocato l'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura</span>
-					</td>
-				</tr>
-				<tr>
-					<th valign="top" style="text-align:right;">Responsabile Procedimento<span style="color:red;font-weight: bold;">*</span></th>
-					<td style="vertical-align: middle;">
-						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform','',$atto->RespProc);?>
-						<br />
-						<span style="font-style: italic;">Persona preposta dall'ente alla gestione del procedimento che ha generato l'atto</span>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="3">
-						<input type="submit" name="submit" id="submit" class="button" value="Memorizza Modifiche Atto" />
-					</td>
-				</tr>
-			    </tbody>
-			</table>
-		</form>
-		<span style="color:red;font-weight: bold;">*</span> i campo contrassegnati dall'asterisco sono obbligatori
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline">Atti</h2>
+		<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<div class="Obbligatori">
+		<span style="color:red;font-weight: bold;">*</span> i campi contrassegnati dall'asterisco sono <strong>obbligatori</strong>
+		</div>
+		<h3 >Modifica Atto</h3>	
 	</div>
+
+	<form id="addatto" method="post" action="?page=atti" class="validate">
+		<input type="hidden" name="action" value="memo-atto" />
+		<input type="hidden" name="id" value="<?php echo (int)$_REQUEST['id'];?>" />
+		<input type="hidden" name="modificaatto" value="<?php echo wp_create_nonce('editatto')?>" />
+
+	<div id="poststuff">
+		<div id="post-body" class="metabox-holder columns-2">
+			<div id="post-body-content">
+				<div id="riferimentodiv">
+					<h2>Riferimento<span style="color:red;font-weight: bold;">*</span></h2>
+					<textarea name="Riferimento" id="riferimento-atto" rows="2" cols="255" maxlength="255" class="richiesto" style="width: 100%"><?php echo stripslashes($atto->Riferimento);?></textarea>
+				<label for="Riferimento" style="font-style: italic;">Codice di riferimento dell'atto, es. N. Protocollo </label>
+				</div><!-- /riferimentodiv -->
+				<div id="riferimentowrap">
+					<h2>Oggetto<span style="color:red;font-weight: bold;">*</span></h2>
+					<textarea name="Oggetto" id="oggetto-atto" rows="10" cols="255" maxlength="255" class="richiesto" style="width: 100%"><?php echo stripslashes($atto->Oggetto);?></textarea>
+				<label for="Riferimento" style="font-style: italic;">Descrizione sintetica dell'atto </label>
+				</div><!-- /riferimentowrap -->
+
+				<div id="notewrap">
+					<h2>Note</h2>
+					<div id="note-wrap">
+						<?php wp_editor( stripslashes($atto->Informazioni), 'note_txt',
+									array('wpautop'=>true,
+										  'textarea_name' => 'Note',
+										  'textarea_rows' => 10,
+										  'teeny' => TRUE,
+										  'media_buttons' => false)
+										)?>
+						<span style="font-style: italic;font-size: 0.8em;">Eventuali note a corredo dell'atto</span>
+					</div>
+					</div><!-- /notewrap -->
+			</div><!-- /post-body-content -->
+
+		<div id="postbox-container-1" class="postbox-container">
+			<div id="postimagediv" class="postbox " >
+				<h2 class='hndle'><span>Memorizza</span></h2>
+				<div class="inside">
+					<p>Numero Albo: 
+						<span style="font-weight: bold;">00000/<?php echo $atto->Anno;?></span>
+					</p>
+					<p class="hide-if-no-js">
+						<input type="submit" name="MemorizzaDati" id="MemorizzaDati" class="button button-primary button-large" value="Memorizza Modifiche Atto" />
+					</p>
+				</div>
+			</div>
+			<div id="datediv" class="postbox " >
+				<h2 class='hndle'><span>Date</span></h2>
+				<div class="inside">
+					<p><abbr title="viene inserita automaticamente nel momento in cui viene creato.">Data di codifica dell'atto</abbr>: 
+						<input name="Data" type="hidden" value="<?php echo ap_VisualizzaData($atto->Data);?>" /><em><strong><?php echo ap_VisualizzaData($atto->Data);?></strong></em>
+					</p>
+					<p><abbr title="Data in cui inizia a validità legale dell'atto. Viene impostata automaticamente in fase di pubblicazione">Data inizio Pubblicazione</abbr>:
+						<input name="DataInizio" type="hidden" value="<?php echo ap_VisualizzaData($atto->DataInizio);?>" />
+						<em><strong><?php echo ap_VisualizzaData($atto->DataInizio);?></strong></em>					
+					</p>
+					<p><abbr title="Data fine validità legale dell'atto">Data fine Pubblicazione</abbr>:
+						<input name="DataFine" id="Calendario3" type="text" value="<?php echo ap_VisualizzaData($atto->DataFine);?>" maxlength="10" size="10" />		
+					</p>		
+					<p><abbr title="Data in cui l'atto viene eliminato dall'archivio, in base al Decreto n. 33/2013 art.8:<br />5 anni, decorrenti dal 1° gennaio dell'anno successivo a quello
+da cui decorre l'obbligo di pubblicazione, e comunque fino a che gli atti pubblicati producono i loro effetti,
+fatti salvi i diversi termini previsti dalla normativa in materia di trattamento dei dati personali e quanto
+previsto dagli articoli 14, comma 2, e 15, comma 4">Data Oblio</abbr>:
+						<input name="DataOblio" id="Calendario4" type="text" value="<?php echo ap_VisualizzaData($atto->DataOblio);?>" maxlength="10" size="10" /><button type="button" id="setta-def-data-o" class="setta-def-data" name="<?php echo ap_VisualizzaData($DataOblioStandard);?>" style="margin-top: 5px;margin-left:10px;"> Aggiorna a <?php echo ap_VisualizzaData($DataOblioStandard);?></button>	
+					</p>				
+				</div>
+			</div>
+			<div id="metadiv" class="postbox " >
+				<h2 class='hndle'><span>Meta dati</span></h2>
+				<div class="inside">
+					<p><abbr title="Ente che pubblica l'atto; potrebbe essere diverso dall'ente titolare del sito web se la pubblicazione avviene per conto di altro ente">Ente</abbr>: 
+						<?php echo ap_get_dropdown_enti('Ente','Ente','postform maxdime','',$atto->Ente);?>
+					</p>
+					<p><abbr title="Categoria in cui viene collocato l'atto, questo sistema permette di ragguppare gli oggetti in base alla lor natura">Categoria<span style="color:red;font-weight: bold;">*</span></abbr>:
+						<?php echo ap_get_dropdown_categorie('Categoria','Categoria','postform maxdime richiesto ValValue(>0)','',$atto->IdCategoria);?>					
+					</p>
+					<p><abbr title="Persona preposta dall'ente alla gestione del procedimento che ha generato l'atto">Responsabile Procedimento<span style="color:red;font-weight: bold;">*</span></abbr>:
+						<?php echo ap_get_dropdown_responsabili('Responsabile','Responsabile','postform maxdime richiesto ValValue(>0)','',$atto->RespProc);?>
+					</p>		
+				</div>
+			</div>
+	</div>
+	</div><!-- /post-body-content -->	
+	</div>
+	</form>
 </div>
 <?php	
 }
@@ -666,12 +953,13 @@ function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
 	$dirUpload =  get_option('opt_AP_FolderUpload').'/';
 	echo '
 <div class="wrap">
-<div style="display:inline;float:left;">
-	<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto"/>
-</div>	
-	<h2  style="display:inline;margin-left:10px;">Atto</h2>
-	<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
-	if ( $messaggio!="" ) {
+
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline">Atti</h2>
+		<a href="'. site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<h3>Allegati Atto</h3>	
+	</div>';
+if ( $messaggio!="" ) {
 	 	$messaggio=str_replace("%%br%%", "<br />", $messaggio);
 		print('<div id="message" class="updated"><p>'.$messaggio.'</p></div>');
 		$_SERVER['REQUEST_URI'] = remove_query_arg(array('messaggio'), $_SERVER['REQUEST_URI']);
@@ -715,7 +1003,7 @@ if ($IdAllegato!=0){
 	</form>';	
 }else{
 	echo'
-	<h3>Allegati <a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;id='.$IdAtto.'&amp;action=UpAllegati" class="add-new-h2">Aggiungi nuovo</a> </h3>';
+	<h3 style="margin-top:50px;">Allegati <a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;id='.$IdAtto.'&amp;action=UpAllegati" class="add-new-h2">Aggiungi nuovo</a> </h3>';
 	$righe=ap_get_all_allegati_atto($IdAtto);
 	echo'
 		<table class="widefat">
@@ -784,6 +1072,10 @@ echo'</div>
 			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataFine).'</td>
 		</tr>
 		<tr>
+			<th>Data oblio</th>
+			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataOblio).'</td>
+		</tr>
+		<tr>
 			<th>Note</th>
 			<td style="font-size:14px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
 		</tr>
@@ -799,15 +1091,10 @@ echo'</div>
 }
 function View_atto($IdAtto){
 	global $AP_OnLine;
-if (isset($_REQUEST['p']))
-	$Pag=$_REQUEST['p'];
+if (isset($_REQUEST['stato_atti']))
+	$Prov=$_REQUEST['stato_atti'];
 else
-	$Pag=1;
-?>
-<style type='text/css'>
-#loading { clear:both; background:url(images/loading.gif) center top no-repeat; text-align:center;padding:33px 0px 0px 0px; font-size:12px;display:none; font-family:Verdana, Arial, Helvetica, sans-serif; }
-</style>
-<?php
+	$Prov="DaPubblicare";
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
@@ -818,32 +1105,44 @@ else
 	$NomeEnte=stripslashes($NomeEnte->Nome);
 	echo '
 <div class="wrap nosubsub">
-<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atto<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;p='.$Pag.'" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
-
-<div id="col-container">
-	<div id="col-right">
-		<div class="col-wrap">
-			<h3>Log</h3>
-			<form action="" method="POST" id="formlog">
-			<input type="submit" name="action" id="LogAtti" value="Atti" class="infolog"/>
-			<input type="submit" name="action" id="LogAllegati" value="Allegati" class="infolog"/>
-			<input type="submit" name="action" id="LogStatisticheVisite" value="Statistiche Visite" class="infolog"/>
-			<input type="submit" name="action" id="LogStatisticheDownload" value="Statistiche Download" class="infolog"/>
-			</form>
-			<div id="loading">LOADING!</div>
-				<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div> 
-		</div>
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline">Atti</h2>
+		<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<h3 >Visualizza dati Atto</h3>	
+	</div>
+		<div class="clear"><br /></div>
+		<div id="col-container">
+		<div id="col-right">
+				<div class="col-wrap postbox" style="padding:0 10px 10px 10px;margin-left:10px;">
+				<h3>Log</h3>
+				<hr />
+					<div id="utility-tabs-container">
+						<ul>
+							<li><a href="#log-tab-1">Atto</a></li>
+							<li><a href="#log-tab-2">Allegati</a></li>
+							<li><a href="#log-tab-3">Statistiche Visite</a></li>
+							<li><a href="#log-tab-4">Statistiche Download</a></li>
+						</ul>
+						<div id="log-tab-1">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div>
+						</div>
+						<div id="log-tab-2">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(3,$IdAtto,0).'</div>
+						</div>
+						<div id="log-tab-3">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(5,$IdAtto,0).'</div>
+						</div>
+						<div id="log-tab-4">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(6,$IdAtto,0).'</div>
+						</div>
+					 </div>
+				</div>
 	</div>
 <div id="col-left">
-	<div class="col-wrap">
-		<br class="clear" />	
-		<table class="widefat">
-		    <thead>
-			<tr>
-				<th colspan="2" style="text-align:center;font-size:1.2em;">Dati atto</th>
-			</tr>
-		    </thead>
+	<div class="col-wrap postbox" style="padding:0 10px 10px 10px;margin-left:10px;">
+		<h3>Dati atto</h3>
+		<hr />
+		<table class="widefat" style="border:0;">
 		    <tbody id="dati-atto">
 			<tr>
 				<th style="width:20%;">Ente emittente</th>
@@ -900,7 +1199,8 @@ else
 			</tr>	    </tbody>
 		</table>
 	</div>';
-echo '<h3>Allegati</h3>
+echo '<div class="postbox" style="padding:0 10px 10px 10px;margin-left:10px;">
+	<h3>Allegati</h3>
 	<div class="Visalbo">';
 $allegati=ap_get_all_allegati_atto($IdAtto);
 foreach ($allegati as $allegato) {
@@ -929,7 +1229,8 @@ echo'				</p>
 			<div style="clear:both;"></div>
 		</div>';
 	}
-echo '	</div>
+echo '</div>
+	</div>
 		</div>
 	</div>
 </div>';	
@@ -937,15 +1238,6 @@ echo '	</div>
 
 function Annulla_Atto($IdAtto){
 	global $AP_OnLine;
-if (isset($_REQUEST['p']))
-	$Pag=$_REQUEST['p'];
-else
-	$Pag=1;
-?>
-<style type='text/css'>
-#loading { clear:both; background:url(images/loading.gif) center top no-repeat; text-align:center;padding:33px 0px 0px 0px; font-size:12px;display:none; font-family:Verdana, Arial, Helvetica, sans-serif; }
-</style>
-<?php
 	$risultato=ap_get_atto($IdAtto);
 	$risultato=$risultato[0];
 	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
@@ -956,9 +1248,8 @@ else
 	$NomeEnte=stripslashes($NomeEnte->Nome);
 	echo '
 <div class="wrap nosubsub">
-<img src="'.Albo_URL.'/img/view32.png" alt="Icona Visualizza Atto" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atto<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;p='.$Pag.'" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
-
+<h2>Atti<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;stato_atti=Correnti" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
+<h3>Annulla Atto</h3>
 <div id="col-container">
 		<form id="annullaatto" method="post" action="?page=atti" class="validate">
 		<input type="hidden" name="action" value="annulla-atto" />
@@ -1070,24 +1361,36 @@ echo'			</td>
 		</div>
 		<div class="col-wrap">
 			<h3>Log</h3>
-			<form action="" method="POST" id="formlog">
-			<input type="submit" name="action" id="LogAtti" value="Atti" class="infolog"/>
-			<input type="submit" name="action" id="LogAllegati" value="Allegati" class="infolog"/>
-			<input type="submit" name="action" id="LogStatisticheVisite" value="Statistiche Visite" class="infolog"/>
-			<input type="submit" name="action" id="LogStatisticheDownload" value="Statistiche Download" class="infolog"/>
-			</form>
-			<div id="loading">LOADING!</div>
-				<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div> 
+					<div id="utility-tabs-container">
+						<ul>
+							<li><a href="#log-tab-1">Atto</a></li>
+							<li><a href="#log-tab-2">Allegati</a></li>
+							<li><a href="#log-tab-3">Statistiche Visite</a></li>
+							<li><a href="#log-tab-4">Statistiche Download</a></li>
+						</ul>
+						<div id="log-tab-1">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(1,$IdAtto,0).'</div>
+						</div>
+						<div id="log-tab-2">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(3,$IdAtto,0).'</div>
+						</div>
+						<div id="log-tab-3">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(5,$IdAtto,0).'</div>
+						</div>
+						<div id="log-tab-4">
+							<div id="DatiLog">'.$AP_OnLine->CreaLog(6,$IdAtto,0).'</div>
+						</div>
+					 </div>
 		</div>
 </div>';	
 }
-
 
 function Lista_Atti($Msg_op=""){
 if (isset($_REQUEST['p']))
 	$Pag=$_REQUEST['p'];
 else
 	$Pag=0;
+$Message[0] = "Messaggio non definito";
 $messages[1] = "Atto Aggiunto";
 $messages[2] = "Atto Cancellato";
 $messages[3] = "Atto Aggiornato";
@@ -1100,17 +1403,7 @@ $messages[9] = 'Atto ANNULLATO';
 $messages[10] = 'Allegati all\'Atto Cancellati';
 $messages[11] = 'Allegati all\'Atto NON Cancellati';
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
-$messages[99] = 'Non puoi eseguire questa OPERAZIONE DIRETTAMENTE';
-$N_A_pp=10;
-//Paginazione Inizializzazione
-	if (!isset($_REQUEST['Pag'])){
-		$Da=0;
-		$A=$N_A_pp;
-	}else{
-		$Da=((int)$_REQUEST['Pag']-1)*$N_A_pp;
-		$A=$N_A_pp;
-	}
-	$TotAtti=ap_get_all_atti(9,0,0,'',0,0,'',0 ,0,true);
+$messages[99] = 'OPERAZIONE NON AMMESSA!<br />l\'atto non è ancora da eliminare';
 //Gestione Messaggi di stato
 if (isset($_REQUEST['message'])) 
 	$msg = (int) $_REQUEST['message'];
@@ -1119,14 +1412,21 @@ if (isset($_REQUEST['message2']))
 if (isset($_REQUEST['errore']))
 	$Errore=$_REQUEST['errore'];
 if ($Msg_op!=""){
-	$msg =9;
-	$messages[9]=str_replace("%%br%%","<br />",$Msg_op);
+	if (is_numeric($Msg_op))
+		$msg=$Msg_op;
+	else{
+		$msg =9;
+		$messages[9]=(str_replace("%%br%%","<br />",$Msg_op));	
+	}
 }
-// Inizio interfaccia
-	echo' <div class="wrap">
-		  <input type="hidden" id="Pagina" value="'.$Pag.'" />
-	      <img src="'.Albo_URL.'/img/atti32.png" alt="Icona Atti" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Atti ';
+?>
+<div id="ConfermaCancellazione" title="Conferma Cancellazione" style="display:none;">
+	<input type="hidden" value="" id="UrlDest">
+  <h3>Atto <span id="oggetto"></span></span></h3><p style='color:red;font-weight: bold;'>Confermi la cancellazione dell'atto?</p>
+</div>
+<?php
+echo' <div class="wrap">
+		  <h2 style="font-size:2em;">Atti ';
 $HtmlNP="";
 if (ap_get_num_categorie()==0){
 	$HtmlNP.='<p> </p>
@@ -1153,393 +1453,46 @@ if ($HtmlNP!=""){
 </div><!-- /wrap -->	';
 	return;	
 }
+
 echo'
 	<a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a></h2>';
 	if ( isset($msg) or isset($msg2) or isset($Errore) ){
-		echo '<div id="message" class="updated"><p>'.(isset($msg)?$messages[$msg]:"").'<br />'.(isset($msg2)?$messages[$msg2]:"").'<br />'.(isset($Errore)?$Errore:"").'</p></div>';
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('message2'), $_SERVER['REQUEST_URI']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('action'), $_SERVER['REQUEST_URI']);
-		$_SERVER['REQUEST_URI'] = remove_query_arg(array('errore'), $_SERVER['REQUEST_URI']);
-	}
-	if (isset($_REQUEST['action']) And $_REQUEST['action']=="edit"){
-		$risultato=ap_get_categoria((isset($_REQUEST['id'])?$_REQUEST['id']:0));
-		$edit=True;
-	}else{
-		$edit=False;
-	}
-echo'<br class="clear" />
-		<div id="Attesa" style="width:64px;margin: 50px auto auto;">
-			<img style="vertical-align: middle;" src="'.Albo_URL.'/img/attesa.gif" alt="Icona Attesa" title="Attesa" />
-		</div>
-		<div id="atti-tabs-container" style="display:none;">
-					<ul>
-						<li><a href="#atti-tab-1">Elenco Atti <em>Da Pubblicare</em></a></li>
-						<li><a href="#atti-tab-2">Elenco Atti <em>Correnti</em></a></li>
-						<li><a href="#atti-tab-3">Elenco Atti <em>Scaduti</em></a></li>
-						<li><a href="#atti-tab-4">Elenco Atti <em>Da Cancellare</em></a></li>
-						<li><a href="#atti-tab-5">Repertori Atti</em></a></li>
-					</ul>
-		<div id="atti-tab-1">';
-	$lista=ap_get_all_atti(3,0,0,"",0,0,"Data DESC",0,0); 
-	if ($lista){
-echo'		<table class="widefat" id="elenco-atti-daapp"> 
-	    <thead>
-	    	<tr>
-	        	<th scope="col" style="width:120px;">Operazioni</th>
-	        	<th scope="col" style="width:100px;">Ente</th>
-				<th scope="col" >Del</th>
-	        	<th scope="col">Riferimento</th>
-	        	<th scope="col">Oggetto</th>
-	        	<th scope="col">Categoria</th>
-			</tr>
-	    </thead>
-	    <tbody id="the-list-daapp">';
-		foreach($lista as $riga){
-		$categoria=ap_get_categoria($riga->IdCategoria);
-		$cat=$categoria[0]->Nome;
-		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-		$Ente=ap_get_ente($riga->Ente);
-		$Ente=$Ente->Nome; 
-		echo '<tr>
-	        	<td>
-				    <a href="?page=atti&amp;action=delete-atto&amp;id='.$riga->IdAtto.'&amp;cancellaatto='.wp_create_nonce('deleteatto').'" rel="'.strip_tags($riga->Oggetto).'" tag="" class="ac">
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-					</a>
-					<a href="?page=atti&amp;action=edit-atto&amp;id='.$riga->IdAtto.'&amp;modificaatto='.wp_create_nonce('editatto').'">
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
-					</a>
-					<a href="?page=atti&amp;action=allegati-atto&amp;id='.$riga->IdAtto.'&amp;allegatoatto='.wp_create_nonce('gestallegatiatto').'">
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
-					</a>
-					<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'&amp;p=0"  >
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
-					</a>';
-			if  (current_user_can('admin_albo')){
-				echo '<a href="?page=atti&amp;action=approva-atto&amp;id='.$riga->IdAtto.'"  >
-<img style="vertical-align: middle;" src="'.Albo_URL.'/img/approva32.png" alt="Approva" title="Approva" style="margin-top:-4px;"/>
-					</a>';
-			}else
-				echo "Bozza";
-		echo '  </td> 
-		        <td>
-					'.stripslashes($Ente).'
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->Data) .' 
-				</td>
-				<td>
-					'.stripslashes($riga->Riferimento) .'
-				</td>
-				<td>
-					'.stripslashes($riga->Oggetto) .'  
-				</td>
-				<td>
-					'.$cat .'  
-				</td>
-			</tr>'; 
+		$stato="";
+		if (isset($_GET['stato_atti']))
+			$stato="&stato_atti=".$_GET['stato_atti'];
+		echo '<div id="message" class="updated"><p>'.(isset($msg)?$messages[$msg]:"").(isset($msg2)?"<br />".$messages[$msg2]:"").'<br /><br />'.(isset($Errore)?$Errore:"").'</p></div>
+		      <meta http-equiv="refresh" content="3;url=admin.php?page=atti'.$stato.'"/>';
+		      return;
+	} 
+	if (isset($_REQUEST['stato_atti']))
+		switch($_REQUEST['stato_atti']){
+			case "Correnti": $Titolo="Atti in corso di Validità";$Azione="Correnti";break;
+			case "Scaduti":  $Titolo="Atti Scaduti";$Azione="Scaduti";break;
+			case "Eliminare":  $Titolo="Atti da Eliminare (Oblio)";$Azione="Eliminare";break;
+			default: $Titolo="Atti da Pubblicare";$Azione="DaPubblicare";break;
 		}
-	echo '</td>
-		</tr>
-	 </tbody>
-    </table>';
-	} else {
-			echo '<p class="NessunAtto">Nessun Atto in attesa di pubblicazione</p>';
+	else{
+			$Titolo="Atti da Pubblicare";
+			$Azione="DaPubblicare";
 	}
-echo'</div>
-<div id="atti-tab-2">';
-	$lista=ap_get_all_atti(1,0,0,'', 0,0,"Anno DESC, Numero DESC , Data DESC",0,0); 
-	if ($lista){
-echo'		<table class="widefat" id="elenco-atti-correnti"> 
-	    <thead>
-	    	<tr>
-	        	<th scope="col" style="width:20px;">Operazioni</th>
-	        	<th scope="col" style="width:10px;">Stato</th>
-	        	<th scope="col" style="width:100px;">Ente</th>
-	        	<th scope="col">Numero</th>
-	         	<th scope="col" >Del</a></th>
-	        	<th scope="col">Riferimento</th>
-	        	<th scope="col">Oggetto</th>
-	        	<th scope="col" style="width:40px;">Inizio/Fine Pub.</th>
-	        	<th scope="col">Data Oblio</th>
-	        	<th scope="col">Categoria</th>
-			</tr>
-	    </thead>
-	    <tbody id="the-list">';
-	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
-		foreach($lista as $riga){
-		$categoria=ap_get_categoria($riga->IdCategoria);
-		$cat=$categoria[0]->Nome;
-		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-		$Ente=ap_get_ente($riga->Ente);
-		$Ente=$Ente->Nome; 
-		if($riga->DataAnnullamento!='0000-00-00')
-			$Annullato='style="background-color: '.$coloreAnnullati.';" title="'.$riga->MotivoAnnullamento.'" ';
-		else
-			$Annullato='';
-		echo '<tr '.$Annullato.'>
-	        	<td style="width:80px;">';
-		if ((ap_cvdate($riga->DataInizio) <= ap_cvdate(date("Y-m-d"))) and (ap_cvdate($riga->DataFine) >= ap_cvdate(date("Y-m-d"))))
-				$Scaduto=False;
-			else	
-				$Scaduto=True;
-			echo '	<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'&amp;p=1"  >
-						<img src="'.Albo_URL.'/img/view24.png" alt="View" title="View" />
-					</a>';
-			if (current_user_can('admin_albo')){
-				 if( !$Scaduto and $Annullato==''){
-				 	
-					echo ' <a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$riga->IdAtto.'">
-							<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
-						</a>';
-				}
-				if ($Scaduto){
-					echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'">
-							<img src="'.Albo_URL.'/img/cestino.png" alt="Elimina atto" title="Elimina atto" />
-						</a>';
-				}
-			}
-		echo '				</td>
-				<td>';
-		if ($NumeroAtto == 0)
-			if  (current_user_can('admin_albo')){
-				echo '<a href="?page=atti&amp;action=approva-atto&amp;id='.$riga->IdAtto.'"  >
-<img src="'.Albo_URL.'/img/approva32.png" alt="Approva" title="Approva" style="margin-top:-4px;"/>
-					</a>';
-			}else
-				echo "Bozza";
-		else{
-			if ($Annullato!='')
-				$Stato= '<strong><span style="color:red;">Annullato</span></strong>';
-			else{
-			 	$Stato="Pub.";
-				if (ap_cvdate($riga->DataFine) < ap_cvdate(date("Y-m-d")))
-					$Stato="Scaduto";
-			}
-			echo $Stato;
-		}
-		echo '  </td> 
-		        <td>
-					'.stripslashes($Ente).'
-				</td>
-		        <td>
-					'.$NumeroAtto.'/'.$riga->Anno .'
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->Data) .'
-				</td>
-				<td>
-					'.stripslashes($riga->Riferimento) .'
-				</td>
-				<td>
-					'.stripslashes($riga->Oggetto) .'  
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->DataInizio) .'  
-					'.ap_VisualizzaData($riga->DataFine) .'  
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->DataOblio) .'
-			    </td> 
-				<td>
-					'.$cat .'  
-				</td>
-			</tr>'; 
-		}
-	echo '</td>
-		</tr>
-	 </tbody>
-    </table>';
-	} else {
-			echo '<p class="NessunAtto">Nessun Atto in corso di validit&agrave;</p>';
-	}
-echo'</div>
-<div id="atti-tab-3">';
-	$lista=ap_get_all_atti(2,0,0,'', 0,0,"Anno DESC, Numero DESC , Data DESC",0,0); 
-	if ($lista){
-echo'		<table class="widefat" id="elenco-atti-scaduti"> 
-	    <thead>
-	    	<tr>
-	        	<th scope="col" style="width:100px;">Ente</th>
-	        	<th scope="col">Numero</th>
-	         	<th scope="col" >Del</a></th>
-	        	<th scope="col">Riferimento</th>
-	        	<th scope="col">Oggetto</th>
-	        	<th scope="col" style="width:40px;">Inizio/Fine Pub.</th>
-	        	<th scope="col">Data Oblio</th>
-	        	<th scope="col">Categoria</th>
-			</tr>
-	    </thead>
-	    <tbody id="the-list">';
-	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
-		foreach($lista as $riga){
-		$categoria=ap_get_categoria($riga->IdCategoria);
-		$cat=$categoria[0]->Nome;
-		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-		$Ente=ap_get_ente($riga->Ente);
-		$Ente=$Ente->Nome; 
-		if($riga->DataAnnullamento!='0000-00-00')
-			$Annullato='style="background-color: '.$coloreAnnullati.';" title="'.$riga->MotivoAnnullamento.'" ';
-		else
-			$Annullato='';
-		echo '<tr '.$Annullato.'>				
-		        <td>
-					'.stripslashes($Ente).'
-				</td>
-		        <td>
-					'.$NumeroAtto.'/'.$riga->Anno .'
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->Data) .'
-				</td>
-				<td>
-		        	<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'&amp;p=2"  >
-					'.stripslashes($riga->Riferimento) .'
-					</a>
-				</td>
-				<td>
-		        	<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'&amp;p=2"  >
-					'.stripslashes($riga->Oggetto) .'  
-					</a>
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->DataInizio) .'  
-					'.ap_VisualizzaData($riga->DataFine) .'  
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->DataOblio) .'
-			    </td> 
-				<td>
-					'.$cat .'  
-				</td>
-			</tr>'; 
-		}
-	echo '</td>
-		</tr>
-	 </tbody>
-    </table>';
-	} else {
-			echo '<p class="NessunAtto">Nessun Atto Scaduto</p>';
-	}
-echo'</div>
-<div id="atti-tab-4">';
-	$lista=ap_get_all_atti(4,0,0,'', 0,0,"DataOblio DESC, Numero DESC , Data DESC",0,0); 
-	if ($lista){
-		echo'<table class="widefat" id="elenco-atti-da-cancellare"> 
-	    <thead>
-	    	<tr>
-	        	<th scope="col" style="width:20px;">Seleziona</th>
-	        	<th scope="col" style="width:100px;">Ente</th>
-	        	<th scope="col">Numero</th>
-	         	<th scope="col" >Del</a></th>
-	        	<th scope="col">Riferimento</th>
-	        	<th scope="col">Oggetto</th>
-	        	<th scope="col" style="width:40px;">Inizio/Fine Pub.</th>
-	        	<th scope="col">Data Oblio</th>
-	        	<th scope="col">Categoria</th>
-			</tr>
-	    </thead>
-	    <tbody id="the-list">';
-		foreach($lista as $riga){
-		$categoria=ap_get_categoria($riga->IdCategoria);
-		$cat=$categoria[0]->Nome;
-		$NumeroAtto=ap_get_num_anno($riga->IdAtto);
-		$Ente=ap_get_ente($riga->Ente);
-		$Ente=$Ente->Nome; 
-		if($riga->DataAnnullamento!='0000-00-00')
-			$Annullato='style="background-color: '.$coloreAnnullati.';" title="'.$riga->MotivoAnnullamento.'" ';
-		else
-			$Annullato='';
-		echo '<tr '.$Annullato.'>
-	        	<td style="width:80px;">
-	        		<a href="?page=atti&amp;action=view-atto&amp;id='.$riga->IdAtto.'&amp;p=3"  >
-						<img src="'.Albo_URL.'/img/view24.png" alt="View" title="View" />
-					</a>';
-			if (current_user_can('admin_albo')){
-				echo ' <a class="eliminaatto" href="?page=atti&amp;action=elimina-atto&amp;id='.$riga->IdAtto.'"  rel="'.strip_tags($riga->Oggetto).'">
-							<img src="'.Albo_URL.'/img/cestino.png" alt="Elimina atto" title="Elimina atto" />
-						</a>';
-				}
-		echo '				</td>
-		        <td>
-					'.stripslashes($Ente).'
-				</td>
-		        <td>
-					'.$NumeroAtto.'/'.$riga->Anno .'
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->Data) .'
-				</td>
-				<td>
-					'.stripslashes($riga->Riferimento) .'
-				</td>
-				<td>
-					'.stripslashes($riga->Oggetto) .'  
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->DataInizio) .'  
-					'.ap_VisualizzaData($riga->DataFine) .'  
-				</td>
-				<td>
-					'.ap_VisualizzaData($riga->DataOblio) .'
-			    </td> 
-				<td>
-					'.$cat .'  
-				</td>
-			</tr>'; 
-		}
-	echo '</td>
-		</tr>
-	 </tbody>
-    </table>';
-	}else {
-		echo '<p class="NessunAtto">Nessun Atto da Cancellare</p>';
-	}
-echo'</div>
-<div id="atti-tab-5">';
-
-		if (isset($_GET['Anno']))
-			$AnnoRepertorio=$_GET['Anno'];
-		else
-			$AnnoRepertorio=date("Y");
-		if (($Anni=AnniAtti())!=FALSE){
-			echo 'Repertorio <select id="Anno" onchange="document.location.href=this.options[this.selectedIndex].value;">
-				<option value="">Anno</option>';
-			foreach($Anni as $Anno){
-				echo '<option value="'.admin_url().'/admin.php?page=atti&amp;p=4&amp;Anno='.$Anno->Anno.'">'.$Anno->Anno.'</option>';
-			}
-			echo '
-			</select>
-			<h3 style="text-align:center">Repertorio Anno '.$AnnoRepertorio.'</h3>
-			<table class="widefat" id="Repertorio-anno">
-				<thead>
-					<th>Ente titolare dell\'Atto</th>
-					<th>Numero progressivo</th>
-					<th>Codice di Riferimento</th>
-					<th>Oggetto</th>
-					<th>Data inizio Pubblicazione</th>
-					<th>Data fine Pubblicazione</th>
-					<th>Note</th>
-					<th>Categoria</th>
-					<th>Data Annullamento</th>
-					<th>Motivo Annullamento</th>
-				</thead>
-				<tbody>';
-				echo Repertorio($AnnoRepertorio);
-				echo '</tbody>
-			</table>
-		</div>';
-		}
-echo'		
-</div>	
-<script language="JavaScript">
-var i = setInterval(function () {
-    clearInterval(i);
-	document.getElementById("Attesa").style.display = "none";
-	document.getElementById("atti-tabs-container").style.display = "block"; 
-}, 3000);
-</script>
-</div><!-- /atti-tabs-container -->	';
+  	$tablenew = new AdminTableAtti(); // Il codice della classe a seguire
+   	$tablenew->stato_atti=$Azione;
+  	$tablenew->prepare_items(); // Metodo per elenco campi
+  	$page = filter_input(INPUT_GET,'page' ,FILTER_SANITIZE_STRIPPED);
+  	$paged = filter_input(INPUT_GET,'paged',FILTER_SANITIZE_NUMBER_INT);
+	echo '<div class="wrap">
+	  	<h3>'.$Titolo.'</h3>
+	  	<form method="get">
+	  		<input type="hidden" name="page" value="'.$page. '"/>';
+//	    	$tablenew->search_box('Ricerca','search_id');
+	    	$tablenew->views();
+	echo '</form>
+        <form id="persons-table" method="GET">
+            <input type="hidden" name="page" value="'.$_REQUEST['page'].'" />
+		  	<input type="hidden" name="paged" value="'.$paged.'"/>';
+	$tablenew->display(); // Metodo per visualizzare elenco records
+	echo '</form>
+	</div>
+';
 }
-
 ?>

@@ -1,12 +1,21 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7.1
- */
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione dei responsabili.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
@@ -20,8 +29,7 @@ $messages[7] = __('Impossibile cancellare Responsabili che sono collegati ad Att
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
-<img src="<?php echo Albo_URL; ?>/img/resp.png" alt="Icona Responsabili Procedimento" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Responsabili Procedimento <a href="?page=responsabili" class="add-new-h2">Aggiungi nuovo</a></h2>
+<h2 style="font-size: 2em;">Responsabili Procedimento <a href="?page=responsabili" class="add-new-h2">Aggiungi nuovo</a></h2>
 
 <?php
 $NC="";
@@ -74,15 +82,16 @@ echo '<tr>
 if ($lista){
 	foreach($lista as $riga){
 		echo'<li style="text-align:left;padding-left:1px;">';
+		$Tab=0;
 		if(ap_num_responsabili_atto($riga->IdResponsabile)==0)
 			echo '<a href="?page=responsabili&amp;action=delete-responsabile&amp;id='.$riga->IdResponsabile.'&amp;cancresp='.wp_create_nonce('deleteresponsabile').'" rel="'.$riga->Cognome.'" class="dr">
 			<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 			</a>';
 		else
-			echo '<img src="'.Albo_URL.'/img/null.png" alt="segnaposto" title="Vuoto segnaposto" />';
+			$Tab=20;
 		echo '
 			<a href="?page=responsabili&amp;action=edit-responsabile&amp;id='.$riga->IdResponsabile.'&amp;modresp='.wp_create_nonce('editresponsabile').'" rel="'.$riga->Cognome.'">
-			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" style="margin-left:'.$Tab.'px;"/>
 			</a>
 			('.$riga->IdResponsabile.') '.$riga->Cognome .' (n&ordm; atti '.ap_num_responsabili_atto($riga->IdResponsabile).')
 			</li>'; 

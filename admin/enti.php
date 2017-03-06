@@ -1,12 +1,21 @@
 <?php
 /**
- * Albo Pretorio AdminPanel - Funzioni Accesso ai dati
- * 
- * @package Albo Pretorio On line
- * @author Scimone Ignazio
- * @copyright 2011-2014
- * @since 3.7
- */
+ *
+ * @link              eduva.org
+ * @since             4.0.0
+ * @package           Gestione_Corsi
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Albo Pretorio On line
+ * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
+ * Description:       COdice per la gestione degli enti.
+ * Version:           4.0.0
+ * Author:            Ignazio Scimone
+ * Author URI:        eduva.org
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       albo-pretorio-on-line
+*/
 
 if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You are not allowed to call this page directly.'); }
 
@@ -20,8 +29,7 @@ $messages[7] = __('Impossibile cancellare Enti che sono collegati ad Atti');
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
-<img src="<?php echo Albo_URL; ?>/img/enti32.png" alt="Icona Enti" style="display:inline;float:left;margin-top:10px;"/>
-<h2 style="margin-left:40px;">Enti <a href="?page=enti" class="add-new-h2">Aggiungi nuovo</a></h2>
+<h2 style="font-size: 2em;">Enti <a href="?page=enti" class="add-new-h2">Aggiungi nuovo</a></h2>
 
 <?php 
 if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
@@ -60,14 +68,15 @@ $shift=1;
 if ($lista){
 	foreach($lista as $riga){
 		echo'<li style="text-align:left;padding-left:1px;">';
+	 	$Tab=0;
 		if($riga->IdEnte>0 and ap_num_enti_atto($riga->IdEnte)==0)
 			echo '<a href="?page=enti&amp;action=delete-ente&amp;id='.$riga->IdEnte.'&amp;cancellaente='.wp_create_nonce('deleteente').'" rel="'.stripslashes($riga->Nome).'" class="dr">
 					<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
 					</a>';
 		else
-			echo ' <img src="'.Albo_URL.'/img/null.png" alt="Vuoto" title="Segnaposto" />';		
+			$Tab=20;		
 		echo '					<a href="?page=enti&amp;action=edit-ente&amp;id='.$riga->IdEnte.'&amp;modificaente='.wp_create_nonce('editente').'" rel="'.stripslashes($riga->Nome).'">
-					<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+					<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit"  style="margin-left:'.$Tab.'px;"/>
 					</a>';
 		echo '<strong>'.stripslashes($riga->Nome).'</strong> (n&ordm; atti '.ap_num_enti_atto($riga->IdEnte).')';
 		echo '</li>';

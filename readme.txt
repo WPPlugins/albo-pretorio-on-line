@@ -3,8 +3,8 @@ Contributors: Scimone Ignazio
 Donate link: www.sisviluppo.info
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
-Tested up to: 4.6
-Stable tag: 3.7.4
+Tested up to: 4.7.2
+Stable tag: 4.0
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -34,11 +34,20 @@ Di seguito sono riportati i passi necessari per l'installazione del plugin. la p
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
+= 4.0 =
+- <strong>revisionato</strong> completamente il backend del plugin riportandolo sia nell'aspetto che nel codice più uniforme a quello di Wordpress
+- <strong>Eliminato</strong> il plugin DataTables di Jquery sia dal backend che dal frontend
+- <strong>Eliminate</strong> le librerie Jquery del plugin, da questa versionesi utilizzano quelle di Wordpress
+- <strong>Revisionato</strong> parte del codice.
+- <strong>Personalizzazione</strong> della tabella che visualizza gli atti nel frontend. Per decidere quali dai devono essere visalizzati bisogna flaggare il nome del campo nel backend in Albo Pretorio=>Parametri=>Colonne Tabella Front End
+- <strong>Revisionata</strong> lo splash screen del plugin nel backend.
+- da questa versione le modifiche che implicano modifiche nelle modaità operative di funzionamento del plugin vengono descritte nel <strong>canale YouTube</strong> dedicato.
 = 3.7.4 =
-- <strong>Corretto</strong> errore del calendario nei campi data
-- <strong>Corretto</strong> link alla segnalazione dell'uso del plugin
-= 3.7.3 =
-- <strong>DownGrade</strong> 
+- <strong>Corretto</strong> il link al sito per la segnalazione dell'uso del plugin 
+- <strong>Corretti</strong> piccoli bugs 
+= 3.7.2 =
+- <strong>Corretto</strong> il calcolo della data dell'oblio 
+- <strong>Eliminato</strong> il parametro gorni di default oblio, adesso viene impostato di default il 1 Gennaio dell'anno successivo ai 5 anno della scadenza dell'atto
 = 3.7.1 =
 - <strong>Corretto</strong> errore del calendario nei campi data 
 = 3.7 =
