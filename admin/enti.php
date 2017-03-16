@@ -2,7 +2,7 @@
 /**
  * WGestione Enti.
  * @link       http://www.eduva.org
- * @since      4.0.1
+ * @since      4.0.2
  *
  * @package    ALbo On Line
  */

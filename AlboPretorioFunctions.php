@@ -2,7 +2,7 @@
 /**
  * Libreria di funzioni necessarie al plugin per la gestione dell'albo.
  * @link       http://www.eduva.org
- * @since      4.0.1
+ * @since      4.0.2
  *
  * @package    ALbo On Line
  */
@@ -2154,7 +2154,7 @@ function ap_SvuotaDirectory($Dir,$fplog){
 	}
 }
 
-function ap_BackupDatiFiles($NomeFile,$Tipo="",$Destinazione=WP_CONTENT_DIR."/AlboOnLine" ){
+function ap_BackupDatiFiles($NomeFile,$Tipo="",$Destinazione=AlboBCK ){
 global $wpdb;
 	$tables=array(	$wpdb->table_name_Allegati,
 					$wpdb->table_name_Atti,
