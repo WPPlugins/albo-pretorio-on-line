@@ -2,7 +2,7 @@
 /**
  * Gestione FrontEnd.
  * @link       http://www.eduva.org
- * @since      4.0.2
+ * @since      4.0.4
  *
  * @package    ALbo On Line
  */
@@ -24,7 +24,7 @@ if(isset($_REQUEST['action'])){
 			break;
 		default: 
 			if (isset($_REQUEST['filtra']))
-			 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
+			 		$ret=Lista_Atti($Parametri,$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
 			else if(isset($_REQUEST['annullafiltro'])){
 					 unset($_REQUEST['categoria']);
 					 unset($_REQUEST['anno']);
@@ -38,7 +38,7 @@ if(isset($_REQUEST['action'])){
 		}	
 	}else{
 		if (isset($_REQUEST['filtra']))
- 		$ret=Lista_Atti($Parametri,(int)$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
+ 		$ret=Lista_Atti($Parametri,$_REQUEST['categoria'],(int)$_REQUEST['anno'], htmlentities($_REQUEST['oggetto']),htmlentities($_REQUEST['DataInizio']),htmlentities($_REQUEST['DataFine']));
 else if(isset($_REQUEST['annullafiltro'])){
 		 unset($_REQUEST['categoria']);
 		 unset($_REQUEST['anno']);
@@ -171,7 +171,7 @@ foreach ($allegati as $allegato) {
 				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica.' <a href="'.get_permalink().$sep.'action=dwnalle&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >Scarica allegato</a>';
 				
 			else
-				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stao cancellato o spostato!";
+				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
 echo'				</p>
 			</div>
 			<div style="clear:both;"></div>
@@ -201,7 +201,7 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 			if (strpos(htmlentities($_SERVER['REQUEST_URI']),'page_id')>0){
 				$HTML.= '<input type="hidden" name="page_id" value="'.ap_Estrai_PageID_Url().'" />';
 			}	
-	$HTML.= '
+	$HTML.= '<input type="hidden" name="categoria" value="'.$cat.'" />
 				<table id="tabella-filtro-atti" class="tabella-dati-albo" >';
 /*	if($cat!=0){
 		$HTML.= '				
@@ -212,7 +212,7 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 	}*/
 	$HTML.= '
 					<tr>
-						<th scope="row">Anno</th>
+						<th scope="row"><label for="anno">Anno</label></th>
 						<td>'.$anni.'</td>
 					</tr>
 					<tr>
@@ -302,11 +302,20 @@ switch ($Parametri['stato']){
 		$N_A_pp=10;
 	}
 	if (isset($Parametri['cat'])){
-		$Categoria=$Parametri['cat'];
-		$DesCategoria=ap_get_categoria($Categoria);
-		$TitoloAtti.=" Categoria ".$DesCategoria[0]->Nome;
+		$DesCategorie="";
+		$Categoria="";
+		$Categorie=explode(",",$Parametri['cat']);
+		foreach($Categorie as $Cate){
+			$DesCat=ap_get_categoria($Cate);
+			$DesCategorie.=$DesCat[0]->Nome.",";
+			$Categoria.=$Cate.",";
+		}
+		$DesCategorie= substr($DesCategorie,0, strlen($DesCategorie)-1);
+		$TitoloAtti.=" Categorie ".$DesCategorie;
+		$Categoria=substr($Categoria,0, strlen($Categoria)-1);
 		$cat=1;
 	}else{
+		$Categorie=$Categoria;
 		$cat=0;
 	}
 	if (!isset($_REQUEST['Pag'])){
@@ -316,8 +325,8 @@ switch ($Parametri['stato']){
 		$Da=($_REQUEST['Pag']-1)*$N_A_pp;
 		$A=$N_A_pp;
 	}
-	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'',0,0,true);
-	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categoria,$Oggetto,$Dadata,$Adata,'Anno DESC,Numero DESC',$Da,$A); 
+	$TotAtti=ap_get_all_atti($Parametri['stato'],$Anno,$Categorie,$Oggetto,$Dadata,$Adata,'',0,0,true);
+	$lista=ap_get_all_atti($Parametri['stato'],$Anno,$Categorie,$Oggetto,$Dadata,$Adata,'Anno DESC,Numero DESC',$Da,$A); 
 	$titEnte=get_option('opt_AP_LivelloTitoloEnte');
 	if ($titEnte=='')
 		$titEnte="h2";
@@ -342,7 +351,7 @@ if (get_option('opt_AP_VisualizzaEnte')=='Si')
 		$Contenuto.= '<'.$titEnte.' ><span  class="titoloEnte">'.stripslashes(get_option('opt_AP_Ente')).'</span></'.$titEnte.'>';
 $Contenuto.='<'.$titPagina.'><span  class="titoloPagina">'.$TitoloAtti.'</span></'.$titPagina.'>';
 if (!isset($Parametri['filtri']) Or $Parametri['filtri']=="si")
-	$Contenuto.='<h4>Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$cat,$Parametri['minfiltri']);
+	$Contenuto.='<h4 class="filtri">Filtri '.$VisFiltro.'</h4>'.VisualizzaRicerca($Parametri['stato'],$Categoria,$Parametri['minfiltri']);
 //$Contenuto.=  $nascondi;
 if ($TotAtti>$N_A_pp){
 	    $Para='';
@@ -417,7 +426,12 @@ echo'	</tr>
 	    $CeAnnullato=false;
 	if ($lista){
 	 	$pari=true;
+		if (strpos(get_permalink(),"?")>0)
+			$sep="&amp;";
+		else
+			$sep="?";
 		foreach($lista as $riga){
+			$Link='<a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  style="text-decoration: underline;">';
 			$categoria=ap_get_categoria($riga->IdCategoria);
 			$cat=$categoria[0]->Nome;
 			$responsabileprocedura=ap_get_responsabile($riga->RespProc);
@@ -434,52 +448,48 @@ echo'	</tr>
 				$classe='style="background-color: '.$coloreAnnullati.';"';
 				$CeAnnullato=true;
 			}
-			if (strpos(get_permalink(),"?")>0)
-				$sep="&amp;";
-			else
-				$sep="?";
 			$Contenuto.= '<tr >
-			        <td '.$classe.'><a href="'.get_permalink().$sep.'action=visatto&amp;id='.$riga->IdAtto.'"  style="text-decoration: underline;">'.$NumeroAtto.'/'.$riga->Anno .'</a> 
+			        <td '.$classe.'>'.$Link.$NumeroAtto.'/'.$riga->Anno .'</a> 
 					</td>';
 			if ($FEColsOption['Ente']==1)
 				$Contenuto.='
 					<td '.$classe.'>
-						'.stripslashes(ap_get_ente($riga->Ente)->Nome) .'
+						'.$Link.$Link.stripslashes(ap_get_ente($riga->Ente)->Nome) .'</a>
 					</td>';
 			if ($FEColsOption['Riferimento']==1)
 				$Contenuto.='
 					<td '.$classe.'>
-						'.stripslashes($riga->Riferimento) .'
+						'.$Link.stripslashes($riga->Riferimento) .'</a>
 					</td>';
 			if ($FEColsOption['Oggetto']==1)
 				$Contenuto.='			
 					<td '.$classe.'>
-						'.stripslashes($riga->Oggetto) .' 
+						'.$Link.stripslashes($riga->Oggetto) .'</a>
 					</td>';
 			if ($FEColsOption['Validita']==1)
 				$Contenuto.='								
 					<td '.$classe.'>
-						'.ap_VisualizzaData($riga->DataInizio) .'<br />'.ap_VisualizzaData($riga->DataFine) .'  
+						'.$Link.ap_VisualizzaData($riga->DataInizio) .'<br />'.ap_VisualizzaData($riga->DataFine) .'</a>  
 					</td>';
 			if ($FEColsOption['Categoria']==1)
 				$Contenuto.='								
 					<td '.$classe.'>
-						'.$cat .'  
+						'.$Link.$cat .'</a>  
 					</td>';
 			if ($FEColsOption['Note']==1)
 				$Contenuto.='
 					<td '.$classe.'>
-						'.stripslashes($riga->Informazioni) .'
+						'.$Link.stripslashes($riga->Informazioni) .'</a>
 					</td>';
 			if ($FEColsOption['RespProc']==1)
 				$Contenuto.='
 					<td '.$classe.'>
-						'.$respproc .'
+						'.$Link.$respproc .'</a>
 					</td>';	
 			if ($FEColsOption['DataOblio']==1)
 				$Contenuto.='
 					<td '.$classe.'>
-						'.ap_VisualizzaData($riga->DataOblio) .'
+						'.$Link.ap_VisualizzaData($riga->DataOblio) .'</a>
 					</td>';
 		$Contenuto.='	
 				</tr>'; 

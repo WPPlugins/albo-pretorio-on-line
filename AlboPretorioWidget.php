@@ -2,7 +2,7 @@
 /**
  * Widget utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
  * @link       http://www.eduva.org
- * @since      4.0.2
+ * @since      4.0.4
  *
  * @package    ALbo On Line
  */
@@ -128,6 +128,7 @@ public function widget( $args, $instance )
 	$lista=ap_get_all_atti(1,0,0,'',0,0,$Ordinamento,0,$instance['numero_atti']); 
 
 	$HtmlW='<ul>';
+	$CeAnnullato=FALSE;
 	if ($lista){
 		foreach($lista as $riga){
 			if($riga->DataAnnullamento!='0000-00-00'){

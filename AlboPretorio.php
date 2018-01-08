@@ -1,15 +1,10 @@
 <?php
 /**
- *
- * @link              eduva.org
- * @since             4.7.2
- * @package           Gestione_Corsi
- *
  * @wordpress-plugin
  * Plugin Name:       Albo Pretorio On line
  * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
  * Description:       Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
- * Version:           4.0.2
+ * Version:           4.0.4
  * Author:            Ignazio Scimone
  * Author URI:        eduva.org
  * License:           GPL-2.0+
@@ -376,8 +371,10 @@ static function add_albo_plugin($plugin_array) {
 				echo "	<meta name='robots' content='noarchive' />
 	<!--HEAD Albo Preotrio On line -->
 			";
-		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
 	    wp_enqueue_script('jquery');
+	    wp_enqueue_script('jquery-ui-core');
+	    wp_enqueue_script('jquery-ui-tabs', '', array('jquery'));
+		wp_enqueue_script( 'jquery-ui-datepicker', '', array('jquery'));
 		wp_enqueue_script( 'Albo-Public', plugins_url('js/Albo.public.js', __FILE__ ));
 	echo "<!--FINE HEAD Albo Preotrio On line -->";	
 		}
@@ -418,18 +415,15 @@ static function add_albo_plugin($plugin_array) {
 	  $n_allegati = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Allegati;");	 
 	  $n_categorie = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Categorie;");	 
       $n_atti_oblio = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti Where DataOblio < now() And Numero>0;");	
-	echo ' <div class="welcome-panel" class="welcome-panel" style="padding: 5px;5px; 20px; 5px;">
-	         	<div class="welcome-panel-content" style="display:inline;float:left;">
-					<p style="text-align: center;">
-						<img src="'.Albo_URL.'/img/LogoAlbo.png" alt="Logo Albo on line pubblicità legale" />
+	echo ' <div class="welcome-panel" class="welcome-panel" >
+	         	<div class="welcome-panel-content" style="display:inline;float:left;width:35%;">
+					<p style="float:left;">
+						<img src="'.Albo_URL.'/img/LogoAlbo.png" alt="Logo Albo on line pubblicità legale" style="width:100%;" />
 					<br />Versione <strong>'.$this->version.'</strong></p>
 					<p style="font-size:1.2em;text-align: center;">Plugin sviluppato da <strong>Scimone Ignazio</strong>
 					<br /><small>con il contributo della Comunità di Pratica</small>
 					<a href="http://www.porteapertesulweb.it" target="_blank" title="Porte Aperte sul Web">
 					<br /><img src="'.Albo_URL.'/img/pasw.png"></a>	<br />				
-					<a href="https://www.youtube.com/channel/UCjV2LoFIVcoUKux6VeHWohg" target="_blank" title="vai al canale YouTube">
-						<img src="'.Albo_URL.'/img/canaleyoutube.png" alt="Logo Canale Youtube Albo" />
-					</a>
 					</p>	
 
 				</div>
@@ -1030,8 +1024,8 @@ if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 			    update_option('opt_AP_NumeroProgressivo',(int)$_POST['progressivo'] );
 		    update_option('opt_AP_Ente',$_POST['c_Ente'] );
 		    update_option('opt_AP_AnnoProgressivo',$_POST['c_AnnoProgressivo'] );
-		    update_option('opt_AP_EffettiTesto',$_POST['c_TE'] );
 		    update_option('opt_AP_LivelloTitoloPagina',$_POST['c_LTP'] );
+		    update_option('opt_AP_LivelloTitoloEnte',$_POST['c_LTE'] );
 		    update_option('opt_AP_LivelloTitoloFiltri',$_POST['c_LTF'] );
 			update_option('opt_AP_ColoreAnnullati',strip_tags($_POST['color']) );
 			update_option('opt_AP_ColorePari',strip_tags($_POST['colorp']) );

@@ -8,15 +8,15 @@
 			ed.addCommand('frmAlbo', function() {
 				ed.windowManager.open({
 					file : url + '/gencode.php',
-					width : 300, 
-					height : 220,
+					width : 350, 
+					height : 320,
 					inline : 1
 				})
 			});
              ed.addButton('albo', {
                 title : 'Albo Pretorio',
                 image : str+'img/albo.png',
-				cmd   : 'frmAlbo'
+                cmd   : 'frmAlbo'
             });
         },
         createControl : function(n, cm) {

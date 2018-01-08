@@ -37,16 +37,22 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 
 		function insertAlboShortCode() {
 			var stato   		 = document.getElementById('StatoAtti').value;
-			var categoria 		 = document.getElementById('Categoria').value;
+			var categorie 		 = document.getElementById('Categoria');
 			var filtri  		 = document.getElementById('Filtri');
 			var minfiltri  		 = document.getElementById('MinFiltri');
 			var per_page  		 = document.getElementById('Per_page').value;
-			
+			var Categoriesel="";
+			var InvForm = document.forms.form;
+		    for (x=0;x<InvForm.Categoria.length;x++){
+				if(InvForm.Categoria[x].selected){
+					Categoriesel+= InvForm.Categoria[x].value + ",";
+				}
+			}
+			Categoriesel=Categoriesel.substring(0, Categoriesel.length-1);
 			var tagtext = "[Albo ";
 			tagtext = tagtext + " stato=\"" + stato+ "\"";
-			if ((!isNaN(categoria) && !isNaN(parseFloat(categoria))) && categoria>0 )
-				tagtext = tagtext + " cat=\"" + categoria+"\"";
-			//if (!isNaN(filtri) && filtri!="si" )
+			if (Categoriesel.length>0 )
+				tagtext = tagtext + " cat=\"" + Categoriesel+"\"";
 			if (filtri.checked)
 				tagtext = tagtext + " filtri=\"si\"";
 			else
@@ -67,10 +73,10 @@ if ( !is_user_logged_in() || !current_user_can('edit_posts') )
 </head>
 <body onload="tinyMCEPopup.executeOnLoad('init();');">
 <?php 
-$Ele_Cate=ap_get_dropdown_categorie("Categoria","Categoria","","")
+$Ele_Cate=ap_get_dropdown_categorie("Categoria","Categoria","","","Nessuna", TRUE, FALSE,TRUE);
 ?>
 	<div class="mceActionPanel">
-		<form action="#" method="get" accept-charset="utf-8">
+		<form name="form" action="#" method="get" accept-charset="utf-8">
 				<p>
 				<label for="StatoAtti"><strong>Sato Atti</strong></label>
 					<select id="StatoAtti" name="StatoAtti">

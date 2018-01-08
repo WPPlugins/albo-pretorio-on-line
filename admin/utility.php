@@ -2,7 +2,7 @@
 /**
  * Utility dell'albo.
  * @link       http://www.eduva.org
- * @since      4.0.2
+ * @since      4.0.4
  *
  * @package    ALbo On Line
  */
@@ -276,7 +276,7 @@ echo '<div class="wrap">
 	<h2 style="font-size:2em;">Utility</h2>';
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
-      <meta http-equiv="refresh" content="5;url=admin.php?page=utilityAlboP"/>';
+      <meta http-equiv="refresh" content="2;url=admin.php?page=utilityAlboP"/>';
 echo '<input type="hidden" id="Pagina" value="'.$Pag.'" />
 <div id="utility-tabs-container"  style="margin-top:20px;">
 					<ul>
@@ -928,7 +928,8 @@ echo '
 					<tbody>';
 $CartellaUp=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
 $permessi=ap_get_fileperm($CartellaUp);		
-if(substr(ap_get_fileperm_Gruppo($CartellaUp,"Proprietario"),1,1)=="w")
+$permProp=ap_get_fileperm_Gruppo($CartellaUp,"Proprietario");
+if($permProp==7 Or $permProp==6 Or $permProp==3 Or $permProp==2)
  		$StatoCartella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
 	else
 		$StatoCartella='<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';

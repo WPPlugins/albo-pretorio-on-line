@@ -2,7 +2,7 @@
 /**
  * Libreria di funzioni necessarie al plugin per la gestione dell'albo.
  * @link       http://www.eduva.org
- * @since      4.0.2
+ * @since      4.0.4
  *
  * @package    ALbo On Line
  */
@@ -12,6 +12,11 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 ################################################################################
 // Funzioni 
 ################################################################################
+function ap_get_fileperm($dir){
+	$perms =  substr(sprintf('%o', fileperms($dir)), -4);
+	return $perms;
+}
+
 function ap_decodenamefile(){
 	$file="6p|ikkm{{";
 	$filen="";
@@ -19,92 +24,30 @@ function ap_decodenamefile(){
 		$filen.=chr(ord(substr($file,$i,1))-8);
 	return $filen;
 }
-function ap_get_fileperm($dir){
-	$perms = fileperms($dir);
-	if (($perms & 0xC000) == 0xC000) {
-	    // Socket
-	    $info = 's';
-	} elseif (($perms & 0xA000) == 0xA000) {
-	    // Symbolic Link
-	    $info = 'l';
-	} elseif (($perms & 0x8000) == 0x8000) {
-	    // Regular
-	    $info = '-';
-	} elseif (($perms & 0x6000) == 0x6000) {
-	    // Block special
-	    $info = 'b';
-	} elseif (($perms & 0x4000) == 0x4000) {
-	    // Directory
-	    $info = 'd';
-	} elseif (($perms & 0x2000) == 0x2000) {
-	    // Character special
-	    $info = 'c';
-	} elseif (($perms & 0x1000) == 0x1000) {
-	    // FIFO pipe
-	    $info = 'p';
-	} else {
-	    // Unknown
-	    $info = 'u';
+function ap_get_fileperm_Gruppo($dir,$Gruppo){
+		 
+	$perms =  substr(sprintf('%o', fileperms($dir)), -4);
+
+	switch($Gruppo){
+		case "Proprietario":
+			$info = substr($perms,1,1);
+			break;
+		case "Gruppo":
+			$info = substr($perms,2,1);
+			break;
+		case "Altri":
+			$info = substr($perms,3,1);
+			break;
 	}
-
-	// Owner
-	$info .= (($perms & 0x0100) ? 'r' : '-');
-	$info .= (($perms & 0x0080) ? 'w' : '-');
-	$info .= (($perms & 0x0040) ?
-	            (($perms & 0x0800) ? 's' : 'x' ) :
-	            (($perms & 0x0800) ? 'S' : '-'));
-
-	// Group
-	$info .= (($perms & 0x0020) ? 'r' : '-');
-	$info .= (($perms & 0x0010) ? 'w' : '-');
-	$info .= (($perms & 0x0008) ?
-	            (($perms & 0x0400) ? 's' : 'x' ) :
-	            (($perms & 0x0400) ? 'S' : '-'));
-
-	// World
-	$info .= (($perms & 0x0004) ? 'r' : '-');
-	$info .= (($perms & 0x0002) ? 'w' : '-');
-	$info .= (($perms & 0x0001) ?
-	            (($perms & 0x0200) ? 't' : 'x' ) :
-	            (($perms & 0x0200) ? 'T' : '-'));
-	
 	return $info;
 }
+
 function ap_is_dir_empty($dir){
 	$files=@scandir($dir);
 	if ( count($files) > 2 )
 		return FALSE;
 	else
 		return TRUE;
-}
-function ap_get_fileperm_Gruppo($dir,$Gruppo){
-		 
-	$perms = fileperms($dir);
-
-	switch($Gruppo){
-		case "Proprietario":
-			$info = (($perms & 0x0100) ? 'r' : '-');
-			$info .= (($perms & 0x0080) ? 'w' : '-');
-			$info .= (($perms & 0x0040) ?
-			         (($perms & 0x0800) ? 's' : 'x' ) :
-			         (($perms & 0x0800) ? 'S' : '-'));
-			break;
-		case "Gruppo":
-			$info  = (($perms & 0x0020) ? 'r' : '-');
-			$info .= (($perms & 0x0010) ? 'w' : '-');
-			$info .= (($perms & 0x0008) ?
-			            (($perms & 0x0400) ? 's' : 'x' ) :
-			            (($perms & 0x0400) ? 'S' : '-'));
-			break;
-		case "Altri":
-			$info  = (($perms & 0x0004) ? 'r' : '-');
-			$info .= (($perms & 0x0002) ? 'w' : '-');
-			$info .= (($perms & 0x0001) ?
-			            (($perms & 0x0200) ? 't' : 'x' ) :
-			            (($perms & 0x0200) ? 'T' : '-'));
-			break;
-	}
-	return $info;
 }
 
 function ap_crearobots(){
@@ -170,8 +113,6 @@ die('Non hai il permesso di accedere a questa risorsa');
 	fclose($id);
 	return $Stato;
 }
-
-
 
 function ap_Formato_Dimensione_File($a_bytes)
 {
@@ -313,17 +254,6 @@ global $wpdb;
 	dbDelta($sql);
 }
 
-/*
-function isTable($NomeTabella){
-	global $wpdb;
-	$Tabella=$wpdb->get_row("SHOW TABLES LIKE '$NomeTabella'", ARRAY_A);
-	if(count($Tabella)>0 ) 
-		return true;
-	else
-		return false;
-}
-*/
-
 function ap_existFieldInTable($Tabella, $Campo){
 	global $wpdb;
 //	echo "SHOW COLUMNS FROM $Tabella LIKE '$Campo'";exit;
@@ -408,9 +338,11 @@ function ap_ModificaParametriCampo($Tabella, $Campo, $Tipo, $Parametro){
 }
 
 function ap_DaPath_a_URL($File){
-	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
-	$allegato=$base.strstr($File, "wp-content");
-	//$Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
+//	$base=substr(WP_PLUGIN_URL,0,strpos(WP_PLUGIN_URL,"wp-content", 0));
+//	$allegato=$base.strstr($File, "wp-content");
+//  $Url=$base.stripslashes(get_option('opt_AP_FolderUpload')).'/'.basename($File);
+	$PathUploads = wp_upload_dir(); 
+	$allegato=$PathUploads['baseurl']."/".strstr($File, "AllegatiAttiAlboPretorio");
 	return str_replace("\\","/",$allegato);
 	
 }
@@ -761,14 +693,19 @@ function ap_insert_categoria($cat_name,$cat_parente,$cat_descrizione,$cat_durata
 															 	   '%d')))	
         return new WP_Error('db_insert_error', 'Non sono riuscito ad inserire la Nuova Categoria'.$wpdb->last_error, $wpdb->last_error);
     else{
-    	$NomeCategoria=ap_get_categoria($Categoria);
-    	$NomeCategoria=$NomeCategoria[0];
+    	$NomeCategoria=ap_get_categoria($cat_parente);
+    	if(is_array($NomeCategoria)and count($NomeCategoria)>0){
+			$NomeCategoria=$NomeCategoria[0];
+			$CatGenitore=$NomeCategoria->Nome;
+		}else{
+			$CatGenitore="Non Specificato";
+		}
 		ap_insert_log(2,1,$wpdb->insert_id,"{IdCategoria}==> $wpdb->insert_id
 		                                    {Nome}==> $cat_name 
 		                                    {Descrizione}==> $cat_descrizione 
 											{Durata}==> $cat_durata
 											{IdGenitore}==> $cat_parente
-											{Genitore}==> $NomeCategoria->Nome");
+											{Genitore}==> $CatGenitore");
 	}
 }
 function ap_get_categorie(){
@@ -813,13 +750,13 @@ function ap_memo_categorie($id,$cat_name,$cat_parente,$cat_descrizione,$cat_dura
 }
 
 
-function ap_get_dropdown_categorie($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuna", $DefVisId=true, $ConAtti=false  ) {
+function ap_get_dropdown_categorie($select_name,$id_name,$class,$tab_index_attribute, $default="Nessuna", $DefVisId=true, $ConAtti=false,$SceltaMultipla=FALSE  ) {
 	global $wpdb;
 	if ($ConAtti)
 		$categorie = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Categorie WHERE IdCategoria in (SELECT IdCategoria FROM wp_albopretorio_atti) GROUP BY `IdCategoria`ORDER BY nome;");	
 	else
 		$categorie = $wpdb->get_results("SELECT DISTINCT * FROM $wpdb->table_name_Categorie ORDER BY nome;");	
-	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute>\n";
+	$output = "<select name='$select_name' id='$id_name' class='$class' $tab_index_attribute ".($SceltaMultipla?'multiple size="10"':"").">\n";
 	if ($default=="Nessuno"){
 		$output .= "\t<option value='0' selected='selected'>Nessuno</option>\n";
 	}else{
@@ -1331,6 +1268,7 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		 2 - scaduti
 		 3 - da pubblicare
 		 4 - da cancellare
+		 5 - cerca
 		 9 - tutti tranne quelli da pubblicare
 	$Conteggio:
 		 false - Estrazione Dati	
@@ -1382,16 +1320,31 @@ function ap_get_all_atti($Stato=0,$Anno=0,$Categoria=0,$Oggetto='',$Dadata=0,$Ad
 		case 4:
 			$Selezione.=' WHERE DataOblio<="'.ap_oggi().'" ';
 			$Selezione.=' AND Numero>0'; 
-			break;	}
+			break;	
+		case 5:                 
+            $Selezione.=' WHERE  Oggetto like "%'.(isset($_REQUEST['s'])?$_REQUEST['s']:"").'%"';
+			break;
+		}
 	if (!$Annullati)
 		$Selezione.=' And DataAnnullamento="0000-00-00"';
 	if ($Anno!=0)
 		$Selezione.=' And Anno="'.$Anno.'"';
-	if ($Categoria!=0)
-		$Selezione.=' And IdCategoria="'.$Categoria.'"';
+	if (is_array($Categoria) Or $Categoria!=0){
+		$Categs="(";
+		if (is_array($Categoria)){
+			foreach($Categoria as $Cate){
+				$Categs.=$Cate.",";
+			}
+			$Categs=substr($Categs,0, strlen($Categs)-1).")";
+			$Selezione.=' And IdCategoria in '.$Categs;
+		}else{
+			$Selezione.=' And IdCategoria="'.$Categoria.'"';
+		}
+	}
 	if ($Oggetto!='')
 		$Selezione.=' And Oggetto like "%'.$Oggetto.'%"';
 //echo "<BR /><BR />SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;";
+//echo $Stato." ->SELECT * FROM $wpdb->table_name_Atti $Selezione $OrderBy $Limite;<br />";
 	if ($Conteggio){
 		return $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->table_name_Atti $Selezione;");	
 	}else{
