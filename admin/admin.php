@@ -8,39 +8,24 @@
  */
 // require_once(ABSPATH . 'wp-includes/pluggable.php'); 
 add_action( 'init', 'albo_post');
-function DownloadFile($file_path){
-	$chunksize	= 2*(1024*1024);
-	$stat 		= @stat($file_path);
-	$etag		= sprintf('%x-%x-%x', $stat['ino'], $stat['size'], $stat['mtime'] * 1000000);
-	$path 		= pathinfo($file_path);
-	header('Pragma: public');
-	header('Expires: 0');
-	header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-	header('Cache-Control: private', FALSE);
-	header('Content-Type: application/force-download', FALSE);
-	header('Content-Type: application/octet-stream', FALSE);
-	header('Content-Type: application/download', FALSE);
-	header('Content-Disposition: attachment; filename="'.basename($file_path).'";');
-	header('Content-Transfer-Encoding: binary');
-	header('Last-Modified: ' . date('r', $stat['mtime']));
-	header('Etag: "' . $etag . '"');
-	header('Content-Length: '.$stat['size']);
-	header('Accept-Ranges: bytes');
-	ob_flush();
-	flush();
-	if ($stat['size'] < $chunksize) {
-		@readfile($file_path);
-	}
-	else {
-		$handle = fopen($file_path, 'rb');
-		while (!feof($handle)) {
-			echo fread($handle, $chunksize);
-			ob_flush();
-			flush();
-		}
-		fclose($handle);
-	}
+
+function DownloadFile($filename){
+//	echo $filename."  ".basename($filename);die();
+	if(!empty(basename($filename))){
+    // Check file is exists on given path.
+    if(file_exists($filename))
+    {
+      header('Content-Disposition: attachment; filename=' . basename($filename));  
+      readfile($filename); 
+      exit;
+    }
+    else
+    {
+      wp_die(basename($filename)." File non trovato");
+    }
+ }
 }
+
 function albo_post() {
 if(isset($_REQUEST['action'] )){
 	switch ( $_REQUEST['action'] ) {		
@@ -48,21 +33,24 @@ if(isset($_REQUEST['action'] )){
 				$Testata="Nome Ente;Numero Atto;Riferimento;Oggetto;Data Inizio;Data Fine;Informazioni;Categoria;Data Annullamento;Motivo Annullamento";
 				$Atti="";
 				$Righe=ap_Repertorio($_REQUEST['Anno'],FALSE);
+//					echo "<pre>";var_dump($Righe);echo "</pre>";die();
+
 				foreach($Righe as $Riga){
 					$Atti.=stripcslashes($Riga->NomeEnte).";";
 					$Atti.=$Riga->Numero.";";
-					$Atti.=stripcslashes($Riga->Riferimento).";";
-					$Atti.=stripcslashes($Riga->Oggetto).";";
+					$Atti.=str_replace("  "," ",preg_replace ("[.^A-Za-z0-9 ]", "",wp_strip_all_tags(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $Riga->Riferimento),TRUE))).";";
+					$Atti.=str_replace("  "," ", preg_replace("[.^A-Za-z0-9 ]", "",wp_strip_all_tags(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $Riga->Oggetto),TRUE))).";";
 					$Atti.=$Riga->DataInizio.";";
 					$Atti.=$Riga->DataFine.";";
-					$Atti.=stripcslashes($Riga->Informazioni).";";
+					$Atti.=str_replace("  "," ",preg_replace ("'/[^a-zA-Z0-9 -]/'", "",wp_strip_all_tags(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $Riga->Informazioni),TRUE))).";";
 					$Atti.=$Riga->Categoria.";";
 					$Atti.=$Riga->DataAnnullamento.";";
-					$Atti.=stripcslashes($Riga->MotivoAnnullamento).";\n";					
+					$Atti.=str_replace("  "," ",preg_replace ("[.^A-Za-z0-9 ]", "",wp_strip_all_tags(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $Riga->MotivoAnnullamento),TRUE))).";\n";				
 				}	
+//				echo $Atti;die();
 				$Dir=str_replace("\\","/",Albo_DIR.'/Repertori');
 				if (!is_dir ( $Dir))
-					if (!mkdir($Dir, 0755)) 
+					if (!mkdir($Dir, 0744)) 
 						break;
 				$file_path=$Dir."/repertorio_".$_REQUEST['Anno'].".csv";
 				$file = fopen($file_path, "w") or die;
@@ -78,16 +66,16 @@ if(isset($_REQUEST['action'] )){
 				$Atti=$xml->addChild('Atti');
 				foreach($Righe as $Riga){
 					$Atto=$Atti->addChild('Atto');
-					$riga=$Atto->addChild('NomeEnte', stripcslashes($Riga->NomeEnte));
+					$riga=$Atto->addChild('NomeEnte', wp_strip_all_tags($Riga->NomeEnte));
 					$riga=$Atto->addChild('Numero', $Riga->Numero);
-					$riga=$Atto->addChild('Riferimento', stripcslashes($Riga->Riferimento));
-					$riga=$Atto->addChild('Oggetto', stripcslashes($Riga->Oggetto));
+					$riga=$Atto->addChild('Riferimento', wp_strip_all_tags($Riga->Riferimento));
+					$riga=$Atto->addChild('Oggetto', wp_strip_all_tags($Riga->Oggetto));
 					$riga=$Atto->addChild('DataInizio', $Riga->DataInizio);
 					$riga=$Atto->addChild('DataFine', $Riga->DataFine);
-					$riga=$Atto->addChild('Informazioni',stripcslashes($Riga->Informazioni));
+					$riga=$Atto->addChild('Informazioni',wp_strip_all_tags($Riga->Informazioni));
 					$riga=$Atto->addChild('Categoria',$Riga->Categoria);
 					$riga=$Atto->addChild('DataAnnullamento',$Riga->DataAnnullamento);
-					$riga=$Atto->addChild('MotivoAnnullamento',stripcslashes($Riga->MotivoAnnullamento));					
+					$riga=$Atto->addChild('MotivoAnnullamento',wp_strip_all_tags($Riga->MotivoAnnullamento));					
 				}	
 				$Dir=str_replace("\\","/",Albo_DIR.'/Repertori');
 				if (!is_dir ( $Dir))
@@ -177,8 +165,7 @@ if(isset($_REQUEST['action'] )){
 				Go_Utility();
 				break;
 			} 		
-			$location='Location: '.$_REQUEST['elenco_Backup_Expo'];
-			wp_redirect( ap_DaPath_a_URL($location) );
+			DownloadFile(WP_CONTENT_DIR ."/AlboOnLine/BackupDatiAlbo/".$_REQUEST['elenco_Backup_Expo']);
 			break;
 		case "delete-allegato-atto" :
 			$location = "?page=atti" ;
@@ -234,6 +221,108 @@ if(isset($_REQUEST['action'] )){
 			$location = "?page=responsabili" ;
 			$location = add_query_arg( 'id', (int)$_GET['id'], $location );
 			$location = add_query_arg( 'action', 'edit', $location );
+			wp_redirect( $location );
+			break;
+		case 'edit-tipofile':
+			if (!isset($_REQUEST['modtipfil'])) {
+				Go_Responsabili();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['modtipfil'],'edittipofilee')){
+				Go_Responsabili();
+				break;
+			} 		
+			$location = "?page=tipifiles" ;
+			$location = add_query_arg( 'id', $_GET['id'], $location );
+			$location = add_query_arg( 'action', 'edit', $location );
+			wp_redirect( $location );
+			break;			
+		case 'set-default':
+//			var_dump($_REQUEST);die();
+			if (!isset($_REQUEST['tipifiles'])) {
+				Go_TipiFiles();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['tipifiles'],'elabtipifiles')){
+				Go_TipiFiles();
+				break;
+			} 		
+			$location = "?page=tipifiles" ;
+			$TipidiFiles=array();
+			$TipidiFiles["ndf"]= array("Descrizione"=>"Tipo file non definito","Icona"=>Albo_URL."img/notipofile.png","Verifica"=>"");
+			$TipidiFiles["pdf"]= array("Descrizione"=>"File Pdf","Icona"=>Albo_URL."img/Pdf.png","Verifica"=>"");
+			$TipidiFiles["p7m"]= array("Descrizione"=>"File firmato digitalmente","Icona"=>Albo_URL."img/firmato.png","Verifica"=>htmlspecialchars("<a href=\"http://vol.ca.notariato.it/\" onclick=\"window.open(this.href);return false;\">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>"));
+			update_option('opt_AP_TipidiFiles', $TipidiFiles);
+			wp_redirect( $location );
+			break;			
+		case 'delete-tipofile':
+//			var_dump($_REQUEST);die();
+			if (!isset($_REQUEST['canctipfil'])) {
+				Go_TipiFiles();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['canctipfil'],'deletetipofile')){
+				Go_TipiFiles();
+				break;
+			} 		
+			$location = "?page=tipifiles" ;
+			if(ap_delete_tipofiles($_REQUEST['id'])){
+				$location = add_query_arg( 'message', 2, $location );
+			}else{
+				$location = add_query_arg( 'message', 6, $location );
+			}
+			wp_redirect( $location );
+			break;	
+		case 'add-tipofile':
+//			var_dump($_REQUEST);die();
+			if (!isset($_REQUEST['tipifiles'])) {
+				Go_TipiFiles();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['tipifiles'],'elabtipifiles')){
+				Go_TipiFiles();
+				break;
+			} 	
+			$location = "?page=tipifiles" ;
+			if((!isset($_REQUEST['id']) OR $_REQUEST['id']=='') OR
+			   (!isset($_REQUEST['descrizione']) OR $_REQUEST['descrizione']=='') OR 
+			   (!isset($_REQUEST['icona']) OR $_REQUEST['icona']=='')){
+				$location = add_query_arg( 'message', 8, $location );
+			}else{
+				if(ap_add_tipofiles($_REQUEST['id'],$_REQUEST['descrizione'],$_REQUEST['icona'],$_REQUEST['verifica'])){
+					$location = add_query_arg( 'message', 1, $location );
+				}else{
+					$location = add_query_arg( 'message', 4, $location );
+				}				
+			}
+			wp_redirect( $location );
+			break;	
+		case 'memo-tipofile':
+			if (!isset($_REQUEST['tipifiles'])) {
+				Go_TipiFiles();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['tipifiles'],'elabtipifiles')){
+				Go_TipiFiles();
+				break;
+			} 		
+//			var_dump($_REQUEST);die();
+			$location = "?page=tipifiles" ;
+			if (!isset( $_REQUEST['id'] )){
+				$location = add_query_arg( 'errore', 'Tipo file non definito', $location );
+				$location = add_query_arg( 'message', 5, $location );
+				$location = add_query_arg( 'Descrizione', $_REQUEST['descrizione'], $location );
+				$location = add_query_arg( 'Icona', $_REQUEST['icona'], $location );
+				$location = add_query_arg( 'Verifica', $_REQUEST['verifica'], $location );
+				$location = add_query_arg( 'action', 'edit_err', $location );
+				$location = add_query_arg( 'id', $_REQUEST['id'], $location );
+			}else
+				if (ap_memo_tipofiles($_REQUEST['id'],$_REQUEST['descrizione'],$_REQUEST['icona'],$_REQUEST['verifica']))
+					$location = add_query_arg( 'message', 3, $location );
+				else
+					$location = add_query_arg( 'message', 5, $location );
+	//		global $wpdb;
+	//		echo $wpdb->last_query;exit; 
 			wp_redirect( $location );
 			break;
 		case 'memo-responsabile':
@@ -355,9 +444,9 @@ if(isset($_REQUEST['action'] )){
 			} 			
 			$location = "?page=enti" ;
 			$errore="";
-			if ($_REQUEST['ente-nome']=='') $errore.="Bisogna valorizzare il Nome dell' Ente <br />";
-			if (!is_email( $_REQUEST['ente-email'])) $errore.="Email non valida <br />"; 
-			if (!is_email( $_REQUEST['ente-pec'])) $errore.="Pec non valida <br />"; 
+			if ($_REQUEST['ente-nome']=='') $errore.="Bisogna valorizzare il Nome dell' Ente ";
+			if (!is_email( $_REQUEST['ente-email'])) $errore.="Email non valida "; 
+			if (!is_email( $_REQUEST['ente-pec'])) $errore.="Pec non valida "; 
 			if (strlen($errore)>0){
 				$location = add_query_arg( 'errore', $errore, $location );
 				$location = add_query_arg( 'message', 4, $location );
@@ -370,6 +459,7 @@ if(isset($_REQUEST['action'] )){
 				$location = add_query_arg( 'ente-fax', $_REQUEST['ente-fax'], $location );
 				$location = add_query_arg( 'ente-note', $_REQUEST['ente-note'], $location );
 				$location = add_query_arg( 'action', $_REQUEST['action2'], $location );
+				$location = add_query_arg( 'id', $_REQUEST['id'], $location );
 			}
 			else
 				if (!is_wp_error(ap_memo_ente((int)$_REQUEST['id'],
@@ -505,7 +595,7 @@ if(isset($_REQUEST['action'] )){
 				break;
 			} 
 			$location = "?page=atti" ;
-			$ret=ap_insert_atto($_POST['Ente'],
+			$NewIDAtto=ap_insert_atto($_POST['Ente'],
 					            $_POST['Data'],
 			                    $_POST['Riferimento'],
 								$_POST['Oggetto'],
@@ -515,11 +605,16 @@ if(isset($_REQUEST['action'] )){
 								$_POST['Note'],
 								$_POST['Categoria'],
 								$_POST['Responsabile']);
-			if ( !$ret)
+			if ( is_numeric( $NewIDAtto ))
 				$location = add_query_arg( 'message', 1, $location );
 			else{
 				$location = add_query_arg( 'message', 4, $location );
 				$location = add_query_arg( 'errore', $ret , $location );		
+			}
+			if(is_array($_REQUEST['newMetaName'])){
+				for($i=0;$i<count($_REQUEST['newMetaName']);$i++){
+					ap_add_attimeta($NewIDAtto,$_REQUEST['newMetaName'][$i],$_REQUEST['newValue'][$i]);
+				}				
 			}
 			wp_redirect( $location );
 			break;
@@ -531,7 +626,7 @@ if(isset($_REQUEST['action'] )){
 			if (!wp_verify_nonce($_REQUEST['modificaatto'],'editatto')){
 				Go_Atti();
 				break;
-			} 		
+			}	
 			$location = "?page=atti" ;
 			$ret=ap_memo_atto((int)$_REQUEST['id'],
 							  $_REQUEST['Ente'],
@@ -548,10 +643,35 @@ if(isset($_REQUEST['action'] )){
 				$location = add_query_arg( 'message', 3, $location );
 			else
 				$location = add_query_arg( 'message', 5, $location );
+			ap_remove_metasatto((int)$_REQUEST['id'],(is_array($_REQUEST['newMetaName'])?$_REQUEST['newMetaName']:""));
+			if(is_array($_REQUEST['newMetaName'])){
+				for($i=0;$i<count($_REQUEST['newMetaName']);$i++){
+					ap_add_attimeta((int)$_REQUEST['id'],$_REQUEST['newMetaName'][$i],$_REQUEST['newValue'][$i]);
+				}				
+			}
+			wp_redirect( $location );
+			break;
+		case "memo_metadati_atto":
+			if (!isset($_REQUEST['mmda'])) {
+				Go_Atti();
+				break;	
+			}
+			if (!wp_verify_nonce($_REQUEST['mmda'],'editmetadatiattoatto')){
+				Go_Atti();
+				break;
+			}		
+			$location = "?page=atti" ;	
+			$location = add_query_arg( 'message',12, $location );
+			if(is_array($_REQUEST['newMetaName']) And count($_REQUEST['newMetaName'])>0){
+				for($i=0;$i<count($_REQUEST['newMetaName']);$i++){
+					ap_add_attimeta((int)$_REQUEST['id'],$_REQUEST['newMetaName'][$i],$_REQUEST['newValue'][$i]);
+				}				
+			}
+			ap_remove_metasatto((int)$_REQUEST['id'],$_REQUEST['newMetaName']);
 			wp_redirect( $location );
 			break;
 		case "memo-allegato-atto":
-			$location = site_url()."/wp-admin/admin.php?page=atti" ;
+//			$location = site_url()."/wp-admin/admin.php?page=atti" ;
 			$location='?page=atti&action=allegati-atto&id='.(int)$_REQUEST['id'].'&allegatoatto='.wp_create_nonce('gestallegatiatto');
 			if (!isset($_REQUEST['uploallegato'])) {
 				Go_Atti();
@@ -605,7 +725,6 @@ if(isset($_REQUEST['action'] )){
 }
 }
 
-
 function Memo_allegato_atto(){
 	if ($_REQUEST["operazione"]=="upload"){
 		if (!isset($_REQUEST['uploallegato'])) {
@@ -628,7 +747,9 @@ function Memo_allegato_atto(){
 //			if ($_FILES["file"]["type"] != "application/pdf"){
 //				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
 			if (!ap_isAllowedExtension(strtolower($_FILES["file"]["name"]))){
-				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato PDF e p7m";
+				$TipiAmmessi=ap_tipiFileAmmessi();
+				$TipiAmmessi= implode(", ", $TipiAmmessi);
+				$messages= "Tipo file non valido, sono ammessi soltanto i file in formato ".$TipiAmmessi;
 			}else{
 				if (($DimFile>(int)ini_get('upload_max_filesize')) and ($UnitM==" MB")){
 					$messages= "Il file caricato &egrave; di ".$DimFile." Mb, il limite massimo &egrave; di 20 Mb";
@@ -677,10 +798,14 @@ function Go_Responsabili(){
 	$location = add_query_arg( 'message', 80, $location );
 	wp_redirect( $location );
 }
+function Go_TipiFiles(){
+	$location = "?page=tipifiles" ;
+	$location = add_query_arg( 'message', 80, $location );
+	wp_redirect( $location );
+}
 function Go_Utility(){
 	$location = "?page=utilityAlboP" ;
 	$location = add_query_arg( 'message', 80, $location );
 	wp_redirect( $location );
 }
-
 ?>

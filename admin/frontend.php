@@ -62,14 +62,15 @@ function VisualizzaAtto($id){
 	ap_insert_log(5,5,$id,"Visualizzazione");
 	$coloreAnnullati=get_option('opt_AP_ColoreAnnullati');
 	if($risultato->DataAnnullamento!='0000-00-00')
-		$Annullato='<p style="background-color: '.$coloreAnnullati.';text-align:center;font-size:1.5em;padding:5px;">Atto Annullato dal Responsabile del Procedimento<br /><br />Motivo: <span style="font-size:1;font-style: italic;">'.stripslashes($risultato->MotivoAnnullamento).'</span></p>';
+		$Annullato='<p style="background-color: '.$coloreAnnullati.';text-align:center;font-size:1.5em;">Atto Annullato dal Responsabile del Procedimento<br /><br />Motivo: <span style="font-size:1;font-style: italic;">'.stripslashes($risultato->MotivoAnnullamento).'</span></p>';
 	else
 		$Annullato='';
 echo '
-<div class="Visalbo" >
+<div class="Visalbo">
 <h2 >Dati atto</h2>
-<a href="'.get_permalink( ).'" title="Torna alla lista degli atti">Torna alla Lista</a>
+<p><a href="'.$_SERVER['HTTP_REFERER'].'" title="Torna alla lista degli atti">Torna alla Lista</a>
 '.$Annullato.'
+</p>
 <table class="tabVisalbo">
 	    <tbody id="dati-atto">
 		<tr>
@@ -107,8 +108,21 @@ echo '
 		<tr>
 			<th>Categoria</th>
 			<td style="vertical-align: middle;">'.stripslashes($risultatocategoria->Nome).'</td>
-		</tr>
-	    </tbody>
+		</tr>';
+$MetaDati=ap_get_meta_atto($id);
+if($MetaDati!==FALSE){
+	$Meta="";
+	foreach($MetaDati as $Metadato){
+		$Meta.="{".$Metadato->Meta."=".$Metadato->Value."} - ";
+	}
+	$Meta=substr($Meta,0,-3);
+		echo'
+				<tr>
+					<th>Meta Dati</th>
+					<td style="vertical-align: middle;">'.$Meta.'</td>
+				</tr>';
+}
+echo' 	    </tbody>
 	</table>';
 if ($responsabile){
 	echo '<h3>Responsabile</h3>
@@ -145,30 +159,27 @@ echo'
 }
 echo '<h3>Allegati</h3>';
 //print_r($_SERVER);
+$TipidiFiles=ap_get_tipidifiles();
 foreach ($allegati as $allegato) {
- 	switch (ap_ExtensionType($allegato->Allegato)){
-		case 'pdf':
-			$Estensione="Pdf.png";
-			$Verifica="";
-			break;
-		case "p7m":
-			$Estensione="firmato.png";
-			$Verifica='<br /><a href="http://vol.ca.notariato.it/" onclick="window.open(this.href);return false;">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>';
-			break;
-	}
+	$Estensione=ap_ExtensionType($allegato->Allegato);
 	echo '<div class="Visallegato">
-			<div class="Allegato">
-				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona Visualizza Atto" style="margin-left:10px;margin-top:10px;"/>
-			</div>
+			<div class="Allegato">';
+	if(isset($allegato->TipoFile) and $allegato->TipoFile!="" and ap_isExtensioType($allegato->TipoFile)){
+		$Estensione=ap_ExtensionType($allegato->TipoFile);
+		echo '<img src="'.$TipidiFiles[$Estensione]['Icona'].'" alt="'.$TipidiFiles[$Estensione]['Descrizione'].'" height="30" width="30"/>';
+	}else{
+		echo '<img src="'.$TipidiFiles[strtolower($Estensione)]['Icona'].'" alt="'.$TipidiFiles[strtolower($Estensione)]['Descrizione'].'" height="30" width="30"allegato/>';
+	}
+	echo '</div>
 			<div>
 				<p>
-					'.strip_tags($allegato->TitoloAllegato).' <br />';
+					'.strip_tags($allegato->TitoloAllegato);
 			if (strpos(get_permalink(),"?")>0)
 				$sep="&amp;";
 			else
 				$sep="?";
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica.' <a href="'.get_permalink().$sep.'action=dwnalle&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >Scarica allegato</a>';
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" class="addstatdw" rel="'.get_permalink().$sep.'action=addstatall&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')<br />'.htmlspecialchars_decode($TipidiFiles[strtolower($Estensione)]['Verifica']).' <a href="'.get_permalink().$sep.'action=dwnalle&amp;id='.$allegato->IdAllegato.'&amp;idAtto='.$id.'" >Scarica allegato</a>';
 				
 			else
 				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
@@ -282,20 +293,20 @@ function VisualizzaRicerca($Stato=1,$cat=0,$StatoFinestra="si"){
 	return $HTMLC;
 }
 function Lista_Atti($Parametri,$Categoria=0,$Anno=0,$Oggetto='',$Dadata=0,$Adata=0){
-switch ($Parametri['stato']){
-		case 0:
-			$TitoloAtti="Tutti gli Atti";
-			break;
-		case 1:
-			$TitoloAtti="Atti in corso di Validit&agrave;";
-			break;
-		case 2:
-			$TitoloAtti="Atti Scaduti";
-			break;
-		case 3:
-			$TitoloAtti="Atti da Pubblicare";
-			break;
-}
+	switch ($Parametri['stato']){
+			case 0:
+				$TitoloAtti="Tutti gli Atti";
+				break;
+			case 1:
+				$TitoloAtti="Atti in corso di Validit&agrave;";
+				break;
+			case 2:
+				$TitoloAtti="Atti Scaduti";
+				break;
+			case 3:
+				$TitoloAtti="Atti da Pubblicare";
+				break;
+	}
 	if (isset($Parametri['per_page'])){
 		$N_A_pp=$Parametri['per_page'];	
 	}else{

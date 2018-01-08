@@ -78,7 +78,7 @@ $Ele_Cate=ap_get_dropdown_categorie("Categoria","Categoria","","","Nessuna", TRU
 	<div class="mceActionPanel">
 		<form name="form" action="#" method="get" accept-charset="utf-8">
 				<p>
-				<label for="StatoAtti"><strong>Sato Atti</strong></label>
+				<label for="StatoAtti"><strong>Stato Atti</strong></label>
 					<select id="StatoAtti" name="StatoAtti">
 						<option value="1">Atti Correnti</option>
 						<option value="2">Atti Scaduti, Storico</option>

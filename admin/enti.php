@@ -12,15 +12,17 @@ if(preg_match('#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'])) { die('You 
 $messages[1] = __('Item added.');
 $messages[2] = __('Item deleted.');
 $messages[3] = __('Item updated.');
-$messages[4] = __('Item not added.');
+$messages[4] = "Elemento non Memorizzato";
 $messages[5] = __('Item not updated.');
 $messages[6] = __('Item not deleted.');
 $messages[7] = __('Impossibile cancellare Enti che sono collegati ad Atti');
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
-<h2 style="font-size: 2em;">Enti <a href="?page=enti" class="add-new-h2">Aggiungi nuovo</a></h2>
-
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-awards" style="font-size: 1.1em;"></span> Enti
+		<a href="?page=enti" class="add-new-h2">Aggiungi nuovo</a></h2>
+	</div>
 <?php 
 if ( (isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message']))) {
 	echo '<div id="message" class="updated"><p>'.$messages[$msg];
@@ -60,13 +62,13 @@ if ($lista){
 		echo'<li style="text-align:left;padding-left:1px;">';
 	 	$Tab=0;
 		if($riga->IdEnte>0 and ap_num_enti_atto($riga->IdEnte)==0)
-			echo '<a href="?page=enti&amp;action=delete-ente&amp;id='.$riga->IdEnte.'&amp;cancellaente='.wp_create_nonce('deleteente').'" rel="'.stripslashes($riga->Nome).'" class="dr">
-					<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-					</a>';
+			echo '<span class="cancella"><a href="?page=enti&amp;action=delete-ente&amp;id='.$riga->IdEnte.'&amp;cancellaente='.wp_create_nonce('deleteente').'" rel="'.stripslashes($riga->Nome).'" class="dr">
+					<span class="dashicons dashicons-trash" title="Cancella ente"></span>
+					</a></span>';
 		else
-			$Tab=20;		
+			$Tab=23;		
 		echo '					<a href="?page=enti&amp;action=edit-ente&amp;id='.$riga->IdEnte.'&amp;modificaente='.wp_create_nonce('editente').'" rel="'.stripslashes($riga->Nome).'">
-					<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit"  style="margin-left:'.$Tab.'px;"/>
+					<span class="dashicons dashicons-edit" title="Modifica ente" style="margin-left:'.$Tab.'px;"></span>
 					</a>';
 		echo '<strong>'.stripslashes($riga->Nome).'</strong> (n&ordm; atti '.ap_num_enti_atto($riga->IdEnte).')';
 		echo '</li>';
@@ -173,4 +175,3 @@ if($edit) {
 </div>
 </div><!-- /col-container -->
 </div><!-- /wrap -->
-

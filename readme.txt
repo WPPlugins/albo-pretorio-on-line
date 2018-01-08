@@ -3,8 +3,8 @@ Contributors: Scimone Ignazio
 Donate link: www.eduva.org
 Tags: Albo Pretorio, Codice Amministrazione Digitale, Upload File
 Requires at least: 3.5
-Tested up to: 4.7.2
-Stable tag: 4.0.4
+Tested up to: 4.9.1
+Stable tag: 4.1
 Albo Pretorio On Line permette la gestione dell'albo pretorio on line in base al nuovo Codice dell'Amministrazione Digitale
 == Description ==
 
@@ -33,6 +33,13 @@ Di seguito sono riportati i passi necessari per l'installazione del plugin. la p
 <strong>filtri</strong> opzionale indica se deve essere visualizzata la finestra dei filtri. Se non specificato i filtri vengono visualizzati. utile nel caso si utizza lo shortcode nelle pagine dell'Amministrazione Trasparente
 <strong>minfiltri</strong> opzionale indica se deve essere attivata la minimizzazione della finestra dei filtri. Se non specificato viene attivata la minimizzazione della finestra filtri.
 == Changelog ==
+= 4.0.4 = 
+- <strong>Introdotti</strong> i metadati dell'atto
+- <strong>Introdotta</strong> la gestione dei tipi di file
+- <strong>Introdotta</strong> la possibilità di modificare l'interfaccia del frontend con le “Linee guida di design per i servizi web della PA”
+- <strong>Modificata</strong> l'interfaccia del backend con icone standard Wordpress e sempre visibili negli elenchi degli atti
+- <strong>Modificata</strong> la bacheca, sono stati introdotti alcuni controlli sulle impostazioni del plugin
+- <strong>Risolti</strong> vari bug minori
 = 4.0.4 = 
 - <strong>Risolto</strong> Falso positivo segnalato da Maldet Linux Malware Detect (LMD) sulla funzione che permetteva di estrarre i permessi dei files e delle cartelle 
 - <strong>Corretti</strong> piccoli errori di codice HTML che non facevano validare le pagine del front end

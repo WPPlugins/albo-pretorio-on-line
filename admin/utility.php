@@ -29,7 +29,8 @@ if (isset($_REQUEST['action'])){
 				$Stato="ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l'operazione &egrave; stata annullata";
 				menu($Stato);
 				break;
-			} 			ap_crearobots();
+			} 			
+			ap_crearobots();
 			menu();
 			break;
 		case "rip":
@@ -72,7 +73,7 @@ if (isset($_REQUEST['action'])){
 				break;
 			} 			
 			$Data=date('Ymd_H_i_s');
-			$nf=ap_BackupDatiFiles($Data);
+			$nf=ap_BackupDatiFiles($Data,"",AlboBCK,TRUE);
 			$filename=WP_CONTENT_DIR."/AlboOnLine/BackupDatiAlbo/tmp/msg.txt";
 			$fpmsg = @fopen($filename, "rb");
 				$Stato=fread($fpmsg,filesize($filename));
@@ -173,8 +174,9 @@ if (isset($_REQUEST['action'])){
 
 function CreaCategorie(){
 echo '<div class="wrap">
-	<img src="'.Albo_URL.'/img/utility.png" alt="Icona Permessi" style="display:inline;float:left;margin-top:5px;"/>
-		<h2 style="margin-left:40px;">Creazione Categorie</h2>
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-admin-generic" style="font-size:1em;" style="font-size:1em;"></span> Creazione Categorie
+	</div>
 		<div class="widefat">
 			<table style="width:99%;">
 				<thead>
@@ -199,8 +201,9 @@ function SvuotaLog($Tipo){
 }
 function MSGOblio(){
 echo '<div class="wrap">
-	<img src="'.Albo_URL.'/img/utility.png" style="display:inline;float:left;margin-top:5px;"/>
-		<h2 style="margin-left:40px;">Implementazione Oblio</h2>
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-admin-generic" style="font-size:1em;"></span> Implementazione Oblio
+	</div>
 		<div class="widefat">
 			<p>
 				Prima di implementare il diritto all\'oblio &egrave; importante fare un BACKUP dei seguenti elementi:
@@ -241,7 +244,7 @@ function ImplementaOblio(){
 		ap_sposta_allegati($oldPathAllegati,$elimina);	
 	else
 		ap_NoIndexNoDirectLink($newPathAllegati);
-	$nomeFile=Albo_DIR."/BackupDatiAlbo/tmp/msg.txt";
+	$nomeFile=AlboBCK."/BackupDatiAlbo/tmp/msg.txt";
 	$fpmsg = @fopen($nomeFile, "r");
 	if ($fpmsg) {
 		$contenuto=fread($fpmsg,filesize($nomeFile));
@@ -273,7 +276,9 @@ else
 $upload_dir = wp_upload_dir();
 $basedir=substr( $upload_dir['basedir'],0,strlen($upload_dir['basedir'])-19);
 echo '<div class="wrap">
-	<h2 style="font-size:2em;">Utility</h2>';
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-admin-generic" style="font-size:1em;"></span> Utility
+	</div>';
 if ($Stato!="") 
 	echo '<div id="message" class="updated"><p>'.str_replace("%%br%%","<br />",$Stato).'</p></div>
       <meta http-equiv="refresh" content="2;url=admin.php?page=utilityAlboP"/>';
@@ -282,7 +287,7 @@ echo '<input type="hidden" id="Pagina" value="'.$Pag.'" />
 					<ul>
 						<li><a href="#utility-tab-1">Ripubblicazione Atti</a></li>
 						<li><a href="#utility-tab-2">Verifica procedura</a></li>
-						<li><a href="#utility-tab-3">Post trasferimento sito</a></li>
+						<li><a href="#utility-tab-3">Diritto all\'Oblio</a></li>
 						<li><a href="#utility-tab-4">Pulitura file di Log</a></li>
 						<li><a href="#utility-tab-5">Backup dei dati dell\'Albo Pretorio</a></li>
 						<li><a href="#utility-tab-6">Repertorio</a></li>
@@ -348,15 +353,15 @@ Questa procedura esegue le operazioni necessarie per l\'allineamento dei files e
 						</li>
 					</ul>
 		</div>';
-$elenco="<option value='' selected='selected'>Nessuno</option>";
+//$elenco="<option value='' selected='selected'>Nessuno</option>";
 $elencoExpo="";
 $Dir=str_replace("\\","/",WP_CONTENT_DIR.'/AlboOnLine/BackupDatiAlbo');
 if (is_dir($Dir)){
 	$files_bck = scandir($Dir, 1);
 	foreach($files_bck as $fileinfo) {
 		if (is_file($Dir."/".$fileinfo)) {
-				$elenco.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
-				$elencoExpo.="<option value='".$Dir."/".$fileinfo."'>".$fileinfo."</option>"; 
+//				$elenco.="<option value='".$fileinfo."'>".$fileinfo."</option>"; 
+				$elencoExpo.="<option value='".$fileinfo."'>".$fileinfo."</option>"; 
 		}
 	}
 }
@@ -452,7 +457,7 @@ switch ($Tabella){
 									"Key" => "", 
 									"Default" => "0000-00-00", 
 									"Extra" =>""),
-					"Riferimento" => array("Tipo" => "varchar(255)", 
+					"Riferimento" => array("Tipo" => "text", 
 										   "Null" =>"No", 
 										   "Key" => "", 
 										   "Default" => "", 
@@ -473,7 +478,7 @@ switch ($Tabella){
 										"Default" => "0000-00-00", 
 										"Extra" =>""),
 					"Informazioni" => array("Tipo" => "text", 
-											"Null" =>"YES", 
+											"Null" =>"NO", 
 											"Key" => "", 
 											"Default" => "", 
 											"Extra" =>""),
@@ -492,7 +497,7 @@ switch ($Tabella){
 												"Key" => "", 
 												"Default" => "0000-00-00", 
 												"Extra" =>""),
-					"MotivoAnnullamento" => array("Tipo" => "varchar(255)", 
+					"MotivoAnnullamento" => array("Tipo" => "text", 
 												  "Null" =>"YES", 
 												  "Key" => "", 
 												  "Default" => "", 
@@ -688,6 +693,28 @@ switch ($Tabella){
 									  "Default" => "", 
 									  "Extra" =>""));
 		break;
+	case $wpdb->table_name_Attimeta:
+		$Par=array("IdAttoMeta" => array("Tipo" => "int(11)", 
+										 "Null" =>"NO", 
+										 "Key" => "PRI", 
+										 "Default" => "", 
+										 "Extra" =>"auto_increment"),
+		  		   "IdAtto" => array("Tipo" => "int(11)", 
+					 						 "Null" =>"NO", 
+											 "Key" => "", 
+											 "Default" => "", 
+											 "Extra" =>""),
+		  		   "Meta" => array("Tipo" => "varchar(100)", 
+					 						 "Null" =>"NO", 
+											 "Key" => "", 
+											 "Default" => "", 
+											 "Extra" =>""),
+				   "Value" => array("Tipo" => "text", 
+										"Null" =>"YES", 
+										"Key" => "", 
+										"Default" => "", 
+										"Extra" =>""));
+		break;
 }
         $wpdb->flush();
         $result=$wpdb->get_results("Describe $Tabella");
@@ -716,7 +743,7 @@ switch ($Tabella){
 			}
 		}
 		if ($Verificato == True)
-			$Msg.= '<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;margin-top:5px;"/>';
+			$Msg.= '<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
 		return $Msg;
 }
 function TestCongruitaDati($Tabella){
@@ -811,6 +838,22 @@ global $wpdb;
 			}
 			return "<em>Enti codificati </em><strong>".$NumEnti."</strong> <em>di cui inutilizzati</em><strong> ".$NumEntiInutilizzati."</strong> <br />".$UsoEnti; 
 			break;
+		case $wpdb->table_name_Attimeta:
+			$MetaDati=ap_get_elenco_attimeta("Array","listaAttiMeta","ListaAttiMeta","Si",0,TRUE);
+			$MetaRighe="";
+			foreach ($MetaDati as $MetaDato){
+				$MetaRighe.="<strong>".$MetaDato->Meta."</strong> => <strong> ".$MetaDato->Value."</strong> Presente in </em><br />";
+				$Atti="";
+				$AttiEstratti=ap_get_GruppiAtti($MetaDato->Meta,$MetaDato->Value);
+				foreach($AttiEstratti as $AttiEstratto){
+					$MetaRighe.="   (<a href='".get_admin_url()."admin.php?page=atti&action=view-atto&id=".$AttiEstratto->IdAtto."&stato_atti=Tutti'>".$AttiEstratto->IdAtto."</a>) ".$AttiEstratto->Oggetto."<br />";
+				}
+			}
+			return "<em>Meta Dati codificati </em>".$MetaRighe; 
+			break;			
+			
+			
+			
 	}	
 }
 
@@ -822,7 +865,8 @@ $Tabelle=array($wpdb->table_name_Atti,
 			   $wpdb->table_name_Allegati,
 			   $wpdb->table_name_Log,
 			   $wpdb->table_name_RespProc,
-			   $wpdb->table_name_Enti);
+			   $wpdb->table_name_Enti,
+			   $wpdb->table_name_Attimeta);
 if(is_file(AP_BASE_DIR.get_option('opt_AP_FolderUpload')."/.htaccess"))
 	$ob1=TRUE;
 else	
@@ -836,11 +880,11 @@ if(is_file(APHomePath."/robots.txt"))
 else	
 	$ob3=FALSE;
 echo '<div class="wrap">
-		<h2 style="font-size:2em;">Analisi Procedura</h2>
-		<div class="postbox-container" style=";margin-top:20px;">
-			<a class="add-new-h2 tornaindietro" href="'.htmlentities($_SERVER['PHP_SELF']).'?page=utilityAlboP" >
-			Torna indietro
-			</a>
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-admin-generic" style="font-size:1em;"></span> Analisi procedura
+		<a href="?page=utilityAlboP" class="add-new-h2">Aggiungi nuovo</a></h2>
+	</div>		
+	<div class="postbox-container" style=";margin-top:20px;">
 		<h3>Librerie</h3>
 			<div class="widefat">
 				<table style="width:99%;">
@@ -856,9 +900,9 @@ echo '<div class="wrap">
 							<td>PclZip</td>
 							<td>';
 if (is_file(Albo_DIR.'/inc/pclzip.php')) 
- 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/></td><td>--</td>';
+ 		echo'<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span></td><td>--</td>';
 	else
-		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/></td>
+		echo'<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span></td>
 		<td>Senza questa libreria non puoi eseguire i Backup</td>';							
 echo '							
 						</tr>
@@ -883,15 +927,15 @@ echo'
 							<td>'.AP_BASE_DIR.get_option('opt_AP_FolderUpload').'</td>
 							<td>';
 if($ob1)
- 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+ 		echo'<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
 	else
-		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
+		echo'<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';							
 echo '							</td>
 							<td>';
 if($ob2)
- 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+ 		echo'<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
 	else
-		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
+		echo'<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';							
 echo '							</td>
 			<td></td>';
 //if (!$ob1 or !$ob2)
@@ -904,9 +948,9 @@ echo '
 							<td></td>
 							<td>';
 if($ob3)
- 		echo'<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+ 		echo'<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
 	else
-		echo'<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';							
+		echo'<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';							
 echo '							</td>';
 //if (!$ob3)
 echo '							<td><a href="?page=utilityAlboP&amp;action=Crearobots&amp;creasic='.wp_create_nonce('creasicurezza').'">Crea</a></td>';
@@ -930,12 +974,65 @@ $CartellaUp=str_replace("\\","/",AP_BASE_DIR.get_option('opt_AP_FolderUpload'));
 $permessi=ap_get_fileperm($CartellaUp);		
 $permProp=ap_get_fileperm_Gruppo($CartellaUp,"Proprietario");
 if($permProp==7 Or $permProp==6 Or $permProp==3 Or $permProp==2)
- 		$StatoCartella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;"/>';
+ 		$StatoCartella='<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
 	else
-		$StatoCartella='<img src="'.Albo_URL.'/img/cross.png" alt="Icona Non Verificato" style="display:inline;float:left;"/>';
+		$StatoCartella='<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';
  						
 echo '				<tr>
 						<td>'.$CartellaUp.'</td>
+						<td>'.$permessi.'</td>
+						<td>'.$StatoCartella.'</td>
+					</tr>
+					</tbody>
+				</table>
+		</div>
+		<h3>Permessi Cartella Servizio</h3>
+			<div class="widefat">
+				<table style="width:99%;">
+					<thead>
+						<tr>
+							<th style="text-align:left;width:380px;">Cartella</th>
+							<th style="text-align:left;width:100px;">Permessi</th>
+							<th style="text-align:left;width:100px;">Stato</th>
+						</tr>
+					</thead>
+					<tbody>';
+$Cartella=AlboBCK;
+$permessi=ap_get_fileperm($Cartella);		
+$permProp=ap_get_fileperm_Gruppo($Cartella,"Proprietario");
+if($permProp==7 Or $permProp==6 Or $permProp==3 Or $permProp==2)
+ 		$StatoCartella='<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
+	else
+		$StatoCartella='<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';
+ 						
+echo '				<tr>
+						<td>'.$Cartella.'</td>
+						<td>'.$permessi.'</td>
+						<td>'.$StatoCartella.'</td>
+					</tr>';
+$Cartella=AlboBCK.'/BackupDatiAlbo';
+$permessi=ap_get_fileperm($Cartella);		
+$permProp=ap_get_fileperm_Gruppo($Cartella,"Proprietario");
+if($permProp==7 Or $permProp==6 Or $permProp==3 Or $permProp==2)
+ 		$StatoCartella='<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
+	else
+		$StatoCartella='<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';
+ 						
+echo '				<tr>
+						<td>'.$Cartella.'</td>
+						<td>'.$permessi.'</td>
+						<td>'.$StatoCartella.'</td>
+					</tr>';
+$Cartella=AlboBCK.'/OblioDatiAlbo';
+$permessi=ap_get_fileperm($Cartella);		
+$permProp=ap_get_fileperm_Gruppo($Cartella,"Proprietario");
+if($permProp==7 Or $permProp==6 Or $permProp==3 Or $permProp==2)
+ 		$StatoCartella='<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
+	else
+		$StatoCartella='<span class="dashicons dashicons-no" style="color:red;font-size:2em;"></span>';
+ 						
+echo '				<tr>
+						<td>'.$Cartella.'</td>
 						<td>'.$permessi.'</td>
 						<td>'.$StatoCartella.'</td>
 					</tr>
@@ -959,7 +1056,7 @@ echo '				<tr>
 foreach($Tabelle as $Tabella){
 	$TestCampi="";
 	if (ap_existTable($Tabella)) 
- 		$EsisteTabella='<img src="'.Albo_URL.'/img/verificato.png" alt="Icona Verificato" style="display:inline;float:left;margin-top:5px;"/>';
+ 		$EsisteTabella='<span class="dashicons dashicons-yes" style="color:#18b908;font-size:2em;"></span>';
 	else
 		$EsisteTabella='<a href="admin.php?page=utilityAlboP&action=creaTabella&Tabella='.$Tabella.'">Crea Tabella</a>';
 

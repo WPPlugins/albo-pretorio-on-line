@@ -132,6 +132,7 @@ class AdminTableAtti extends WP_List_Table
 		    'Riferimento'        => 'Riferimento',
 		    'Oggetto'          	 => 'Oggetto',
 		    'Ente'               => 'Ente',
+			'MetaDati'           => 'Meta Dati',	
 		    'Data'          	 => 'Del',
 		    'validita'           => 'Validità Dal/Al',
 		    'dataoblio'        	 => 'Oblio',
@@ -142,6 +143,7 @@ class AdminTableAtti extends WP_List_Table
 		    'Riferimento'        => 'Riferimento',
 		    'Oggetto'          	 => 'Oggetto',
 		    'Ente'               => 'Ente',
+			'MetaDati'           => 'Meta Dati',	
 		    'Data'          	 => 'Del',
 		    'Idcategoria'     	 => 'Categoria');
 		    break;
@@ -152,6 +154,7 @@ class AdminTableAtti extends WP_List_Table
 		    'Riferimento'        => 'Riferimento',
 		    'Oggetto'          	 => 'Oggetto',
 		    'Ente'               => 'Ente',
+			'MetaDati'           => 'Meta Dati',	
 		    'Data'          	 => 'Del',
 		    'validita'           => 'Validità Dal/Al',
 		    'dataoblio'        	 => 'Oblio',
@@ -180,9 +183,9 @@ class AdminTableAtti extends WP_List_Table
 	if (isset($_REQUEST['s'])){ /* mr */
 		$sortable_columns = array(
       		'Data'       => array('Data',true),
-            'Numero'       => array('Numero',true),             
-      		'DataInizio'       => array('DataInizio',true),
-      		'DataFine' => array('DataFine',false));
+            'Numero'      => array('Numero',true),             
+      		'DataInizio'  => array('DataInizio',true),
+      		'DataFine'    => array('DataFine',false));
     }else{	
    		$sortable_columns = array(
    			'Data'       => array('Data',true),
@@ -224,68 +227,76 @@ class AdminTableAtti extends WP_List_Table
 
    	  $actions = array(
 	    'visualizza'   => '<a href="?page=atti&amp;action=view-atto&amp;id='.$item->IdAtto.'&amp;stato_atti='.$this->stato_atti.'"  >
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+						<span class="dashicons dashicons-search" title="Visualizza dati atto"></span>
 					</a>');
 	$this->AzioneDefault='<a href="?page=atti&amp;action=view-atto&amp;id='.$item->IdAtto.'&amp;stato_atti='.$this->stato_atti.'" >';
 	switch($this->stato_atti){
 		case "Tutti":
-			$Msg='<span style="color: green;font-weight: bold;">Tutti</span>';
+			$Msg="";
+			$Msg.=($Scaduto?'<span style="color: rgb(23, 5, 161);font-weight: bold;">Scaduto</span>':'<span style="color: green;font-weight: bold;">Corrente</span>');
+			$Msg.=($Annullato?' <span style="color: red;font-weight: bold;">Annullato</span>':"");
 			break;		
 		case "DaPubblicare":
-			$actions['cancella'] ='<a href="?page=atti&amp;action=delete-atto&amp;id='.$item->IdAtto.'&amp;cancellaatto='.
+			$actions['cancella'] ='<span class="trash"><a href="?page=atti&amp;action=delete-atto&amp;id='.$item->IdAtto.'&amp;cancellaatto='.
 				wp_create_nonce('deleteatto').'" rel="'.strip_tags($item->Oggetto).'" tag="" class="ac">
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-					</a>';
+						<span class="dashicons dashicons-trash" title="Cancella Atto"></span>
+					</a></span>';
 			$this->AzioneDefault='<a href="?page=atti&amp;action=edit-atto&amp;id='.$item->IdAtto.'&amp;modificaatto='.
 			wp_create_nonce('editatto').'">';
 			$actions['modifica'] ='<a href="?page=atti&amp;action=edit-atto&amp;id='.$item->IdAtto.'&amp;modificaatto='.
 			wp_create_nonce('editatto').'">
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+						<span class="dashicons dashicons-edit" title="Modifica atto"></span>
 					</a>';
 			$actions['allegati'] ='<a href="?page=atti&amp;action=allegati-atto&amp;id='.$item->IdAtto.'&amp;allegatoatto='.
 			wp_create_nonce('gestallegatiatto').'">
-						<img style="vertical-align: middle;" src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
+						<span class="dashicons dashicons-upload" title="Allegati"></span>
 					</a>';
-			if (current_user_can('admin_albo')){
+			if (current_user_can('editore_atti_albo')){
 				$actions['pubblica'] ='<a href="?page=atti&amp;action=approva-atto&amp;id='.$item->IdAtto.'"  >
-	<img style="vertical-align: middle;" src="'.Albo_URL.'/img/approva.png" alt="Approva" title="Approva" />
+	<span class="dashicons dashicons-share-alt" title="Pubblica atto"></span>
 					</a>';
 			}
 			$Msg='<span style="color: green;font-weight: bold;">Da Pubblicare</span>';
 			break;
 		case "Correnti":
 			$Msg=($Annullato?'<span style="color: red;font-weight: bold;">Annullato</span>':'<span style="color: green;font-weight: bold;">Pubblicato</span>');
+			$actions['meta'] ='<a href="?page=atti&amp;action=metadati-atto&amp;id='.$item->IdAtto.'&amp;metaatto='.wp_create_nonce('operazionemetaatto').'">
+				<span class="dashicons dashicons-screenoptions" title="Gestisci metadati Atto"></span>
+			</a>';
 		break;
 		case "Scaduti":
-			$Msg=($Annullato?'<span style="color: red;font-weight: bold;">Annullato</span>':'<span style="color: green;font-weight: bold;">Pubblicato</span>');			
+			$Msg=($Annullato?'<span style="color: red;font-weight: bold;">Annullato</span>':'<span style="color: rgb(23, 5, 161);font-weight: bold;">Scaduto</span>');			
+			$actions['meta'] ='<a href="?page=atti&amp;action=metadati-atto&amp;id='.$item->IdAtto.'&amp;metaatto='.wp_create_nonce('operazionemetaatto').'">
+				<span class="dashicons dashicons-screenoptions" title="Gestisci metadati Atto"></span>
+			</a>';
 			break;
 		case "Eliminare":
-			if (current_user_can('admin_albo')){
-				$actions['delete'] ='<a href="?page=atti&amp;action=elimina-atto&amp;id='.$item->IdAtto.'&amp;cancellatto='.
+			if (current_user_can('editore_atti_albo')){
+				$actions['delete'] ='<span class="trash"><a href="?page=atti&amp;action=elimina-atto&amp;id='.$item->IdAtto.'&amp;cancellatto='.
 				wp_create_nonce('operazionecancelaatto').'">
-				<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cestino.png" alt="Elimina Atto" title="Elimina Atto" />
-			</a>';
+				<span class="dashicons dashicons-trash" title="Oblio Atto"></span>
+			</a></span>';
 			}
 			$Msg='<span style="color: red;font-weight: bold;">Oblio</span>';			
 			break;			
         case "Cerca": /* mr */
             if( $item->Numero == 0 ){    
 				$Msg=('<span style="color: green;font-weight: bold;">Da Pubblicare</span>');
-                $actions['cancella'] ='<a href="?page=atti&amp;action=delete-atto&amp;id='.$item->IdAtto.'&amp;cancellaatto='.
+                $actions['cancella'] ='<span class="trash"><a href="?page=atti&amp;action=delete-atto&amp;id='.$item->IdAtto.'&amp;cancellaatto='.
 			wp_create_nonce('deleteatto').'" rel="'.strip_tags($item->Oggetto).'" tag="" class="ac">
-					<img style="vertical-align: middle;" src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-				</a>';
+					<span class="delete dashicons dashicons-trash" title="Cancella Atto"></span>
+				</a></span>';
 				$this->AzioneDefault='<a href="?page=atti&amp;action=edit-atto&amp;id='.$item->IdAtto.'&amp;modificaatto='.
 				wp_create_nonce('editatto').'">';
 				$actions['modifica'] ='<a href="?page=atti&amp;action=edit-atto&amp;id='.$item->IdAtto.'&amp;modificaatto='.
 				wp_create_nonce('editatto').'">
-					<img style="vertical-align: middle;" src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+					<span class="dashicons dashicons-edit" title="Modifica atto"></span>
 				</a>';
 				$actions['allegati'] ='<a href="?page=atti&amp;action=allegati-atto&amp;id='.$item->IdAtto.'&amp;allegatoatto='.
 				wp_create_nonce('gestallegatiatto').'">
-					<img style="vertical-align: middle;" src="'.Albo_URL.'/img/up.png" alt="Attach" title="Allegati" />
+					<span class="dashicons dashicons-upload" title="Allegati"></span>
 				</a>';
-				if (current_user_can('admin_albo')){
+				if (current_user_can('editore_atti_albo')){
 				$actions['pubblica'] ='<a href="?page=atti&amp;action=approva-atto&amp;id='.$item->IdAtto.'"  >
 	<img style="vertical-align: middle;" src="'.Albo_URL.'/img/approva.png" alt="Approva" title="Approva" />
 					</a>';
@@ -295,18 +306,28 @@ class AdminTableAtti extends WP_List_Table
                 }
                 break;
 	}
-	if( !$Scaduto and $Annullato=='' and ($this->stato_atti=="Correnti" || $this->stato_atti=="Cerca") and current_user_can('admin_albo')){
-		$actions['annulla'] ='<a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$item->IdAtto.'">
-				<img src="'.Albo_URL.'/img/annullato32.png" alt="Annulla atto" title="Annulla atto" />
-			</a>';
+	if( !$Scaduto and $Annullato=='' and ($this->stato_atti=="Correnti" || $this->stato_atti=="Cerca") and current_user_can('editore_atti_albo')){
+		$actions['annulla'] ='<span class="trash"><a class="annullaatto" href="?page=atti&amp;action=annullamento-atto&amp;id='.$item->IdAtto.'">
+				<span class="dashicons dashicons-dismiss" title="Annulla atto"></span>
+			</a></span>';
 	}
-	return sprintf('%1$s %2$s',$Msg,
-	$this->row_actions($actions));
+	return sprintf('%1$s %2$s',$Msg,$this->row_actions($actions));
   }  
   function column_Ente($item) { 
     return stripslashes(ap_get_ente($item->Ente)->Nome); 
   }  
-  function column_Numero($item) { 
+   function column_MetaDati($item) { 
+	$MetaDati=ap_get_meta_atto($item->IdAtto);
+	$Meta="";
+	if($MetaDati!==FALSE){
+		foreach($MetaDati as $Metadato){
+			$Meta.=$Metadato->Meta."=".$Metadato->Value."<br />";
+		}
+		$Meta=substr($Meta,0,-6);
+	}
+    return stripslashes($Meta); 
+  }  
+ function column_Numero($item) { 
     return $this->AzioneDefault.$item->Numero."/".$item->Anno."</a>"; 
   }  
   function column_Data($item) { 
@@ -341,7 +362,7 @@ class AdminTableAtti extends WP_List_Table
 // azioni che devo essere presenti sul menu a tendina
 
 	function get_bulk_actions() {
-	  if (isset($_GET['stato_atti']) And $_GET['stato_atti']=="Eliminare" And current_user_can('admin_albo'))	
+	  if (isset($_GET['stato_atti']) And $_GET['stato_atti']=="Eliminare" And current_user_can('editore_atti_albo'))	
 	  	return array('delete_bulk_atti' => 'Elimina');
 	}
 
@@ -349,7 +370,7 @@ class AdminTableAtti extends WP_List_Table
 	// numero di tessera ma un campo di checkbox per la selezione
 
 	function column_cb($item) {
-	  if (current_user_can('admin_albo')){
+	  if (current_user_can('editore_atti_albo')){
 		  return sprintf('<input type="checkbox" name="IdAtto[]" value="%s"/>',$item->IdAtto);
 	  }
 	}
@@ -358,6 +379,9 @@ class AdminTableAtti extends WP_List_Table
 
 if(isset($_REQUEST['action'])){
 	switch ($_REQUEST['action']){
+		case "metadati-atto":
+			Gestione_Metadati((int)$_REQUEST['id']);
+			break;
 		case "logatto" :
 			echo json_encode(CreaLog(1,$IdAtto,0));
 			die();
@@ -444,9 +468,9 @@ if(isset($_REQUEST['action'])){
 					$message=$_REQUEST['message'];
 				elseif(strlen($_REQUEST['message'])>0)
 						$message=$_REQUEST['message'];
-			else
+				else $message="";
+			}else
 				$message="";
-			}
 
 			Lista_Atti($message);
 			break;
@@ -465,9 +489,145 @@ Lista_Atti($message);
 
 unset($_REQUEST['action']);
 
+function Gestione_Metadati($IdAtto){
+	global $AP_OnLine;
+	$risultato=ap_get_atto($IdAtto);
+	$risultato=$risultato[0];
+	$risultatocategoria=ap_get_categoria($risultato->IdCategoria);
+	$risultatocategoria=$risultatocategoria[0];
+	$responsabile=ap_get_responsabile($risultato->RespProc);
+	$responsabile=$responsabile[0];
+	$NomeEnte=ap_get_ente($risultato->Ente);
+	$NomeEnte=stripslashes($NomeEnte->Nome);
+?>
+<div class="wrap nosubsub">
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
+		<a href="<?php echo site_url();?>/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<h3>Dati Atto</h3>	
+	</div>
+	<div class="clear"><br /></div>
+	<div id="col-container">
+		<div id="col-right">
+			<form id="memo_metadati_atto" method="post" action="?page=atti" class="validate">
+			<input type="hidden" name="action" value="memo_metadati_atto" />
+			<input type="hidden" name="id" value="<?php echo $IdAtto;?>" />
+			<input type="hidden" name="mmda" value="<?php echo wp_create_nonce('editmetadatiattoatto')?>" />
+
+			<div class="col-wrap postbox" style="padding:0 10px 10px 10px;margin-left:10px;" id="MetaDati">
+			<h2 class="hndle"><span>Meta Dati Personalizzati</span> <button type="button" id="AddMeta" class="setta-def-data">Aggiungi Meta Valore</button></h2>
+				<div style="display:none;" id="newMeta">
+					<label for="listaAttiMeta">Meta già codificati</label> <?php echo ap_get_elenco_attimeta("Select","listaAttiMeta","ListaAttiMeta","Si");?>
+					<label for="newMetaName">Nome Meta</label> <input name="newMetaName" id="newMetaName"/>
+					<label for="newValue">Valore Meta</label> <input name="newValue" id="newValue">
+					<button type="button"class="setta-def-data" id="AddNewMeta">Aggiungi</button> <button type="button"class="setta-def-data" id="UndoNewMedia">Anulla</button>
+				</div>
+<?php				echo ap_get_elenco_attimeta("Div","","","",$IdAtto);			?>
+			</div>
+			<div class="col-wrap postbox" style="padding:10px;margin-left:10px;">
+				<input type="submit" name="AggiornaMetaDati" id="AggiornaMetaDati" style="margin:auto;" class="button button-primary button-large" value="Memorizza Modifiche MetaDati Atto" />
+			</form>
+			</div>
+		</div><!-- /post-body-content -->
+	</div>
+	<div id="col-left">
+		<div class="col-wrap postbox" style="padding:0 10px 10px 10px;margin-left:10px;">
+			<h3>Dati atto</h3>
+			<hr />
+			<table class="widefat" style="border:0;">
+				<tbody id="dati-atto">
+				<tr>
+					<th style="width:20%;">Ente emittente</th>
+					<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;"><?php echo $NomeEnte;?></td>
+				</tr>
+<?php
+		if($risultato->DataAnnullamento!='0000-00-00')		
+			echo '		<tr>
+				<th style="width:20%;">Data Annullamento</th>
+				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataAnnullamento).'</td>
+			</tr>
+	    	<tr>
+				<th style="width:20%;">Motivo Annullamento</th>
+				<td style="font-size:14px;font-weight: bold;color: Red;vertical-align:top;">'.stripslashes($risultato->MotivoAnnullamento).'</td>
+			</tr>';
+		echo '		<tr>
+				<th style="width:20%;">Numero Albo</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.$risultato->Numero."/".$risultato->Anno.'</td>
+			</tr>
+			<tr>
+				<th>Data</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->Data).'</td>
+			</tr>
+			<tr>
+				<th>Codice di Riferimento</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Riferimento).'</td>
+			</tr>
+			<tr>
+				<th>Oggetto</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Oggetto).'</td>
+			</tr>
+			<tr>
+				<th>Data inizio Pubblicazione</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataInizio).'</td>
+			</tr>
+			<tr>
+				<th>Data fine Pubblicazione</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataFine).'</td>
+			</tr>
+			<tr>
+				<th>Data Oblio</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.ap_VisualizzaData($risultato->DataOblio).'</td>
+			</tr>
+			<tr>
+				<th>Note</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultato->Informazioni).'</td>
+			</tr>
+			<tr>
+				<th>Categoria</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
+			</tr>
+			<tr>
+				<th>Responsabile procedimento</th>
+				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($responsabile->Cognome.' '.$responsabile->Nome.' '.$responsabile->Email).'</td>
+			</tr>	    </tbody>
+		</table>
+	</div>';
+echo '<div class="postbox" style="padding:0 10px 10px 10px;margin-left:10px;">
+	<h3>Allegati</h3>
+	<div class="Visalbo">';
+$allegati=ap_get_all_allegati_atto($IdAtto);
+$TipidiFiles=ap_get_tipidifiles();
+foreach ($allegati as $allegato) {
+	$Estensione=ap_ExtensionType($allegato->Allegato);	
+	echo '<div style="border: thin dashed;font-size: 1em;">
+			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">';
+	if(isset($allegato->TipoFile) and $allegato->TipoFile!="" and ap_isExtensioType($allegato->TipoFile)){
+		$Estensione=ap_ExtensionType($allegato->TipoFile);	
+		echo '<img src="'.$TipidiFiles[$Estensione]['Icona'].'" alt="'.$TipidiFiles[$Estensione]['Descrizione'].'" height="30" width="30"/>';
+	}else{
+		echo '<img src="'.$TipidiFiles[strtolower($Estensione)]['Icona'].'" alt="'.$TipidiFiles[strtolower($Estensione)]['Descrizione'].'" height="30" width="30"allegato/>';
+	}
+	echo'</div>
+			<div style="margin-top:0;">
+				<p style="margin-top:0;">'.strip_tags($allegato->TitoloAllegato).' <br />';
+			if (is_file($allegato->Allegato))
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')<br />'.htmlspecialchars_decode($TipidiFiles[strtolower($Estensione)]['Verifica']);
+			else
+				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
+echo'				</p>
+			</div>
+			<div style="clear:both;"></div>
+		</div>';
+	}
+echo '</div>
+	</div>
+
+</div>';	
+}
+
 function PreApprovazione($id,$ret=''){
 global $wpdb;
-if (!current_user_can('admin_albo')){
+if (!current_user_can('editore_atti_albo')){
 	echo '<div id="message" class="updated"><p>Questa Operazione non ti &egrave; consentita, operazione di pertinenza dell\'amministratore dell\' Albo</p></div>';
 	return;
 }
@@ -485,13 +645,16 @@ if ($ret!=""){
 		$AppPostMigrazione="";
 echo'
 <div class="wrap">
-	<h2 style="font-size:2em;">Atti</h2>
-	<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
+		<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>';
 	if ( $ret!="" ) {
 		echo '<div id="message" class="updated"><p>'.$ret.'</p></div>';
 	}
-echo'<br class="clear" />
-<h3>Approvazione Atto</h3>';
+	echo '
+		<h3>Approvazione Atto</h3>	
+	</div>
+	<br class="clear" />';
 if(get_option('opt_AP_AnnoProgressivo')!=date("Y")){
 	echo '<div style="border: medium groove Blue;margin-top:10px;">
 			<div style="float:none;width:200px;margin-left:auto;margin-right:auto;">
@@ -643,7 +806,7 @@ foreach ($righe as $riga) {
 	echo '<tr>
 			<td>	
 					<a href="'.ap_DaPath_a_URL($riga->Allegato).'" target="_parent">
-							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+						<span class="dashicons dashicons-search" title="Visualizza dati atto"></span>
 					</a>
 			</td>
 			<td >'.$riga->TitoloAllegato.'</td>
@@ -761,7 +924,7 @@ $DataOblioStandard=(date("Y")+6)."-01-01";
 
 <div class="wrap">
 	<div class="HeadPage">
-		<h2 class="wp-heading-inline">Atti</h2>
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
 		<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
 		<div class="Obbligatori">
 		<span style="color:red;font-weight: bold;">*</span> i campi contrassegnati dall'asterisco sono <strong>obbligatori</strong>
@@ -800,6 +963,16 @@ $DataOblioStandard=(date("Y")+6)."-01-01";
 						<span style="font-style: italic;font-size: 0.8em;">Eventuali note a corredo dell'atto</span>
 					</div>
 					</div><!-- /notewrap -->
+				<div class="notewrap postbox" id="MetaDati">
+				<h2 class='hndle'><span>Meta Dati Personalizzati</span> <button type="button" id="AddMeta" class="setta-def-data">Aggiungi Meta Valore</button></h2>
+					<div style="display:none;" id="newMeta">
+						<label for="listaAttiMeta">Meta già codificati</label> <?php echo ap_get_elenco_attimeta("Select","listaAttiMeta","ListaAttiMeta","Si");?>
+						<label for="newMetaName">Nome Meta</label> <input name="newMetaName" id="newMetaName"/>
+						<label for="newValue">Valore Meta</label> <input name="newValue" id="newValue">
+						<button type="button"class="setta-def-data" id="AddNewMeta">Aggiungi</button> <button type="button"class="setta-def-data" id="UndoNewMedia">Anulla</button>
+					</div>
+<?php				//echo ap_get_elenco_attimeta("Div");			?>
+				</div>
 			</div><!-- /post-body-content -->
 
 		<div id="postbox-container-1" class="postbox-container">
@@ -869,7 +1042,7 @@ $DataOblioStandard=(date("Y")+6)."-01-01";
 
 <div class="wrap">
 	<div class="HeadPage">
-		<h2 class="wp-heading-inline">Atti</h2>
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
 		<a href="<?php echo site_url().'/wp-admin/admin.php?page=atti';?>" class="add-new-h2 tornaindietro">Torna indietro</a>
 		<div class="Obbligatori">
 		<span style="color:red;font-weight: bold;">*</span> i campi contrassegnati dall'asterisco sono <strong>obbligatori</strong>
@@ -909,6 +1082,16 @@ $DataOblioStandard=(date("Y")+6)."-01-01";
 						<span style="font-style: italic;font-size: 0.8em;">Eventuali note a corredo dell'atto</span>
 					</div>
 					</div><!-- /notewrap -->
+				<div class="notewrap postbox" id="MetaDati">
+				<h2 class='hndle'><span>Meta Dati Personalizzati</span> <button type="button" id="AddMeta" class="setta-def-data">Aggiungi Meta Valore</button></h2>
+					<div style="display:none;" id="newMeta">
+						<label for="listaAttiMeta">Meta già codificati</label> <?php echo ap_get_elenco_attimeta("Select","listaAttiMeta","ListaAttiMeta","Si");?>
+						<label for="newMetaName">Nome Meta</label> <input name="newMetaName" id="newMetaName"/>
+						<label for="newValue">Valore Meta</label> <input name="newValue" id="newValue">
+						<button type="button"class="setta-def-data" id="AddNewMeta">Aggiungi</button> <button type="button"class="setta-def-data" id="UndoNewMedia">Anulla</button>
+					</div>
+<?php				echo ap_get_elenco_attimeta("Div","","","",$id);			?>
+				</div>
 			</div><!-- /post-body-content -->
 
 		<div id="postbox-container-1" class="postbox-container">
@@ -976,7 +1159,7 @@ function Allegati_atto($IdAtto,$messaggio="",$IdAllegato=0){
 <div class="wrap">
 
 	<div class="HeadPage">
-		<h2 class="wp-heading-inline">Atti</h2>
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
 		<a href="'. site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
 		<h3>Allegati Atto</h3>	
 	</div>';
@@ -1040,13 +1223,13 @@ if ($IdAllegato!=0){
 		echo '<tr>
 				<td>	
 					<a href="?page=atti&amp;action=delete-allegato-atto&amp;idAllegato='.$riga->IdAllegato.'&amp;idAtto='.$IdAtto.'&amp;Allegato='.$riga->TitoloAllegato.'&amp;cancellaallegatoatto='.wp_create_nonce('deleteallegatoatto').'" rel="'.strip_tags($riga->TitoloAllegato).'" class="da">
-						<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
+						<span class="dashicons dashicons-trash" title="Cancella Atto"></span>
 					</a>
 					<a href="?page=atti&amp;action=edit-allegato-atto&amp;id='.$IdAtto.'&amp;idAlle='.$riga->IdAllegato.'&amp;modificaallegatoatto='.wp_create_nonce('editallegatoatto').'" rel="'.strip_tags($riga->TitoloAllegato).'">
-						<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" />
+						 <span class="dashicons dashicons-edit" title="Modifica atto"></span>
 					</a>
 					<a href="'.ap_DaPath_a_URL($riga->Allegato).'" target="_parent">
-							<img src="'.Albo_URL.'/img/view.png" alt="View" title="View" />
+							<span class="dashicons dashicons-search" title="Visualizza dati atto"></span>
 					</a>
 				</td>
 				<td >'.$riga->TitoloAllegato.'</td>
@@ -1127,7 +1310,7 @@ else
 	echo '
 <div class="wrap nosubsub">
 	<div class="HeadPage">
-		<h2 class="wp-heading-inline">Atti</h2>
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
 		<a href="'.site_url().'/wp-admin/admin.php?page=atti" class="add-new-h2 tornaindietro">Torna indietro</a>
 		<h3 >Visualizza dati Atto</h3>	
 	</div>
@@ -1213,36 +1396,48 @@ else
 			<tr>
 				<th>Categoria</th>
 				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($risultatocategoria->Nome).'</td>
-			</tr>
+			</tr>';
+$MetaDati=ap_get_meta_atto($IdAtto);
+if($MetaDati!==FALSE){
+	$Meta="";
+	foreach($MetaDati as $Metadato){
+		$Meta.="{".$Metadato->Meta."=".$Metadato->Value."} - ";
+	}
+	$Meta=substr($Meta,0,-3);
+		echo'
+				<tr>
+					<th>Meta Dati</th>
+					<td style="vertical-align: middle;color: Red;">'.$Meta.'</td>
+				</tr>';
+}
+echo'
 			<tr>
 				<th>Responsabile procedimento</th>
 				<td style="font-size:12px;font-style: italic;color: Blue;vertical-align:middle;">'.stripslashes($responsabile->Cognome.' '.$responsabile->Nome.' '.$responsabile->Email).'</td>
-			</tr>	    </tbody>
+			</tr>	    
+			</tbody>
 		</table>
 	</div>';
 echo '<div class="postbox" style="padding:0 10px 10px 10px;margin-left:10px;">
 	<h3>Allegati</h3>
 	<div class="Visalbo">';
 $allegati=ap_get_all_allegati_atto($IdAtto);
+$TipidiFiles=ap_get_tipidifiles();
 foreach ($allegati as $allegato) {
- 	switch (ap_ExtensionType($allegato->Allegato)){
-		case 'pdf':
-			$Estensione="Pdf.png";
-			$Verifica="";
-			break;
-		case "p7m":
-			$Estensione="firmato.png";
-			$Verifica='<br /><a href="http://vol.ca.notariato.it/" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>';
-			break;
-	}
+	$Estensione=ap_ExtensionType($allegato->Allegato);	
 	echo '<div style="border: thin dashed;font-size: 1em;">
-			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
-				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
-			</div>
+			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">';
+	if(isset($allegato->TipoFile) and $allegato->TipoFile!=""  and ap_isExtensioType($allegato->TipoFile)){
+		$Estensione=ap_ExtensionType($allegato->TipoFile);	
+		echo '<img src="'.$TipidiFiles[$Estensione]['Icona'].'" alt="'.$TipidiFiles[$Estensione]['Descrizione'].'" height="30" width="30"/>';
+	}else{
+		echo '<img src="'.$TipidiFiles[strtolower($Estensione)]['Icona'].'" alt="'.$TipidiFiles[strtolower($Estensione)]['Descrizione'].'" height="30" width="30"allegato/>';
+	}
+	echo '</div>
 			<div style="margin-top:0;">
 				<p style="margin-top:0;">'.strip_tags($allegato->TitoloAllegato).' <br />';
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')<br />'.htmlspecialchars_decode($TipidiFiles[strtolower($Estensione)]['Verifica']);
 			else
 				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
 echo'				</p>
@@ -1268,10 +1463,14 @@ function Annulla_Atto($IdAtto){
 	$NomeEnte=ap_get_ente($risultato->Ente);
 	$NomeEnte=stripslashes($NomeEnte->Nome);
 	echo '
-<div class="wrap nosubsub">
-<h2>Atti<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;stato_atti=Correnti" class="add-new-h2 tornaindietro">Torna indietro</a></h2>
-<h3>Annulla Atto</h3>
-<div id="col-container">
+<div class="wrap">
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti</h2>
+		<a href="'.site_url().'/wp-admin/admin.php?page=atti&amp;stato_atti=Correnti" class="add-new-h2 tornaindietro">Torna indietro</a>
+		<h3>Annulla Atto</h3>	
+	</div>
+	<div id="col-container">
+		<div class="clear"><br /></div>
 		<form id="annullaatto" method="post" action="?page=atti" class="validate">
 		<input type="hidden" name="action" value="annulla-atto" />
 		<input type="hidden" name="id" value="'.(int)$_REQUEST['id'].'" />
@@ -1336,27 +1535,24 @@ function Annulla_Atto($IdAtto){
 			<td>
 			<p style="color:red;font-weight: bold;">Selezionare gli allegati che devono essere cancellati per violazione di legge<br />NB: verrà cancellato solo il file, mentre sarà mantenuto il nome del file nell\'elenco degli allegati</p>';
 $allegati=ap_get_all_allegati_atto($IdAtto);
+$TipidiFiles=ap_get_tipidifiles();
 foreach ($allegati as $allegato) {
- 	switch (ap_ExtensionType($allegato->Allegato)){
-		case 'pdf':
-			$Estensione="Pdf.png";
-			$Verifica="";
-			break;
-		case "p7m":
-			$Estensione="firmato.png";
-			$Verifica='<br /><a href="http://vol.ca.notariato.it/" onclick="window.open(this.href,\'_blank\');return false;">Verifica firma con servizio fornito da Consiglio Nazionale del Notariato</a>';
-			break;
-	}
+	$Estensione=ap_ExtensionType($allegato->Allegato);	
 	echo '<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
 			<input type="checkbox" name="Alle:'.$allegato->IdAllegato.'" value="'.$allegato->IdAllegato.'">
 		  </div>
-			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">
-				    <img src="'.Albo_URL.'img/'.$Estensione.'" alt="Icona tipo allegato" />
-			</div>
+			<div style="float: left;display: inline;width: 40px;height: 40px;padding-top:5px;padding-left:5px;">';
+	if(isset($allegato->TipoFile) and $allegato->TipoFile!="" and ap_isExtensioType($allegato->TipoFile)){
+		$Estensione=ap_ExtensionType($allegato->TipoFile);	
+		echo '<img src="'.$TipidiFiles[$Estensione]['Icona'].'" alt="'.$TipidiFiles[$Estensione]['Descrizione'].'" height="30" width="30"/>';
+	}else{
+		echo '<img src="'.$TipidiFiles[strtolower($Estensione)]['Icona'].'" alt="'.$TipidiFiles[strtolower($Estensione)]['Descrizione'].'" height="30" width="30"allegato/>';
+	}
+	echo'</div>
 			<div style="margin-top:0;">
 				<p style="margin-top:0;">'.strip_tags($allegato->TitoloAllegato).' <br />';
 			if (is_file($allegato->Allegato))
-				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')'.$Verifica;
+				echo '        <a href="'.ap_DaPath_a_URL($allegato->Allegato).'" >'. basename( $allegato->Allegato).'</a> ('.ap_Formato_Dimensione_File(filesize($allegato->Allegato)).')<br />'.htmlspecialchars_decode($TipidiFiles[strtolower($Estensione)]['Verifica']);
 			else
 				echo basename( $allegato->Allegato)." File non trovato, il file &egrave; stato cancellato o spostato!";
 echo'				</p>
@@ -1423,6 +1619,8 @@ $messages[8] = 'Impossibile ANULLARE l\'Atto';
 $messages[9] = 'Atto ANNULLATO';
 $messages[10] = 'Allegati all\'Atto Cancellati';
 $messages[11] = 'Allegati all\'Atto NON Cancellati';
+$messages[12] = 'Metadati  dell\'Atto Memorizzati';
+$messages[13] = 'Metadati  dell\'Atto NON Memorizzati';
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 $messages[99] = 'OPERAZIONE NON AMMESSA!<br />l\'atto non è ancora da eliminare';
 //Gestione Messaggi di stato
@@ -1442,12 +1640,13 @@ if ($Msg_op!=""){
 }
 ?>
 <div id="ConfermaCancellazione" title="Conferma Cancellazione" style="display:none;">
-	<input type="hidden" value="" id="UrlDest">
+	<input type="hidden" value="" id="UrlDest" />
   <h3>Atto <span id="oggetto"></span></span></h3><p style='color:red;font-weight: bold;'>Confermi la cancellazione dell'atto?</p>
 </div>
 <?php
 echo' <div class="wrap">
-		  <h2 style="font-size:2em;">Atti ';
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-portfolio"></span> Atti';
 $HtmlNP="";
 if (ap_get_num_categorie()==0){
 	$HtmlNP.='<p> </p>
@@ -1474,7 +1673,6 @@ if ($HtmlNP!=""){
 </div><!-- /wrap -->	';
 	return;	
 }
-
 echo'
 	<a href="?page=atti&amp;action=new-atto" class="add-new-h2">Aggiungi nuovo</a></h2>';
 	if ( isset($msg) or isset($msg2) or isset($Errore) ){
@@ -1504,8 +1702,9 @@ echo'
   	$tablenew->prepare_items(); // Metodo per elenco campi
   	$page = filter_input(INPUT_GET,'page' ,FILTER_SANITIZE_STRIPPED);
   	$paged = filter_input(INPUT_GET,'paged',FILTER_SANITIZE_NUMBER_INT);
-	echo '<div class="wrap">
-	  	<h3>'.$Titolo.'</h3>
+	echo '<h3>'.$Titolo.'</h3>	
+		</div>
+		<div class="wrap">
 	  	<form method="get">
 	  		<input type="hidden" name="page" value="'.$page. '"/>
 	  		<input type="hidden" name="stato_atti" value="Cerca"/>'; /* mr */
@@ -1518,6 +1717,7 @@ echo'
 	$tablenew->display(); // Metodo per visualizzare elenco records
 	echo '</form>
 	</div>
+</div>
 ';
 }
 ?>

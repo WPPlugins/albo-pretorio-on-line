@@ -37,11 +37,12 @@ table.wp-list-table.clienti {
 }
 
 .HeadPage h2{
+   font-size: 2em;
 	display:inline;
 	margin-right:10px;
 }
 .HeadPage h3{
-	font-size: 2em;
+	font-size: 1.5em;
 	text-align: center;
 	font-weight: bold;
 	margin:0;
@@ -90,7 +91,7 @@ table.wp-list-table.clienti {
 } 
 #config-tabs-container { 
     padding: 0px; 
-    height: 450px;
+    min-height: 550px;
 } 
 #utility-tabs-container .ui-tabs-nav,#config-tabs-container .ui-tabs-nav{ 
     background: transparent; 
@@ -116,4 +117,22 @@ background-color: #f9f9f9;
 #utility-tabs-container div{
 	margin:5px;
 	padding:10px;
+}
+.row-actions span.pubblica a{
+	color: #32cd32;
+}
+
+.row-actions span.pubblica a:hover{
+	color: #99e59a;
+	border: none;
+}
+.row-actions{
+	position:initial;
+}
+span.cancella a{
+	color: #a00;
+}
+span.cancella a:hover{
+	color: #dc3232;
+	border: none;
 }

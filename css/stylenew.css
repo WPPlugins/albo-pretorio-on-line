@@ -1,0 +1,60 @@
+/*
+    Regole di stile per la pagina pubblica dell'albo su template design.itali.it
+*/
+
+.HeadAtto{
+    width: 30%!Important;
+}
+.HeadAllegati{
+    width: 70%!Important;
+}
+.FunctionAllegati{
+    width: 30%!Important;
+}
+table#elenco-atti, table#tabella-filtro-atti{
+    border:1px solid #aaaaaa;
+    background-color: #fff;
+}
+table#elenco-atti th,table#tabella-filtro-atti th,table#tabella-filtro-atti td{
+    background-color: #fff; 
+}
+table#elenco-atti th,table#tabella-filtro-atti th{
+    border-bottom:0;
+}
+#risultati ul{
+    list-style-type: none; 
+}
+.filtri h4{
+    margin-top:2em;
+}
+.Grid--withGutterM {
+  margin: 0 -var(--Grid-gutter-size);
+}
+
+.Grid--withGutterM > .Grid-cell {
+  padding: 0 calc(var(--Grid-gutter-size));
+}
+
+.Grid--withGutterL {
+  margin: 0 calc(-1.5 * var(--Grid-gutter-size));
+}
+
+.Grid--withGutterL > .Grid-cell {
+  padding: 0 calc(1.5 * var(--Grid-gutter-size));
+}
+a{
+    text-decoration: none;
+}
+a:hover{
+    color:#06c!important;
+    text-decoration:none;
+}
+.s{
+    color:#14f;
+}
+.h{
+    color:#a5abb0;
+}
+h3{
+    margin: 10px 0 10px 0;
+}

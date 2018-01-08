@@ -20,8 +20,10 @@ $messages[9] = __('Bisogna assegnare il nome alla nuova categoria');
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
-<h2  style="font-size:2em;">Categorie Atti<a href="?page=categorie" class="add-new-h2">Aggiungi nuovo</a></h2>
-
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-category"></span> Categorie Atti
+		<a href="?page=categorie" class="add-new-h2">Aggiungi nuovo</a></h2>
+	</div>
 <?php 
 if ( isset($_REQUEST['message']) && ( $msg = (int) $_REQUEST['message'] ) ) {
 	echo '<div id="message" class="updated"><p>'.$messages[$msg].'</p></div>';
@@ -58,16 +60,16 @@ if ($lista){
 	 echo'<li style="text-align:left;padding-left:'.$shift.'px;">';
 	 $Tab=0;
 	 	if (ap_num_atti_categoria($riga[0])==0)
-			echo'
+			echo'<span class="cancella">
 				<a href="?page=categorie&amp;action=delete-categorie&amp;id='.$riga[0].'&amp;canccategoria='.wp_create_nonce('delcategoria').'" rel="'.$riga[1].'" class="dc">			
-				<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-			</a>
+				<span class="dashicons dashicons-trash" title="Cancella categoria"></span>
+			</a></span>
 	';
 		else
-			$Tab=20;
+			$Tab=23;
 		echo'					
 			<a href="?page=categorie&amp;action=edit-categorie&amp;id='.$riga[0].'&amp;modcategoria='.wp_create_nonce('editcategoria').'" rel="'.$riga[1].'">
-			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" style="margin-left:'.$Tab.'px;"/>
+			<span class="dashicons dashicons-edit" title="Modifica categoria" style="margin-left:'.$Tab.'px;"></span>
 			</a>
 			('.$riga[0] .') '.$riga[1] .' (n&ordm; atti '.ap_num_atti_categoria($riga[0]).')
 			</li>'; 

@@ -19,8 +19,10 @@ $messages[7] = __('Impossibile cancellare Responsabili che sono collegati ad Att
 $messages[80] = 'ATTENZIONE. Rilevato potenziale pericolo di attacco informatico, l\'operazione &egrave; stata annullata';
 ?>
 <div class="wrap nosubsub">
-<h2 style="font-size: 2em;">Responsabili Procedimento <a href="?page=responsabili" class="add-new-h2">Aggiungi nuovo</a></h2>
-
+	<div class="HeadPage">
+		<h2 class="wp-heading-inline"><span class="dashicons dashicons-businessman" style="font-size: 1.1em;"></span> Responsabili Procedimento
+		<a href="?page=responsabili" class="add-new-h2">Aggiungi nuovo</a></h2>
+	</div>
 <?php
 $NC="";
 if (isset($_REQUEST['action']) And $_REQUEST['action']=="delete-responsabile"){
@@ -74,14 +76,14 @@ if ($lista){
 		echo'<li style="text-align:left;padding-left:1px;">';
 		$Tab=0;
 		if(ap_num_responsabili_atto($riga->IdResponsabile)==0)
-			echo '<a href="?page=responsabili&amp;action=delete-responsabile&amp;id='.$riga->IdResponsabile.'&amp;cancresp='.wp_create_nonce('deleteresponsabile').'" rel="'.$riga->Cognome.'" class="dr">
-			<img src="'.Albo_URL.'/img/cross.png" alt="Delete" title="Delete" />
-			</a>';
+			echo '<span class="cancella"><a href="?page=responsabili&amp;action=delete-responsabile&amp;id='.$riga->IdResponsabile.'&amp;cancresp='.wp_create_nonce('deleteresponsabile').'" rel="'.$riga->Cognome.'" class="dr">
+			<span class="dashicons dashicons-trash" title="Cancella responsabile"></span>
+			</a></span>';
 		else
-			$Tab=20;
+			$Tab=23;
 		echo '
 			<a href="?page=responsabili&amp;action=edit-responsabile&amp;id='.$riga->IdResponsabile.'&amp;modresp='.wp_create_nonce('editresponsabile').'" rel="'.$riga->Cognome.'">
-			<img src="'.Albo_URL.'/img/edit.png" alt="Edit" title="Edit" style="margin-left:'.$Tab.'px;"/>
+			<span class="dashicons dashicons-edit" title="Modifica responsabile" style="margin-left:'.$Tab.'px;"></span>
 			</a>
 			('.$riga->IdResponsabile.') '.$riga->Cognome .' (n&ordm; atti '.ap_num_responsabili_atto($riga->IdResponsabile).')
 			</li>'; 
