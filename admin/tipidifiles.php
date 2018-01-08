@@ -2,7 +2,7 @@
 /**
  * Gestione Responsabili.
  * @link       http://www.eduva.org
- * @since      4.0.4
+ * @since      4.1.1
  *
  * @package    ALbo On Line
  */
@@ -100,7 +100,7 @@ echo '</td>
 </div>
 <div class="col-wrap">
 <h3>Log</h3>';
-$righe=ap_get_all_Oggetto_log(4);
+$righe=ap_get_all_Oggetto_log(8);
 echo'
 	<table class="widefat">
 	    <thead>

@@ -4,7 +4,7 @@
  * Plugin Name:       Albo Pretorio On line
  * Plugin URI:        https://it.wordpress.org/plugins/albo-pretorio-on-line/
  * Description:       Plugin utilizzato per la pubblicazione degli atti da inserire nell'albo pretorio dell'ente.
- * Version:           4.1
+ * Version:           4.1.1
  * Author:            Ignazio Scimone
  * Author URI:        eduva.org
  * License:           GPL-2.0+
@@ -65,11 +65,11 @@ if (!class_exists('AlboPretorio')) {
 		$this->load_dependencies();
 		$this->plugin_name = plugin_basename(__FILE__);
 		// Hook per attivazione/disattivazione plugin
-		register_activation_hook( $this->plugin_name, array('AlboPretorio', 'activate'));
-		register_deactivation_hook( $this->plugin_name, array('AlboPretorio', 'deactivate') );	
+		register_activation_hook(  __FILE__, array('AlboPretorio', 'activate'));
+		register_deactivation_hook(  __FILE__, array('AlboPretorio', 'deactivate') );	
 
 		// Hook disinstallazione
-		register_uninstall_hook( $this->plugin_name, array('AlboPretorio', 'uninstall') );
+		register_uninstall_hook(  __FILE__, array('AlboPretorio', 'uninstall') );
 
 		// Hook di inizializzazione che registra il punto di avvio del plugin
 		add_action( 'admin_enqueue_scripts', array( 'AlboPretorio','Albo_Admin_Enqueue_Scripts' )  );

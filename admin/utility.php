@@ -2,7 +2,7 @@
 /**
  * Utility dell'albo.
  * @link       http://www.eduva.org
- * @since      4.0.4
+ * @since      4.1.1
  *
  * @package    ALbo On Line
  */

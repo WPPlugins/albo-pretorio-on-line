@@ -2,7 +2,7 @@
 /**
  * Libreria di funzioni necessarie al plugin per la gestione dell'albo.
  * @link       http://www.eduva.org
- * @since      4.0.4
+ * @since      4.1.1
  *
  * @package    ALbo On Line
  */
@@ -590,6 +590,7 @@ Oggetto int(1)
 	5=> Statistiche Visualizzazioni
 	6=> Statistiche Download Allegati
 	7=> Enti
+	8=> Tipi di Files
 	
 TipoOperazione int(1)
 	1=> Inserimento
@@ -695,6 +696,7 @@ switch ($TipoInformazione){
 					WHEN 5 THEN 'Statistiche Visualizzazioni'
 					WHEN 6 THEN 'Statistiche Download Allegati'
 					WHEN 7 THEN 'Enti'
+					WHEN 8 THEN 'Tipi di files'
 				END as NomeOggetto, COUNT( * ) as Numero
 				FROM $wpdb->table_name_Log
 				GROUP BY Oggetto";
@@ -2698,6 +2700,7 @@ function ap_oblio_atti($Atti){
 			}
 		}
 		if($Trovato){
+			ap_insert_log(8,2,$ID);
 			update_option('opt_AP_TipidiFiles', $NewTipidiFiles);
 		}
 		return $Trovato;
@@ -2715,6 +2718,9 @@ function ap_oblio_atti($Atti){
 		if(!$Trovato){
 			$TipidiFiles[strtolower($ID)]=array("Descrizione"=>$Descrizione,"Icona"=>$Icona,"Verifica"=>htmlspecialchars($Verifica));
 			update_option('opt_AP_TipidiFiles', $TipidiFiles);
+			ap_insert_log(8,1,$ID,"{Descrizione}==> $Descrizione 
+								  {Icona}==> $Icona
+								  {Verifica}==> $Verifica");
 		}
 		return !$Trovato;
 	}
@@ -2722,6 +2728,9 @@ function ap_oblio_atti($Atti){
 		$ID=trim($ID);
 		$TipidiFiles=ap_get_tipidifiles();
 		$TipidiFiles[strtolower($ID)]=array("Descrizione"=>$Descrizione,"Icona"=>$Icona,"Verifica"=>htmlspecialchars($Verifica));
+		ap_insert_log(8,2,$ID,"{Descrizione}==> $Descrizione 
+					  {Icona}==> $Icona
+					  {Verifica}==> $Verifica");
 		return update_option('opt_AP_TipidiFiles', $TipidiFiles);
 	}
 ?>
