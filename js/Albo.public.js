@@ -1,66 +1,115 @@
-jQuery.noConflict();
-(function($) {
-	$(function() {		 
+function format ( d ) {
+	return '<table cellpadding="1" cellspacing="0" border="0" style="padding-left:5px;font-size:0.9em;font-weight: bold;">'+
+		'<tr>'+
+			'<td style="width:5%;text-align: right;">Ente:</td>'+
+			'<td>'+d[2]+'</td>'+
+		'</tr>'+
+		'<tr>'+
+			'<td style="text-align: right;">Riferimento:</td>'+
+			'<td>'+d[3]+'</td>'+
+		'</tr>'+
+		'<tr>'+
+			'<td style="text-align: right;">Categoria:</td>'+
+			'<td>'+d[6]+'</td>'+
+		'</tr>'+
+	'</table>';
+}
+function valida_data( data ){
+	    var errors = '';
+	    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
+	        errors += 'Data non valida';
+	    } else {
+
+	        var parts = data.split('/');
+	        var day = parts[0];
+	        var month = parts[1];
+	        var year = parts[2];
+	        var $day = (day.charAt(0) == '0') ? day.charAt(1) : day;
+	        var $month = (month.charAt(0) == '0') ? month.charAt(1) : month;
+
+	        if ($day > 31 || $day < 1) {
+	            errors += 'Giorno non valido';
+	        }
+
+	        if ($month > 12 || $month < 1) {
+	            errors += 'Mese non valido';
+	        }
+
+	        var now = new Date();
+	        var currentYear = now.getFullYear();
+
+	        if (year > currentYear || year < (currentYear - 100)) {
+	            errors += 'Anno non valido';
+	        }
+	    }	
+	    return errors;
+}
+jQuery(document).ready(function($){
 		$('#paginazione').change(function(){
-				location.href=$(this).attr('rel')+$("#paginazione option:selected" ).text();
+				location.href=$(this).attr('rel')+$('#paginazione option:selected').text();
 		});
-		$('#Calendario1').datepicker();
-		$('#Calendario2').datepicker();
+		$('#Calendario1').datepicker({dateFormat : 'dd/mm/yy'});
+		$('#Calendario2').datepicker({dateFormat : 'dd/mm/yy'});
 		$('a.addstatdw').click(function() {
-			 var link=$(this).attr('rel');
 				jQuery.ajax({type: 'get',url: $(this).attr('rel')}); //close jQuery.ajax
 			return true;		 
-		});
-				
-		$('#elenco-atti').dataTable( {
-          dom: 'T<"clear">lfrtip',
-          order: [[ColOrder, OrdOrder ]],
-          tableTools: {
-         	"sSwfPath": url,
-          	"aButtons": [ 
-          		{
-					"sExtends": "copy",
-					"sButtonText": "Copia negli Appunti"
-				},
-          		{
-					"sExtends": "print",
-					"sButtonText": "Stampa"
-				},
-				{
-                    "sExtends":    "collection",
-                    "sButtonText": "Salva",
-                    "aButtons":    [ "csv", "xls",                 
-                    {
-                    	"sExtends": "pdf",
-                    	"sPdfOrientation": "landscape",
-                    	"sPdfMessage": "Tabella generata con il plugin Gestione Circolari."
-                	},]
-                }
-			]
-         },
-        language:{
-		    "sEmptyTable":     "Nessun dato presente nella tabella",
-		    "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
-		    "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
-		    "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
-		    "sInfoPostFix":    "",
-		    "sInfoThousands":  ",",
-		    "sLengthMenu":     "Visualizza _MENU_ elementi",
-		    "sLoadingRecords": "Caricamento...",
-		    "sProcessing":     "Elaborazione...",
-		    "sSearch":         "Cerca:",
-		    "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
-		    "oPaginate": {
-		        "sFirst":      "Inizio",
-		        "sPrevious":   "Precedente",
-		        "sNext":       "Successivo",
-		        "sLast":       "Fine"
-		    },
-		    "oAria": {
-		        "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
-		        "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
-		    }
+			});
+	$('#pp-tabs-container').tabs();
+	$('#fe-tabs-container').tabs();
+	$('#maxminfiltro').on('click',function(){
+		if($('#maxminfiltro').attr('class')==='albos'){
+			$('#fe-tabs-container').hide();
+			$('#maxminfiltro').attr('class','alboh');
+			$('#maxminfiltro').html('<span class=\"dashicons dashicons-filter\"></span> Apri Ricerca atti mediante filtri');
+			
+		}else{
+			$('#fe-tabs-container').show();
+			$('#maxminfiltro').attr('class','albos');
+			$('#maxminfiltro').html('<span class=\"dashicons dashicons-filter\"></span> Chiudi Ricerca atti mediante filtri');
 		}
-    } );
 	});
-})(jQuery);
+	$('a.numero-pagina').click(function(){
+		location.href=$(this).attr('href')+'&vf='+$('#maxminfiltro').attr('class')+'#dati';
+		return false;
+	});
+	$('#filtro-atti').submit(function(e) {
+		var Pass=true;
+		 if($('#Calendario1').val()!=""){
+		 	var datetime = $('#Calendario1').val();
+		 	var errore=valida_data(datetime);
+		 	if(errore!=""){
+		 		alert("Da data: "+errore);
+		 		Pass=false;
+		 		e.preventDefault();	
+		 	}
+		}
+		 if($('#Calendario2').val()!=""){
+		 	var datetime = $('#Calendario2').val();
+		 	var errore=valida_data(datetime);
+		 	if(errore!=""){
+		 		alert("A data: "+errore);
+		 		Pass=false;
+		 		e.preventDefault();	
+		 	}
+		}
+		var rif= $('#riferimento').val();
+		 if(rif!=rif.replace(/(<([^>]+)>)/ig,"")){
+		 	alert("Errore: campo Riferimento contiene testo non idoneo");
+		 	e.preventDefault();	
+		 	Pass=false;
+		 }
+		var rif= $('#oggetto').val();
+		 if(rif!=rif.replace(/(<([^>]+)>)/ig,"")){
+		 	alert("Errore: campo Oggetto contiene testo non idoneo");
+		 	e.preventDefault();	
+		 	Pass=false;
+		 }
+		 var Numero=$("#numero").val();
+		 if (isNaN(Numero)){
+ 		 	alert("Errore: campo Atto N° non è di tipo numerico");
+		 	e.preventDefault();	
+		 	Pass=false;
+		}
+	 	return Pass;
+	});
+}); 
