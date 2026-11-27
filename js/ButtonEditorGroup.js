@@ -8,15 +8,15 @@
 			}
     		ed.addCommand('frmAlbogrp', function() {
 				ed.windowManager.open({
-					title : 'Albo Pretorio Raggruppamento Atti',
-					file : url + '/buttonEditorGruppiAlbo.php',
+					title : title_button_gruppi,
+					file : ajaxurl + '?action=ap_editor_gruppi',
 					width : 350, 
 					height : 200,
 					inline : 1
 				});
 			});
              ed.addButton('albo_gruppo_atti', {
-                title : 'Albo Pretorio Raggruppamento Atti',
+                title : title_button_gruppi,
                 image : str+'img/albogroup.png',
                 cmd   : 'frmAlbogrp'
             });

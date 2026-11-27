@@ -8,15 +8,15 @@
 			}
     		ed.addCommand('frmAlbo', function() {
 				ed.windowManager.open({
-					title : 'Albo Pretorio',
-					file : url + '/gencode.php',
+					title : title_button_albo,
+					file : ajaxurl + '?action=ap_editor_albo',
 					width : 350, 
 					height : 320,
 					inline : 1
 				});
 			});
              ed.addButton('albo', {
-                title : 'Albo Pretorio',
+                title : title_button_albo,
                 image : str+'img/albo.png',
                 cmd   : 'frmAlbo'
             });

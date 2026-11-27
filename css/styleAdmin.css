@@ -1,3 +1,21 @@
+.my-welcome-panel {
+	position: relative;
+	overflow: auto;
+	margin: 16px 0;
+	padding: 23px 10px 0;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+	background: #fff;
+	font-size: 13px;
+	line-height: 1.7;
+}
+.my-welcome-panel-content {
+    margin-left: 13px;
+    max-width: 1500px;
+}.welcome-panel-content {
+	margin-left: 13px;
+	max-width: 1500px;
+}
 .NessunAtto{
 	font-size:1.3em;
 	font-style: italic;
@@ -84,10 +102,24 @@ table.wp-list-table.clienti {
     line-height: 1.3em;
     vertical-align: middle;
 	text-align:left;
-}   	
+}   
+.noalbo_cell{
+	width:100%;
+}	
+.noalbo_cell td {
+    margin-bottom: 1px;
+    padding: 5px 1px;
+    line-height: 1.2em;
+    vertical-align: middle;
+    text-align: left;
+}
+.noalbo_cell th{
+	width:33%;
+	text-align:center;
+}
 #utility-tabs-container{ 
     padding: 0px; 
-    height: 600px;
+    min-height: 600px;
 } 
 #config-tabs-container { 
     padding: 0px; 
@@ -118,7 +150,7 @@ background-color: #f9f9f9;
 	margin:5px;
 	padding:10px;
 }
-.row-actions span.pubblica a{
+.row-actions span.pubblica a,span.oblioatto a{
 	color: #32cd32;
 }
 
@@ -126,13 +158,59 @@ background-color: #f9f9f9;
 	color: #99e59a;
 	border: none;
 }
-.row-actions{
+/* Rende sempre visibili le azioni di riga nell'elenco degli atti.
+   La regola va limitata a quella schermata: applicata globalmente
+   mostrerebbe le azioni anche negli elenchi di pagine, articoli,
+   custom post type e tassonomie (issue ignazios/albo-pretorio-on-line#2).
+   Il selettore usa una corrispondenza parziale perche' la prima parte
+   della classe deriva dal titolo del menu, che e' tradotto. */
+body[class*="_page_atti"] .row-actions{
 	position:initial;
 }
-span.cancella a{
+span.cancella a, span.oblioallegati a{
 	color: #a00;
 }
 span.cancella a:hover{
 	color: #dc3232;
 	border: none;
+}
+
+button.append, button.removeLast, button.remove, button.moveUp,button.moveDown,button.insert
+{
+    width: auto !important;
+    height: auto !important;
+	padding: 0.2em !important;
+}
+.ui-button-text-only .ui-button-text {
+    padding: .2em .2em;
+}
+#ElaborazioneTabella{width: 200px;height: 200px;position: absolute;top: 50%;left: 50%; margin-top: -100px; margin-left: -100px;z-index:1;display:none;}
+.iconamano{cursor: pointer;color:red;}
+
+.ElencoSoggetti{
+	float:left;
+	min-width:15em;
+}
+#Stato, #the-list > tr > td.Stato{
+	width:15%;
+}
+.evidenziato{
+	font-weight: bold;
+	font-size:1.2em;
+	color:red;
+}
+.lista ol {
+    counter-reset: item;
+    padding-left: 10px;
+	list-style: bold;
+}
+.lista li{
+    display: block;
+}
+.lista li:before {
+    content: counters(item, ".") " ";
+    counter-increment: item
+}
+.listaTitolo{
+	font-weight:bold;
 }
